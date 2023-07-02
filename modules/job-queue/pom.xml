@@ -8,9 +8,10 @@
         <groupId>io.tpersson.ufw</groupId>
         <artifactId>ufw-bom</artifactId>
         <version>1.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>db</artifactId>
+    <artifactId>job-queue</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -30,8 +31,13 @@
             <artifactId>logging</artifactId>
         </dependency>
         <dependency>
-            <groupId>jakarta.inject</groupId>
-            <artifactId>jakarta.inject-api</artifactId>
+            <groupId>io.tpersson.ufw</groupId>
+            <artifactId>db</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgresql.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
@@ -67,12 +73,6 @@
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
             <version>${hikaricp.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>${postgresql.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

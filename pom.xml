@@ -10,14 +10,14 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>core</module>
-        <module>db</module>
-        <module>db-guice</module>
-        <module>logging</module>
-        <module>mediator</module>
-        <module>key-value-store</module>
-        <module>key-value-store-guice</module>
-        <module>job-queue</module>
+        <module>modules/core</module>
+        <module>modules/db</module>
+        <module>modules/db-guice</module>
+        <module>modules/logging</module>
+        <module>modules/mediator</module>
+        <module>modules/key-value-store</module>
+        <module>modules/key-value-store-guice</module>
+        <module>modules/job-queue</module>
         <module>examples/guice-app</module>
     </modules>
 
