@@ -12,7 +12,9 @@ import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.lifecycle.Startables
 import org.testcontainers.utility.DockerImageName
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import java.util.UUID
+import kotlin.test.fail
 
 internal class IntegrationTest {
 
@@ -43,7 +45,7 @@ internal class IntegrationTest {
     fun `Basic test`(): Unit = runBlocking {
         dataSource.connection.useInTransaction {
             it.prepareStatement(
-            """
+                """
                 CREATE TABLE test (id UUID NOT NULL PRIMARY KEY)
             """.trimIndent()
             ).execute()
@@ -56,9 +58,11 @@ internal class IntegrationTest {
         val testId = UUID.fromString("8b00ce00-4523-412b-b1fe-98d4737bf991")
 
         unitOfWork.add {
-            prepareStatement("""
+            prepareStatement(
+                """
                 INSERT INTO test (id) VALUES (?)
-            """.trimIndent()).also {
+            """.trimIndent()
+            ).also {
                 it.setObject(1, testId)
             }
         }
@@ -68,6 +72,11 @@ internal class IntegrationTest {
         unitOfWork.commit()
 
         assertThat(doesIdExistInDb(testId)).isTrue()
+    }
+
+    @Test
+    fun failing() {
+        fail()
     }
 
     private fun doesIdExistInDb(id: UUID): Boolean {
