@@ -15,6 +15,7 @@
         <module>logging</module>
         <module>mediator</module>
         <module>key-value-store</module>
+        <module>job-queue</module>
     </modules>
 
     <properties>
