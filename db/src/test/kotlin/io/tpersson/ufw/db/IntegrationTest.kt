@@ -74,11 +74,6 @@ internal class IntegrationTest {
         assertThat(doesIdExistInDb(testId)).isTrue()
     }
 
-    @Test
-    fun failing() {
-        fail()
-    }
-
     private fun doesIdExistInDb(id: UUID): Boolean {
         val result = dataSource.connection.use {
             it.prepareStatement("SELECT * FROM test").executeQuery().toMap()
