@@ -33,6 +33,8 @@
     <file url="file://$PROJECT_DIR$/modules/key-value-store/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/modules/logging/src/main/kotlin" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/modules/logging/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/modules/mediator-guice/src/main/kotlin" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/modules/mediator-guice/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/modules/mediator/src/main/kotlin" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/modules/mediator/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/kotlin" charset="UTF-8" />

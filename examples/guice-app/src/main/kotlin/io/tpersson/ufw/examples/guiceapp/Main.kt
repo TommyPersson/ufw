@@ -1,10 +1,15 @@
+package io.tpersson.ufw.examples.guiceapp
+
 import com.google.inject.Guice
 import com.google.inject.Module
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.tpersson.ufw.examples.guiceapp.commands.PerformGreetingCommand
 import io.tpersson.ufw.db.guice.DbGuiceModule
-import io.tpersson.ufw.keyvaluestore.KeyValueStore
 import io.tpersson.ufw.keyvaluestore.guice.KeyValueStoreGuiceModule
+import io.tpersson.ufw.mediator.Mediator
+import io.tpersson.ufw.mediator.guice.MediatorGuiceModule
+import io.tpersson.ufw.mediator.guice.MediatorModuleConfig
 import javax.sql.DataSource
 
 public suspend fun main() {
@@ -21,16 +26,11 @@ public suspend fun main() {
     val injector = Guice.createInjector(
         Module { it.bind(DataSource::class.java).toInstance(dataSource) },
         DbGuiceModule(),
-        KeyValueStoreGuiceModule()
+        KeyValueStoreGuiceModule(),
+        MediatorGuiceModule(MediatorModuleConfig(scanPackages = listOf("io.tpersson.ufw.examples.guiceapp")))
     )
 
-    val keyValueStore = injector.getInstance(KeyValueStore::class.java)
+    val mediator = injector.getInstance(Mediator::class.java)
 
-    val key = KeyValueStore.Key.of<String>("greeting")
-
-    keyValueStore.put(key, "Hello, World!")
-
-    val greeting = keyValueStore.get(key)?.value ?: "Missing Value"
-
-    println(greeting)
+    mediator.send(PerformGreetingCommand("greeting"))
 }
