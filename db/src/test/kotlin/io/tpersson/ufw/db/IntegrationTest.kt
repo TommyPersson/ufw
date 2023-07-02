@@ -3,7 +3,7 @@ package io.tpersson.ufw.db
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.db.jdbc.ConnectionProviderImpl
-import io.tpersson.ufw.db.jdbc.toMap
+import io.tpersson.ufw.db.jdbc.asMaps
 import io.tpersson.ufw.db.jdbc.useInTransaction
 import io.tpersson.ufw.db.unitofwork.UnitOfWorkFactoryImpl
 import kotlinx.coroutines.runBlocking
@@ -67,7 +67,7 @@ internal class IntegrationTest {
         val testItem = UUID.fromString("8b00ce00-4523-412b-b1fe-98d4737bf991")
 
         unitOfWork.add {
-            insertItem(testItem)
+            it.insertItem(testItem)
         }
 
         assertThat(doesItemExist(testItem)).isFalse()
@@ -82,11 +82,11 @@ internal class IntegrationTest {
         val unitOfWork = unitOfWorkFactory.create()
 
         unitOfWork.add {
-            insertItem(testItem1)
+            it.insertItem(testItem1)
         }
 
         unitOfWork.add {
-            insertItem(testItem2)
+            it.insertItem(testItem2)
         }
 
         unitOfWork.commit()
@@ -100,11 +100,11 @@ internal class IntegrationTest {
         val unitOfWork = unitOfWorkFactory.create()
 
         unitOfWork.add {
-            insertItem(testItem1)
+            it.insertItem(testItem1)
         }
 
         unitOfWork.add {
-            insertItem(testItem2)
+            it.insertItem(testItem2)
         }
 
         unitOfWork.add {
@@ -122,7 +122,7 @@ internal class IntegrationTest {
         val unitOfWork = unitOfWorkFactory.create()
 
         unitOfWork.add(minimumAffectedRows = 2) {
-            insertItem(testItem1)
+            it.insertItem(testItem1)
         }
 
         assertThatThrownBy { runBlocking { unitOfWork.commit() } }.isNotNull()
@@ -135,11 +135,11 @@ internal class IntegrationTest {
         val unitOfWork = unitOfWorkFactory.create()
 
         unitOfWork.add(minimumAffectedRows = 1) {
-            insertItem(testItem1)
+            it.insertItem(testItem1)
         }
 
         unitOfWork.add(minimumAffectedRows = 0) {
-            insertItem(testItem1)
+            it.insertItem(testItem1)
         }
 
         unitOfWork.commit()
@@ -165,7 +165,7 @@ internal class IntegrationTest {
 
     private fun doesItemExist(id: UUID): Boolean {
         val result = dataSource.connection.use {
-            it.prepareStatement("SELECT * FROM test WHERE id = '$id'").executeQuery().toMap()
+            it.prepareStatement("SELECT * FROM test WHERE id = '$id'").executeQuery().asMaps()
         }
 
         return result.any()

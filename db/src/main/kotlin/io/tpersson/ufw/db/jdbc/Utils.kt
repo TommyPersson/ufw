@@ -20,7 +20,7 @@ public fun Connection.useInTransaction(block: (Connection) -> Unit): Unit = use 
     }
 }
 
-public fun ResultSet.toMap(): List<Map<String, Any?>> {
+public fun ResultSet.asMaps(): List<Map<String, Any?>> {
     val result = mutableListOf<Map<String, Any?>>()
 
     val metadata = metaData
