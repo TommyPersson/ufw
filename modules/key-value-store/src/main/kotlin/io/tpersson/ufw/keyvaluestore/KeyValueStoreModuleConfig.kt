@@ -14,7 +14,7 @@ public data class KeyValueStoreModuleConfig(
     public companion object {
         public val Default: KeyValueStoreModuleConfig = KeyValueStoreModuleConfig(
             instantSource = Clock.systemUTC(),
-            objectMapper = jacksonObjectMapper().findAndRegisterModules(),
+            objectMapper = KeyValueStore.defaultObjectMapper,
         )
     }
 }
