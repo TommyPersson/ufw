@@ -11,6 +11,7 @@ import jakarta.inject.Singleton
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.flywaydb.core.Flyway
 import org.postgresql.util.PGobject
 import java.sql.Timestamp
 import java.sql.Types
@@ -28,22 +29,15 @@ public class PostgresStorageEngine @Inject constructor(
     }
 
     init {
-        runBlocking(config.ioContext) {
-            // TODO migrations?
-            connectionProvider.get().useInTransaction { conn ->
-                conn.prepareStatement(
-                    """
-                CREATE TABLE IF NOT EXISTS $TableName
-                (
-                    key        TEXT  NOT NULL PRIMARY KEY,
-                    value      JSONB NOT NULL,
-                    expires_at TIMESTAMPTZ,
-                    version    INT
-                );
-                """.trimIndent()
-                ).executeUpdate()
+        Flyway.configure()
+            .dataSource(connectionProvider.dataSource)
+            .loggers("slf4j")
+            .baselineOnMigrate(true)
+            .locations("classpath:io/tpersson/ufw/keyvaluestore/migrations/postgres")
+            .table("ufw__key_value_store__flyway")
+            .load().also {
+                it.migrate()
             }
-        }
     }
 
     override suspend fun get(
@@ -58,6 +52,7 @@ public class PostgresStorageEngine @Inject constructor(
         EntryDataFromRead(
             json = (data["value"] as PGobject).value!!,
             expiresAt = data["expires_at"] as Instant?,
+            updatedAt = data["updated_at"] as Instant,
             version = data["version"] as Int
         )
     }
@@ -84,12 +79,14 @@ public class PostgresStorageEngine @Inject constructor(
                     key,
                     value,
                     expires_at,
+                    updated_at,
                     version)
                 VALUES
-                    (?, ?::jsonb, ?, 1)
+                    (?, ?::jsonb, ?, ?, 1)
                 ON CONFLICT (key) DO UPDATE
                     SET value      = ?::jsonb,
                         expires_at = ?,
+                        updated_at = ?,
                         version    = t.version + 1
                     WHERE t.version = ? OR ? IS NULL
                 """.trimIndent()
@@ -97,16 +94,18 @@ public class PostgresStorageEngine @Inject constructor(
                 it.setString(1, key)
                 it.setString(2, entry.json)
                 it.setTimestamp(3, expiresAtTimestamp)
+                it.setTimestamp(4, Timestamp.from(entry.updatedAt))
 
-                it.setString(4, entry.json)
-                it.setTimestamp(5, expiresAtTimestamp)
+                it.setString(5, entry.json)
+                it.setTimestamp(6, expiresAtTimestamp)
+                it.setTimestamp(7, Timestamp.from(entry.updatedAt))
 
                 if (expectedVersion != null) {
-                    it.setInt(6, expectedVersion)
-                    it.setInt(7, expectedVersion)
+                    it.setInt(8, expectedVersion)
+                    it.setInt(9, expectedVersion)
                 } else {
-                    it.setNull(6, Types.INTEGER)
-                    it.setNull(7, Types.INTEGER)
+                    it.setNull(8, Types.INTEGER)
+                    it.setNull(9, Types.INTEGER)
                 }
             }
         }

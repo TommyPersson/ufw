@@ -37,7 +37,8 @@ public class KeyValueStoreImpl @Inject constructor(
 
         val data = EntryDataForWrite(
             json = json,
-            expiresAt = expiresAt
+            expiresAt = expiresAt,
+            updatedAt = instantSource.instant()
         )
 
         storageEngine.put(key.name, data, expectedVersion, unitOfWork)
