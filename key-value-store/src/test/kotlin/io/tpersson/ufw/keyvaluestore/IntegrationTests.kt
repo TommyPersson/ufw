@@ -2,6 +2,7 @@ package io.tpersson.ufw.keyvaluestore
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.tpersson.ufw.db.DbModuleConfig
 import io.tpersson.ufw.db.jdbc.ConnectionProviderImpl
 import io.tpersson.ufw.db.unitofwork.UnitOfWorkFactoryImpl
 import io.tpersson.ufw.keyvaluestore.storageengine.PostgresStorageEngine
@@ -21,6 +22,7 @@ import java.time.ZoneId
 
 internal class IntegrationTests {
 
+
     private companion object {
         @JvmStatic
         var postgres: PostgreSQLContainer<*> = PostgreSQLContainer(DockerImageName.parse("postgres:15"))
@@ -34,28 +36,23 @@ internal class IntegrationTests {
                 it.isAutoCommit = false
             }
         }
-        val dataSource by lazy {
-            HikariDataSource(config)
-        }
+        val dataSource by lazy { HikariDataSource(config) }
 
-        val unitOfWorkFactory by lazy {
-            UnitOfWorkFactoryImpl(ConnectionProviderImpl(dataSource))
-        }
+        val connectionProvider by lazy { ConnectionProviderImpl(dataSource) }
+
+        val unitOfWorkFactory by lazy { UnitOfWorkFactoryImpl(connectionProvider, DbModuleConfig.Default) }
 
         val storageEngine by lazy {
-            PostgresStorageEngine(unitOfWorkFactory, dataSource)
+            PostgresStorageEngine(unitOfWorkFactory, connectionProvider, DbModuleConfig.Default)
         }
 
         val testClock = TestInstantSource()
 
-        val keyValueStore: KeyValueStore by lazy {
-            KeyValueStore.create(storageEngine, testClock)
-        }
+        val keyValueStore: KeyValueStore by lazy { KeyValueStore.create(storageEngine, testClock) }
 
         init {
             runBlocking {
                 Startables.deepStart(postgres).join()
-                storageEngine.init()
             }
         }
     }
@@ -119,6 +116,7 @@ internal class IntegrationTests {
 
         assertThat(keyValueStore.get(key)).isNotNull()
     }
+
     @Test
     fun `Versioning - Starts at 1 for new entries`(): Unit = runBlocking {
         val key = KeyValueStore.Key.of<String>("ping")
@@ -200,7 +198,7 @@ internal class IntegrationTests {
         }
 
         fun advance(duration: Duration) {
-           now += duration
+            now += duration
         }
     }
 }

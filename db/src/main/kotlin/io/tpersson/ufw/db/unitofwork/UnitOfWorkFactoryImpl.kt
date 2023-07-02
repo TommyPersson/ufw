@@ -1,14 +1,16 @@
 package io.tpersson.ufw.db.unitofwork
 
+import io.tpersson.ufw.db.DbModuleConfig
 import io.tpersson.ufw.db.jdbc.ConnectionProvider
-import kotlinx.coroutines.Dispatchers
-import kotlin.coroutines.CoroutineContext
+import jakarta.inject.Inject
+import jakarta.inject.Singleton
 
-public class UnitOfWorkFactoryImpl(
+@Singleton
+public class UnitOfWorkFactoryImpl @Inject constructor(
     private val connectionProvider: ConnectionProvider,
-    private val coroutineContext: CoroutineContext = Dispatchers.IO,
+    private val config: DbModuleConfig,
 ) : UnitOfWorkFactory {
     override fun create(): UnitOfWork {
-        return UnitOfWorkImpl(connectionProvider, coroutineContext)
+        return UnitOfWorkImpl(connectionProvider, config)
     }
 }

@@ -47,7 +47,7 @@ public interface KeyValueStore {
             instantSource: InstantSource = Clock.systemUTC(),
             objectMapper: ObjectMapper = defaultObjectMapper
         ): KeyValueStore {
-            return KeyValueStoreImpl(storage, instantSource, objectMapper)
+            return KeyValueStoreImpl(storage, KeyValueStoreModuleConfig(instantSource, objectMapper))
         }
 
         public val defaultObjectMapper: ObjectMapper = jacksonObjectMapper().findAndRegisterModules()

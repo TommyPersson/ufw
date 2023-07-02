@@ -5,8 +5,6 @@ import java.time.Instant
 
 public interface StorageEngine {
 
-    public suspend fun init()
-
     public suspend fun get(
         key: String
     ): EntryDataFromRead?

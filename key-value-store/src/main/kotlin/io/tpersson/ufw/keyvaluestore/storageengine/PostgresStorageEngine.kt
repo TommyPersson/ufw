@@ -1,34 +1,38 @@
 package io.tpersson.ufw.keyvaluestore.storageengine
 
+import io.tpersson.ufw.db.DbModuleConfig
+import io.tpersson.ufw.db.jdbc.ConnectionProvider
 import io.tpersson.ufw.db.jdbc.asMaps
 import io.tpersson.ufw.db.jdbc.useInTransaction
 import io.tpersson.ufw.db.unitofwork.UnitOfWork
 import io.tpersson.ufw.db.unitofwork.UnitOfWorkFactory
-import kotlinx.coroutines.Dispatchers
+import jakarta.inject.Inject
+import jakarta.inject.Singleton
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.postgresql.util.PGobject
 import java.sql.Timestamp
 import java.sql.Types
 import java.time.Instant
-import javax.sql.DataSource
-import kotlin.coroutines.CoroutineContext
 
-public class PostgresStorageEngine(
+@Singleton
+public class PostgresStorageEngine @Inject constructor(
     private val unitOfWorkFactory: UnitOfWorkFactory,
-    private val dataSource: DataSource,
-    private val ioContext: CoroutineContext = Dispatchers.IO
+    private val connectionProvider: ConnectionProvider,
+    private val config: DbModuleConfig
 ) : StorageEngine {
 
     public companion object {
         private const val TableName: String = "ufw__key_value_store"
     }
 
-    public override suspend fun init(): Unit = io {
-        // TODO migrations?
-        dataSource.connection.useInTransaction { conn ->
-            conn.prepareStatement(
-                """
+    init {
+        runBlocking(config.ioContext) {
+            // TODO migrations?
+            connectionProvider.get().useInTransaction { conn ->
+                conn.prepareStatement(
+                    """
                 CREATE TABLE IF NOT EXISTS $TableName
                 (
                     key        TEXT  NOT NULL PRIMARY KEY,
@@ -37,19 +41,19 @@ public class PostgresStorageEngine(
                     version    INT
                 );
                 """.trimIndent()
-            ).executeUpdate()
+                ).executeUpdate()
+            }
         }
     }
 
     override suspend fun get(
         key: String
     ): EntryDataFromRead? = io {
-        val data = dataSource.connection.use { conn ->
+        val data = connectionProvider.get().useInTransaction { conn ->
             conn.prepareStatement("SELECT * FROM $TableName WHERE key = ?").also {
                 it.setString(1, key)
             }.executeQuery().asMaps().singleOrNull()
-                ?: return@io null
-        }
+        } ?: return@io null
 
         EntryDataFromRead(
             json = (data["value"] as PGobject).value!!,
@@ -117,16 +121,16 @@ public class PostgresStorageEngine(
     }
 
     public suspend fun debugTruncate(): Unit = io {
-        dataSource.connection.useInTransaction {
+        connectionProvider.get().useInTransaction {
             it.prepareStatement("DELETE FROM $TableName").executeUpdate()
         }
     }
 
     public suspend fun debugDumpTable(): List<Map<String, Any?>> = io {
-        dataSource.connection.prepareStatement("SELECT * FROM $TableName").executeQuery().asMaps()
+        connectionProvider.get().prepareStatement("SELECT * FROM $TableName").executeQuery().asMaps()
     }
 
     private suspend fun <T> io(block: () -> T): T {
-        return withContext(currentCoroutineContext() + ioContext) { block() }
+        return withContext(currentCoroutineContext() + config.ioContext) { block() }
     }
 }

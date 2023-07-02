@@ -17,7 +17,7 @@ import java.sql.Connection
 import java.sql.PreparedStatement
 import java.util.UUID
 
-internal class IntegrationTest {
+internal class IntegrationTests {
 
     private companion object {
         @JvmStatic
@@ -53,7 +53,7 @@ internal class IntegrationTest {
     private val testItem1 = UUID.fromString("8b00ce00-4523-412b-b1fe-98d4737bf991")
     private val testItem2 = UUID.fromString("d20f1adc-c1cf-4fc7-8752-948eed61cd4e")
 
-    private val unitOfWorkFactory = UnitOfWorkFactoryImpl(ConnectionProviderImpl(dataSource))
+    private val unitOfWorkFactory = UnitOfWorkFactoryImpl(ConnectionProviderImpl(dataSource), DbModuleConfig.Default)
 
     @BeforeEach
     fun setUp() {

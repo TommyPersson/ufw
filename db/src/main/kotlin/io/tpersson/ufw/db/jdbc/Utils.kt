@@ -5,10 +5,11 @@ import java.sql.Date
 import java.sql.ResultSet
 import java.sql.Timestamp
 
-public fun Connection.useInTransaction(block: (Connection) -> Unit): Unit = use {
+public fun <T> Connection.useInTransaction(block: (Connection) -> T): T = use {
     try {
-        block(this)
+        val result = block(this)
         commit()
+        return result
     } catch (e: Exception) {
         rollback()
         throw e
