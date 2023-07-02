@@ -4,12 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.tpersson.ufw.db.unitofwork.UnitOfWork
 import io.tpersson.ufw.keyvaluestore.storageengine.EntryDataForWrite
 import io.tpersson.ufw.keyvaluestore.storageengine.StorageEngine
-import java.time.Clock
 import java.time.Duration
+import java.time.InstantSource
 
 public class KeyValueStoreImpl(
     private val storageEngine: StorageEngine,
-    private val clockProvider: ClockProvider,
+    private val instantSource: InstantSource,
     private val objectMapper: ObjectMapper
 ) : KeyValueStore {
 
@@ -17,7 +17,7 @@ public class KeyValueStoreImpl(
         val data = storageEngine.get(key.name)
             ?: return null
 
-        if (data.expiresAt != null && data.expiresAt < clockProvider.provide().instant()) {
+        if (data.expiresAt != null && data.expiresAt < instantSource.instant()) {
             return null
         }
 
@@ -30,7 +30,7 @@ public class KeyValueStoreImpl(
     override suspend fun <T> put(key: KeyValueStore.Key<T>, value: T, expectedVersion: Int?, ttl: Duration?, unitOfWork: UnitOfWork?) {
         val json = objectMapper.writeValueAsString(value)
 
-        val expiresAt = ttl?.let { clockProvider.provide().instant() + ttl }
+        val expiresAt = ttl?.let { instantSource.instant() + ttl }
 
         val data = EntryDataForWrite(
             json = json,

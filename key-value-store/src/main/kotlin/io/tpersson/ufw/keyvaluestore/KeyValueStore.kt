@@ -7,11 +7,8 @@ import io.tpersson.ufw.keyvaluestore.storageengine.StorageEngine
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
+import java.time.InstantSource
 import kotlin.reflect.KClass
-
-public fun interface ClockProvider {
-    public fun provide(): Clock
-}
 
 public interface KeyValueStore {
 
@@ -47,10 +44,10 @@ public interface KeyValueStore {
     public companion object {
         public fun create(
             storage: StorageEngine,
-            clockProvider: ClockProvider = ClockProvider { Clock.systemUTC() },
+            instantSource: InstantSource = Clock.systemUTC(),
             objectMapper: ObjectMapper = defaultObjectMapper
         ): KeyValueStore {
-            return KeyValueStoreImpl(storage, clockProvider, objectMapper)
+            return KeyValueStoreImpl(storage, instantSource, objectMapper)
         }
 
         public val defaultObjectMapper: ObjectMapper = jacksonObjectMapper().findAndRegisterModules()

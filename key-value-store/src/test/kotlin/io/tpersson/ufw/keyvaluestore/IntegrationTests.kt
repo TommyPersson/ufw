@@ -16,6 +16,7 @@ import org.testcontainers.utility.DockerImageName
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
+import java.time.InstantSource
 import java.time.ZoneId
 
 internal class IntegrationTests {
@@ -45,7 +46,7 @@ internal class IntegrationTests {
             PostgresStorageEngine(unitOfWorkFactory, dataSource)
         }
 
-        val testClock = TestClockProvider()
+        val testClock = TestInstantSource()
 
         val keyValueStore: KeyValueStore by lazy {
             KeyValueStore.create(storageEngine, testClock)
@@ -185,21 +186,21 @@ internal class IntegrationTests {
         assertThat(storageEngine.debugDumpTable()).isNotEmpty()
 
         val uow = unitOfWorkFactory.create()
-        storageEngine.deleteExpiredEntries(testClock.provide().instant(), uow)
+        storageEngine.deleteExpiredEntries(testClock.instant(), uow)
         uow.commit()
 
         assertThat(storageEngine.debugDumpTable()).isEmpty()
     }
 
-    class TestClockProvider : ClockProvider {
-        private var fixedClock = Clock.fixed(Instant.now(), ZoneId.of("UTC"))
+    class TestInstantSource : InstantSource {
+        private var now = Instant.now()
 
-        override fun provide(): Clock {
-            return fixedClock
+        override fun instant(): Instant {
+            return now
         }
 
         fun advance(duration: Duration) {
-           fixedClock = Clock.fixed(fixedClock.instant() + duration, fixedClock.zone)
+           now += duration
         }
     }
 }
