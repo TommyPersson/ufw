@@ -32,5 +32,5 @@ public suspend fun main() {
 
     val mediator = injector.getInstance(Mediator::class.java)
 
-    mediator.send(PerformGreetingCommand("greeting"))
+    mediator.send(PerformGreetingCommand("World"))
 }

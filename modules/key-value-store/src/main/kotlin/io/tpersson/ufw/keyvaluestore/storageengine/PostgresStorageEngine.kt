@@ -24,6 +24,8 @@ public class PostgresStorageEngine @Inject constructor(
     private val config: DbModuleConfig
 ) : StorageEngine {
 
+    // TODO custom exception for expectedVersion mismatch?
+
     public companion object {
         private const val TableName: String = "ufw__key_value_store"
     }

@@ -16,8 +16,14 @@ public class UnitOfWorkImpl(
 ) : UnitOfWork {
     private val operations = mutableListOf<Operation>()
 
+    private val postCommitHooks = mutableListOf<suspend () -> Unit>()
+
     override fun add(minimumAffectedRows: Int, block: Connection.() -> PreparedStatement) {
         operations += Operation(minimumAffectedRows, block)
+    }
+
+    override fun addPostCommitHook(block: suspend () -> Unit) {
+        postCommitHooks += block
     }
 
     override suspend fun commit() {
@@ -27,10 +33,15 @@ public class UnitOfWorkImpl(
                     val affectedRows = operation.update(it).executeUpdate()
 
                     if (affectedRows < operation.minimumAffectedRows) {
+                        // TODO custom exception?
                         throw Exception("MinimumAffectedRows not hit")
                     }
                 }
             }
+        }
+
+        for (hook in postCommitHooks) {
+            hook.invoke()
         }
     }
 
