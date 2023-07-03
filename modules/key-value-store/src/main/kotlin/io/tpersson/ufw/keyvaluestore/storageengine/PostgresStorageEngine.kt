@@ -4,17 +4,16 @@ import io.tpersson.ufw.db.DbModuleConfig
 import io.tpersson.ufw.db.jdbc.ConnectionProvider
 import io.tpersson.ufw.db.jdbc.asMaps
 import io.tpersson.ufw.db.jdbc.useInTransaction
+import io.tpersson.ufw.db.typedqueries.TypedUpdate
 import io.tpersson.ufw.db.unitofwork.UnitOfWork
 import io.tpersson.ufw.db.unitofwork.UnitOfWorkFactory
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.flywaydb.core.Flyway
 import org.postgresql.util.PGobject
 import java.sql.Timestamp
-import java.sql.Types
 import java.time.Instant
 
 @Singleton
@@ -72,58 +71,24 @@ public class PostgresStorageEngine @Inject constructor(
             return
         }
 
-        val expiresAtTimestamp = entry.expiresAt?.let { Timestamp.from(it) }
-
-        unitOfWork.add { conn ->
-            conn.prepareStatement(
-                """
-                INSERT INTO $TableName AS t (
-                    key,
-                    value,
-                    expires_at,
-                    updated_at,
-                    version)
-                VALUES
-                    (?, ?::jsonb, ?, ?, 1)
-                ON CONFLICT (key) DO UPDATE
-                    SET value      = ?::jsonb,
-                        expires_at = ?,
-                        updated_at = ?,
-                        version    = t.version + 1
-                    WHERE t.version = ? OR ? IS NULL
-                """.trimIndent()
-            ).also {
-                it.setString(1, key)
-                it.setString(2, entry.json)
-                it.setTimestamp(3, expiresAtTimestamp)
-                it.setTimestamp(4, Timestamp.from(entry.updatedAt))
-
-                it.setString(5, entry.json)
-                it.setTimestamp(6, expiresAtTimestamp)
-                it.setTimestamp(7, Timestamp.from(entry.updatedAt))
-
-                if (expectedVersion != null) {
-                    it.setInt(8, expectedVersion)
-                    it.setInt(9, expectedVersion)
-                } else {
-                    it.setNull(8, Types.INTEGER)
-                    it.setNull(9, Types.INTEGER)
-                }
-            }
-        }
+        unitOfWork.add(
+            Queries.Put(
+                key = key,
+                value = entry.json,
+                expiresAt = entry.expiresAt,
+                updatedAt = entry.updatedAt,
+                expectedVersion = expectedVersion
+            )
+        )
     }
 
     override suspend fun deleteExpiredEntries(now: Instant, unitOfWork: UnitOfWork) {
-        unitOfWork.add { conn ->
-            conn.prepareStatement("DELETE FROM $TableName WHERE expires_at < ?").also {
-                it.setTimestamp(1, Timestamp.from(now))
-            }
-        }
+        unitOfWork.add(Queries.DeleteAllExpired(now))
     }
 
     public suspend fun debugTruncate(): Unit = io {
         connectionProvider.get().useInTransaction {
-            it.prepareStatement("DELETE FROM $TableName").executeUpdate()
+            Queries.TruncateTable().asPreparedStatement(it).executeUpdate()
         }
     }
 
@@ -133,5 +98,38 @@ public class PostgresStorageEngine @Inject constructor(
 
     private suspend fun <T> io(block: () -> T): T {
         return withContext(currentCoroutineContext() + config.ioContext) { block() }
+    }
+
+    private object Queries {
+        class Put(
+            val key: String,
+            val value: String,
+            val expiresAt: Instant?,
+            val updatedAt: Instant,
+            val expectedVersion: Int?,
+        ) : TypedUpdate(
+            """
+            INSERT INTO $TableName AS t (
+                    key,
+                    value,
+                    expires_at,
+                    updated_at,
+                    version)
+                VALUES
+                    (:key, :value::jsonb, :expiresAt, :updatedAt, 1)
+                ON CONFLICT (key) DO UPDATE
+                    SET value      = :value::jsonb,
+                        expires_at = :expiresAt,
+                        updated_at = :updatedAt,
+                        version    = t.version + 1
+                    WHERE t.version = :expectedVersion OR :expectedVersion IS NULL
+        """.trimIndent(),
+        )
+
+        class DeleteAllExpired(
+            val now: Instant
+        ) : TypedUpdate("DELETE FROM $TableName WHERE expires_at < :now", minimumAffectedRows = 0)
+
+        class TruncateTable() : TypedUpdate("DELETE FROM $TableName", minimumAffectedRows = 0)
     }
 }
