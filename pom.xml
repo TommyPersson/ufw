@@ -49,6 +49,8 @@
         <testcontainers.version>1.18.3</testcontainers.version>
         <assertj-core.version>3.24.2</assertj-core.version>
         <jakarta.inject-api.version>2.0.1</jakarta.inject-api.version>
+        <mockito.version>5.4.0</mockito.version>
+        <mockito-kotlin.version>5.0.0</mockito-kotlin.version>
 
         <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
     </properties>
@@ -144,6 +146,19 @@
             </dependency>
 
             <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-bom</artifactId>
+                <version>${mockito.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito.kotlin</groupId>
+                <artifactId>mockito-kotlin</artifactId>
+                <version>${mockito-kotlin.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>io.github.classgraph</groupId>
                 <artifactId>classgraph</artifactId>
                 <version>${classgraph.version}</version>
@@ -217,6 +232,7 @@
                 <artifactId>assertj-core</artifactId>
                 <version>${assertj-core.version}</version>
             </dependency>
+
         </dependencies>
     </dependencyManagement>
 
@@ -240,6 +256,7 @@
                         <arg>-java-parameters</arg>
                         <arg>-Xexplicit-api=strict</arg>
                     </args>
+                    <jvmTarget>17</jvmTarget>
                     <compilerPlugins>
                         <plugin>no-arg</plugin>
                     </compilerPlugins>
@@ -293,7 +310,6 @@
                         </goals>
                     </execution>
                 </executions>
-
             </plugin>
         </plugins>
 

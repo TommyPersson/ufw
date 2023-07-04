@@ -1,9 +1,11 @@
 package io.tpersson.ufw.db.jdbc
 
-import java.sql.Connection
+import java.sql.*
 import java.sql.Date
-import java.sql.ResultSet
-import java.sql.Timestamp
+import java.time.Instant
+import java.time.LocalDate
+import java.util.*
+import kotlin.reflect.KClass
 
 public fun <T> Connection.useInTransaction(block: (Connection) -> T): T = use {
     try {
@@ -36,6 +38,7 @@ public fun ResultSet.asMaps(): List<Map<String, Any?>> {
             map[columnName] = when (columnValue) {
                 is Date -> columnValue.toLocalDate()
                 is Timestamp -> columnValue.toInstant()
+                // TODO more
                 else -> columnValue
             }
         }
@@ -45,3 +48,44 @@ public fun ResultSet.asMaps(): List<Map<String, Any?>> {
 
     return result
 }
+
+
+public fun PreparedStatement.setParameters(
+    values: List<Pair<KClass<out Any>, Any?>>,
+) {
+    for ((index, typeAndValue) in values.withIndex()) {
+        val (type, value) = typeAndValue
+
+
+        if (value == null) {
+            val sqlType = when (type) {
+                Short::class -> Types.SMALLINT
+                Int::class -> Types.INTEGER
+                Long::class -> Types.BIGINT
+                Double::class -> Types.DOUBLE
+                Float::class -> Types.FLOAT
+                Boolean::class -> Types.BOOLEAN
+                Char::class -> Types.CHAR
+                String::class -> Types.VARCHAR
+                Instant::class -> Types.TIMESTAMP_WITH_TIMEZONE
+                LocalDate::class -> Types.DATE
+
+                // TODO more
+                else -> Types.BIT
+            }
+
+            setNull(index + 1, sqlType)
+        } else {
+            val nativeValue = when (value) {
+                is Instant -> Timestamp.from(value)
+                is LocalDate -> Date.valueOf(value)
+                // TODO more
+                else -> value
+            }
+
+            setObject(index + 1, nativeValue)
+        }
+    }
+}
+
+private val utcCalendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))

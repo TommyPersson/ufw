@@ -88,7 +88,7 @@ public class PostgresStorageEngine @Inject constructor(
 
     public suspend fun debugTruncate(): Unit = io {
         connectionProvider.get().useInTransaction {
-            Queries.TruncateTable().asPreparedStatement(it).executeUpdate()
+            Queries.TruncateTable.asPreparedStatement(it).executeUpdate()
         }
     }
 
@@ -100,6 +100,7 @@ public class PostgresStorageEngine @Inject constructor(
         return withContext(currentCoroutineContext() + config.ioContext) { block() }
     }
 
+    @Suppress("unused")
     private object Queries {
         class Put(
             val key: String,
@@ -109,27 +110,21 @@ public class PostgresStorageEngine @Inject constructor(
             val expectedVersion: Int?,
         ) : TypedUpdate(
             """
-            INSERT INTO $TableName AS t (
-                    key,
-                    value,
-                    expires_at,
-                    updated_at,
-                    version)
-                VALUES
-                    (:key, :value::jsonb, :expiresAt, :updatedAt, 1)
-                ON CONFLICT (key) DO UPDATE
-                    SET value      = :value::jsonb,
-                        expires_at = :expiresAt,
-                        updated_at = :updatedAt,
-                        version    = t.version + 1
-                    WHERE t.version = :expectedVersion OR :expectedVersion IS NULL
-        """.trimIndent(),
+            INSERT INTO $TableName AS t (key, value, expires_at, updated_at, version)
+            VALUES (:key, :value::jsonb, :expiresAt, :updatedAt, 1)
+            ON CONFLICT (key) DO UPDATE
+                SET value      = :value::jsonb,
+                    expires_at = :expiresAt,
+                    updated_at = :updatedAt,
+                    version    = t.version + 1
+                WHERE t.version = :expectedVersion OR :expectedVersion IS NULL
+            """.trimIndent(),
         )
 
         class DeleteAllExpired(
             val now: Instant
         ) : TypedUpdate("DELETE FROM $TableName WHERE expires_at < :now", minimumAffectedRows = 0)
 
-        class TruncateTable() : TypedUpdate("DELETE FROM $TableName", minimumAffectedRows = 0)
+        object TruncateTable : TypedUpdate("DELETE FROM $TableName", minimumAffectedRows = 0)
     }
 }
