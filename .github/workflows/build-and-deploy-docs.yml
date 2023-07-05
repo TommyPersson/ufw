@@ -24,8 +24,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Build mkdocs
-        working-directory: documentation
-        run: ./build.sh
+        run: |
+          cd documentation
+          ls
+          ./build.sh
 
   deploy:
     environment:
