@@ -13,7 +13,9 @@ import org.junit.jupiter.api.Test
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.lifecycle.Startables
 import org.testcontainers.utility.DockerImageName
-import java.util.UUID
+import java.time.Instant
+import java.time.LocalDate
+import java.util.*
 
 internal class IntegrationTestsTypedQueries {
 
@@ -54,6 +56,16 @@ internal class IntegrationTestsTypedQueries {
                     )
                     """.trimIndent()
                 ).execute()
+
+                it.prepareStatement(
+                    """
+                    CREATE TABLE time_types (
+                    id UUID NOT NULL PRIMARY KEY,
+                    the_instant TIMESTAMPTZ,
+                    the_local_date DATE
+                    )
+                    """.trimIndent()
+                ).execute()
             }
         }
 
@@ -62,7 +74,8 @@ internal class IntegrationTestsTypedQueries {
 
     @BeforeEach
     fun beforeEach() {
-        dataSource.connection.useInTransaction { it.performUpdate(TruncateTestTables) }
+        dataSource.connection.useInTransaction { it.performUpdate(TruncateBasicTypes) }
+        dataSource.connection.useInTransaction { it.performUpdate(TruncateTimeTypes) }
     }
 
     @Test
@@ -113,6 +126,24 @@ internal class IntegrationTestsTypedQueries {
         assertThat(selectedData).isEqualTo(originalData)
     }
 
+    @Test
+    fun `Writing & Reading Time types`(): Unit = runBlocking {
+        val id = UUID.fromString("b5f78035-1871-434c-8606-f16399e27e43")
+
+        val originalData = TimeTypesEntity(
+            theInstant = Instant.ofEpochMilli(1),
+            theLocalDate = LocalDate.of(2000, 1, 1),
+        )
+
+        val unitOfWork = unitOfWorkFactory.create()
+        unitOfWork.add(InsertTimeTypesData(id, originalData))
+        unitOfWork.commit()
+
+        val selectedData = dataSource.connection.selectSingle(SelectTimeTypesData(id))
+
+        assertThat(selectedData).isEqualTo(originalData)
+    }
+
     data class BasicTypesEntity(
         val theShort: Short?,
         val theInt: Int?,
@@ -156,5 +187,33 @@ internal class IntegrationTestsTypedQueries {
         val id: UUID
     ) : TypedSelect<BasicTypesEntity>("SELECT * FROM basic_types WHERE id = :id")
 
-    object TruncateTestTables : TypedUpdate("DELETE FROM basic_types")
+    object TruncateBasicTypes : TypedUpdate("DELETE FROM basic_types")
+
+    data class TimeTypesEntity(
+        val theInstant: Instant?,
+        val theLocalDate: LocalDate?,
+    )
+
+    class InsertTimeTypesData(
+        val id: UUID,
+        val data: TimeTypesEntity
+    ): TypedUpdate(
+        """
+        INSERT INTO time_types (
+            id,
+            the_instant,
+            the_local_date)
+        VALUES
+            (:id,
+             :data.theInstant,
+             :data.theLocalDate)
+    """.trimIndent()
+    )
+
+    class SelectTimeTypesData(
+        val id: UUID
+    ) : TypedSelect<TimeTypesEntity>("SELECT * FROM time_types WHERE id = :id")
+
+    object TruncateTimeTypes : TypedUpdate("DELETE FROM time_types")
+
 }
