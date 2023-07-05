@@ -1,0 +1,7 @@
+site_name: UFW Docs
+
+nav:
+  - index.md
+
+theme:
+  name: material

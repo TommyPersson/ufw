@@ -1,8 +1,6 @@
-# Simple workflow for deploying static content to GitHub Pages
-name: Deploy static content to Pages
+name: Build & Deploy Docs
 
 on:
-  # Runs on pushes targeting the default branch
   push:
     branches: ["main"]
 
@@ -22,7 +20,13 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Single deploy job since we're just deploying
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build mkdocs
+        working-directory: documentation
+        run: ./build.sh
+
   deploy:
     environment:
       name: github-pages
@@ -37,7 +41,7 @@ jobs:
         uses: actions/upload-pages-artifact@v1
         with:
           # Upload entire repository
-          path: 'docs/dist'
+          path: 'documentation/site'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v2
