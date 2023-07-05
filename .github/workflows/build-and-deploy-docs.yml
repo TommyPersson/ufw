@@ -25,8 +25,9 @@ jobs:
     steps:
       - name: Build mkdocs
         run: |
+          ls -l
           cd documentation
-          ls
+          ls -l
           ./build.sh
 
   deploy:
