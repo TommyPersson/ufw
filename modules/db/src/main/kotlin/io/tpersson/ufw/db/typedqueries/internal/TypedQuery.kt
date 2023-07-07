@@ -1,6 +1,6 @@
 package io.tpersson.ufw.db.typedqueries.internal
 
-import io.tpersson.ufw.core.utils.valueByPath
+import io.tpersson.ufw.core.reflection.valueByPath
 import io.tpersson.ufw.db.jdbc.setParameters
 import org.intellij.lang.annotations.Language
 import java.sql.*

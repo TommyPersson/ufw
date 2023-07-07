@@ -24,10 +24,6 @@
             <groupId>io.tpersson.ufw</groupId>
             <artifactId>core</artifactId>
         </dependency>
-        <dependency>
-            <groupId>io.tpersson.ufw</groupId>
-            <artifactId>logging</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>

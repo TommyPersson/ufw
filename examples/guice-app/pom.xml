@@ -26,15 +26,15 @@
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>logging</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.tpersson.ufw</groupId>
             <artifactId>db-guice</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
             <artifactId>key-value-store-guice</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.tpersson.ufw</groupId>
+            <artifactId>managed-guice</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>

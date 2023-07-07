@@ -1,4 +1,4 @@
-package io.tpersson.ufw.core.utils
+package io.tpersson.ufw.core.reflection
 
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1

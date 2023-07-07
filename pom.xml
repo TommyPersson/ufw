@@ -13,7 +13,8 @@
         <module>modules/core</module>
         <module>modules/db</module>
         <module>modules/db-guice</module>
-        <module>modules/logging</module>
+        <module>modules/managed</module>
+        <module>modules/managed-guice</module>
         <module>modules/mediator</module>
         <module>modules/mediator-guice</module>
         <module>modules/mediator-middleware-transactional</module>
@@ -74,7 +75,12 @@
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
-                <artifactId>logging</artifactId>
+                <artifactId>managed</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>io.tpersson.ufw</groupId>
+                <artifactId>managed-guice</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>

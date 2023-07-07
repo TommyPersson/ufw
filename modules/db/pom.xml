@@ -25,10 +25,6 @@
             <artifactId>core</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.tpersson.ufw</groupId>
-            <artifactId>logging</artifactId>
-        </dependency>
-        <dependency>
             <groupId>jakarta.inject</groupId>
             <artifactId>jakarta.inject-api</artifactId>
         </dependency>

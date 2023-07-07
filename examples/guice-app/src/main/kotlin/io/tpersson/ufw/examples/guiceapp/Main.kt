@@ -7,9 +7,12 @@ import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.examples.guiceapp.commands.PerformGreetingCommand
 import io.tpersson.ufw.db.guice.DbGuiceModule
 import io.tpersson.ufw.keyvaluestore.guice.KeyValueStoreGuiceModule
+import io.tpersson.ufw.managed.guice.internal.ManagedGuiceModule
+import io.tpersson.ufw.managed.guice.internal.ManagedModuleConfig
 import io.tpersson.ufw.mediator.Mediator
 import io.tpersson.ufw.mediator.guice.MediatorGuiceModule
 import io.tpersson.ufw.mediator.guice.MediatorModuleConfig
+import java.util.Scanner
 import javax.sql.DataSource
 
 public suspend fun main() {
@@ -23,14 +26,22 @@ public suspend fun main() {
 
     val dataSource = HikariDataSource(hikariConfig)
 
+    val myAppPackages = listOf("io.tpersson.ufw.examples.guiceapp")
+
     val injector = Guice.createInjector(
-        Module { it.bind(DataSource::class.java).toInstance(dataSource) },
-        DbGuiceModule(),
+        DbGuiceModule(dataSource),
         KeyValueStoreGuiceModule(),
-        MediatorGuiceModule(MediatorModuleConfig(scanPackages = listOf("io.tpersson.ufw.examples.guiceapp")))
+        MediatorGuiceModule(scanPackages = myAppPackages),
+        ManagedGuiceModule(scanPackages = myAppPackages)
     )
 
     val mediator = injector.getInstance(Mediator::class.java)
-
     mediator.send(PerformGreetingCommand("World"))
+
+    println("Press Enter to exit")
+
+    val scanner = Scanner(System.`in`)
+    scanner.nextLine()
+
+    println("Exiting")
 }
