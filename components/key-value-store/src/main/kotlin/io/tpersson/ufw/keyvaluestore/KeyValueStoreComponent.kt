@@ -2,11 +2,12 @@ package io.tpersson.ufw.keyvaluestore
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import io.tpersson.ufw.core.Components
+import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
+import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.keyvaluestore.storageengine.PostgresStorageEngine
 import io.tpersson.ufw.keyvaluestore.storageengine.StorageEngine
-import java.time.Clock
-import java.time.InstantSource
 
 public class KeyValueStoreComponent private constructor(
     public val keyValueStore: KeyValueStore,
@@ -14,17 +15,19 @@ public class KeyValueStoreComponent private constructor(
 ) {
     public companion object {
         public fun create(
+            coreComponent: CoreComponent,
             databaseComponent: DatabaseComponent,
-            instantSource: InstantSource = Clock.systemUTC(),
             objectMapper: ObjectMapper = defaultObjectMapper,
         ): KeyValueStoreComponent {
+            Migrator.registerMigrationScript("io/tpersson/ufw/keyvaluestore/migrations/postgres/liquibase.xml")
+
             val storageEngine = PostgresStorageEngine(
                 databaseComponent.unitOfWorkFactory,
                 databaseComponent.connectionProvider,
                 databaseComponent.config
             )
 
-            val config = KeyValueStoreModuleConfig(instantSource, objectMapper)
+            val config = KeyValueStoreModuleConfig(coreComponent.instantSource, objectMapper)
 
             val keyValueStore = KeyValueStoreImpl(storageEngine, config)
 
@@ -33,4 +36,10 @@ public class KeyValueStoreComponent private constructor(
 
         public val defaultObjectMapper: ObjectMapper = jacksonObjectMapper().findAndRegisterModules()
     }
+}
+
+@Suppress("UnusedReceiverParameter")
+public val Components.KeyValueStore: KeyValueStoreComponent.Companion get() {
+    println(this)
+  return KeyValueStoreComponent
 }

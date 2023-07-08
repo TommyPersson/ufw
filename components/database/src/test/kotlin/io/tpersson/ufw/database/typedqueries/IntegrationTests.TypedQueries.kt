@@ -2,6 +2,7 @@ package io.tpersson.ufw.database.typedqueries
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.DatabaseModuleConfig
 import io.tpersson.ufw.database.jdbc.ConnectionProviderImpl
 import io.tpersson.ufw.database.jdbc.useInTransaction
@@ -21,26 +22,25 @@ internal class IntegrationTestsTypedQueries {
 
     private companion object {
         @JvmStatic
-        var postgres: PostgreSQLContainer<*> = PostgreSQLContainer(DockerImageName.parse("postgres:15"))
-
-        val config by lazy {
-            HikariConfig().also {
-                it.jdbcUrl = postgres.jdbcUrl
-                it.username = postgres.username
-                it.password = postgres.password
-                it.maximumPoolSize = 5
-                it.isAutoCommit = false
-            }
+        var postgres: PostgreSQLContainer<*> = PostgreSQLContainer(DockerImageName.parse("postgres:15")).also {
+            Startables.deepStart(it).join()
         }
 
-        val dataSource by lazy {
-            HikariDataSource(config)
+        val config = HikariConfig().also {
+            it.jdbcUrl = postgres.jdbcUrl
+            it.username = postgres.username
+            it.password = postgres.password
+            it.maximumPoolSize = 5
+            it.isAutoCommit = false
         }
+
+        val dataSource = HikariDataSource(config)
+        val databaseComponent = DatabaseComponent.create(dataSource)
+        val connectionProvider = databaseComponent.connectionProvider
+        val unitOfWorkFactory  = databaseComponent.unitOfWorkFactory
 
         init {
-            Startables.deepStart(postgres).join()
-
-            dataSource.connection.useInTransaction {
+            connectionProvider.get().useInTransaction {
                 it.prepareStatement(
                     """
                     CREATE TABLE basic_types (
@@ -68,14 +68,12 @@ internal class IntegrationTestsTypedQueries {
                 ).execute()
             }
         }
-
-        val unitOfWorkFactory by lazy { UnitOfWorkFactoryImpl(ConnectionProviderImpl(dataSource), DatabaseModuleConfig()) }
     }
 
     @BeforeEach
     fun beforeEach() {
-        dataSource.connection.useInTransaction { it.performUpdate(TruncateBasicTypes) }
-        dataSource.connection.useInTransaction { it.performUpdate(TruncateTimeTypes) }
+        connectionProvider.get().useInTransaction { it.performUpdate(TruncateBasicTypes) }
+        connectionProvider.get().useInTransaction { it.performUpdate(TruncateTimeTypes) }
     }
 
     @Test
@@ -97,7 +95,7 @@ internal class IntegrationTestsTypedQueries {
         unitOfWork.add(InsertBasicTypesData(id, originalData))
         unitOfWork.commit()
 
-        val selectedData = dataSource.connection.selectSingle(SelectBasicTypesData(id))
+        val selectedData = connectionProvider.get().selectSingle(SelectBasicTypesData(id))
 
         assertThat(selectedData).isEqualTo(originalData)
     }
@@ -121,7 +119,7 @@ internal class IntegrationTestsTypedQueries {
         unitOfWork.add(InsertBasicTypesData(id, originalData))
         unitOfWork.commit()
 
-        val selectedData = dataSource.connection.selectSingle(SelectBasicTypesData(id))
+        val selectedData = connectionProvider.get().selectSingle(SelectBasicTypesData(id))
 
         assertThat(selectedData).isEqualTo(originalData)
     }
@@ -139,7 +137,7 @@ internal class IntegrationTestsTypedQueries {
         unitOfWork.add(InsertTimeTypesData(id, originalData))
         unitOfWork.commit()
 
-        val selectedData = dataSource.connection.selectSingle(SelectTimeTypesData(id))
+        val selectedData = connectionProvider.get().selectSingle(SelectTimeTypesData(id))
 
         assertThat(selectedData).isEqualTo(originalData)
     }
@@ -158,7 +156,7 @@ internal class IntegrationTestsTypedQueries {
     class InsertBasicTypesData(
         val id: UUID,
         val data: BasicTypesEntity
-    ): TypedUpdate(
+    ) : TypedUpdate(
         """
         INSERT INTO basic_types (
             id,
@@ -197,7 +195,7 @@ internal class IntegrationTestsTypedQueries {
     class InsertTimeTypesData(
         val id: UUID,
         val data: TimeTypesEntity
-    ): TypedUpdate(
+    ) : TypedUpdate(
         """
         INSERT INTO time_types (
             id,

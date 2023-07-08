@@ -2,6 +2,7 @@ package io.tpersson.ufw.keyvaluestore
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.DatabaseModuleConfig
 import io.tpersson.ufw.database.jdbc.ConnectionProviderImpl
@@ -23,36 +24,29 @@ internal class IntegrationTests {
 
     private companion object {
         @JvmStatic
-        var postgres: PostgreSQLContainer<*> = PostgreSQLContainer(DockerImageName.parse("postgres:15"))
-
-        val config by lazy {
-            HikariConfig().also {
-                it.jdbcUrl = postgres.jdbcUrl
-                it.username = postgres.username
-                it.password = postgres.password
-                it.maximumPoolSize = 5
-                it.isAutoCommit = false
-            }
+        var postgres: PostgreSQLContainer<*> = PostgreSQLContainer(DockerImageName.parse("postgres:15")).also {
+            Startables.deepStart(it).join()
         }
 
-        val dataSource by lazy { HikariDataSource(config) }
+        val config = HikariConfig().also {
+            it.jdbcUrl = postgres.jdbcUrl
+            it.username = postgres.username
+            it.password = postgres.password
+            it.maximumPoolSize = 5
+            it.isAutoCommit = false
+        }
 
+        val dataSource = HikariDataSource(config)
         val testClock = TestInstantSource()
-
-        val databaseComponent by lazy { DatabaseComponent.create(dataSource) }
-
-        val unitOfWorkFactory by lazy { databaseComponent.unitOfWorkFactory }
-
-        val keyValueStoreComponent by lazy { KeyValueStoreComponent.create(databaseComponent, testClock) }
-
-        val storageEngine by lazy { keyValueStoreComponent.storageEngine as PostgresStorageEngine }
-
-        val keyValueStore: KeyValueStore by lazy { keyValueStoreComponent.keyValueStore }
+        val coreComponent = CoreComponent.create(testClock)
+        val databaseComponent = DatabaseComponent.create(dataSource)
+        val unitOfWorkFactory = databaseComponent.unitOfWorkFactory
+        val keyValueStoreComponent = KeyValueStoreComponent.create(coreComponent, databaseComponent)
+        val storageEngine = keyValueStoreComponent.storageEngine as PostgresStorageEngine
+        val keyValueStore = keyValueStoreComponent.keyValueStore
 
         init {
-            runBlocking {
-                Startables.deepStart(postgres).join()
-            }
+            databaseComponent.migrator.run()
         }
     }
 

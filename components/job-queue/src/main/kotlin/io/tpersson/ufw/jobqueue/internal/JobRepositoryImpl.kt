@@ -8,7 +8,6 @@ import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.jobqueue.Job
 import io.tpersson.ufw.jobqueue.JobQueueId
 import jakarta.inject.Inject
-import org.flywaydb.core.Flyway
 import java.time.Duration
 import java.time.Instant
 
@@ -17,10 +16,6 @@ public class JobRepositoryImpl @Inject constructor(
     private val connectionProvider: ConnectionProvider,
     private val objectMapper: ObjectMapper,
 ) : JobRepository {
-
-    init {
-        JobQueueDbMigrator.migrate(connectionProvider)
-    }
 
     override suspend fun insert(job: InternalJob<*>, unitOfWork: UnitOfWork) {
         val jobData = JobData(
@@ -63,29 +58,4 @@ public class JobRepositoryImpl @Inject constructor(
         val retentionOnFailure: Duration,
         val retentionOnSuccess: Duration,
     )
-}
-
-internal object JobQueueDbMigrator {
-
-    private var hasMigrated = false
-
-    fun migrate(connectionProvider: ConnectionProvider) {
-        synchronized(this) {
-            if (hasMigrated) {
-                return
-            }
-
-            Flyway.configure()
-                .dataSource(connectionProvider.dataSource)
-                .loggers("slf4j")
-                .baselineOnMigrate(true)
-                .locations("classpath:io/tpersson/ufw/jobqueue/migrations/postgres")
-                .table("ufw__job_queue__flyway")
-                .load().also {
-                    it.migrate()
-                }
-
-            hasMigrated = true
-        }
-    }
 }

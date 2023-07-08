@@ -11,7 +11,6 @@ import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.withContext
-import org.flywaydb.core.Flyway
 import org.postgresql.util.PGobject
 import java.time.Instant
 
@@ -26,18 +25,6 @@ public class PostgresStorageEngine @Inject constructor(
 
     public companion object {
         private const val TableName: String = "ufw__key_value_store"
-    }
-
-    init {
-        Flyway.configure()
-            .dataSource(connectionProvider.dataSource)
-            .loggers("slf4j")
-            .baselineOnMigrate(true)
-            .locations("classpath:io/tpersson/ufw/keyvaluestore/migrations/postgres")
-            .table("ufw__key_value_store__flyway")
-            .load().also {
-                it.migrate()
-            }
     }
 
     override suspend fun get(
