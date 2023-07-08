@@ -26,23 +26,7 @@
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>database-guice</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.tpersson.ufw</groupId>
-            <artifactId>key-value-store-guice</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.tpersson.ufw</groupId>
-            <artifactId>managed-guice</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.tpersson.ufw</groupId>
-            <artifactId>mediator-guice</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.tpersson.ufw</groupId>
-            <artifactId>mediator-middleware-transactional</artifactId>
+            <artifactId>all-guice</artifactId>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>

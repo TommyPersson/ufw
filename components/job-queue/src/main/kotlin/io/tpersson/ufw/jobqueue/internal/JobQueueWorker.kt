@@ -1,15 +1,16 @@
 package io.tpersson.ufw.jobqueue.internal
 
 import io.tpersson.ufw.managed.Managed
+import jakarta.inject.Inject
 import kotlinx.coroutines.*
 
 
-public class JobQueueWorker(
+public class JobQueueWorker @Inject constructor(
     private val jobQueue: JobQueueInternal
-) : Managed() {
-    suspend override fun launch(): Unit = coroutineScope {
+) /*: Managed()*/ {
+    public suspend /*override*/ fun launch(): Unit = coroutineScope {
         while (isActive) {
-
+            delay(500)
         }
     }
 }
