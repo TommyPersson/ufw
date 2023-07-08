@@ -11,15 +11,10 @@ import javax.sql.DataSource
 
 
 public class DatabaseGuiceModule(
-    private val dataSource: DataSource? = null,
     private val config: DatabaseModuleConfig = DatabaseModuleConfig.Default
 ) : Module {
     override fun configure(binder: Binder) {
         with(binder) {
-            if (dataSource != null) {
-                bind(DataSource::class.java).toInstance(dataSource)
-            }
-
             bind(DatabaseModuleConfig::class.java).toInstance(config)
             bind(ConnectionProvider::class.java).to(ConnectionProviderImpl::class.java)
             bind(UnitOfWorkFactory::class.java).to(UnitOfWorkFactoryImpl::class.java)

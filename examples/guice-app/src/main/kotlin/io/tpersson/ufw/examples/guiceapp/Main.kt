@@ -1,6 +1,7 @@
 package io.tpersson.ufw.examples.guiceapp
 
 import com.google.inject.Guice
+import com.google.inject.Module
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.examples.common.commands.PerformGreetingCommand
@@ -11,6 +12,7 @@ import io.tpersson.ufw.managed.guice.internal.ManagedGuiceModule
 import io.tpersson.ufw.mediator.Mediator
 import io.tpersson.ufw.mediator.guice.MediatorGuiceModule
 import java.util.Scanner
+import javax.sql.DataSource
 
 public suspend fun main() {
 
@@ -26,7 +28,8 @@ public suspend fun main() {
     val myAppPackages = listOf("io.tpersson.ufw.examples.guiceapp")
 
     val injector = Guice.createInjector(
-        DatabaseGuiceModule(dataSource),
+        Module { it.bind(DataSource::class.java).toInstance(dataSource) },
+        DatabaseGuiceModule(),
         KeyValueStoreGuiceModule(),
         MediatorGuiceModule(scanPackages = myAppPackages),
         ManagedGuiceModule(scanPackages = myAppPackages)
