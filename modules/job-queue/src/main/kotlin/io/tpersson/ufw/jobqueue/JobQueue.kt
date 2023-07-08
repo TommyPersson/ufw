@@ -1,9 +1,9 @@
 package io.tpersson.ufw.jobqueue
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.tpersson.ufw.db.DbModuleConfig
-import io.tpersson.ufw.db.jdbc.ConnectionProvider
-import io.tpersson.ufw.db.unitofwork.UnitOfWork
+import io.tpersson.ufw.database.DatabaseModuleConfig
+import io.tpersson.ufw.database.jdbc.ConnectionProvider
+import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.jobqueue.internal.JobQueueImpl
 import io.tpersson.ufw.jobqueue.internal.JobRepositoryImpl
 import java.time.Duration
@@ -20,14 +20,14 @@ public interface JobQueue {
     public companion object {
         public fun create(
             config: JobQueueModuleConfig,
-            dbModuleConfig: DbModuleConfig,
+            databaseModuleConfig: DatabaseModuleConfig,
             instantSource: InstantSource,
             connectionProvider: ConnectionProvider,
             objectMapper: ObjectMapper,
         ): JobQueue = JobQueueImpl(
             config = config,
             instantSource = instantSource,
-            jobRepository = JobRepositoryImpl(dbModuleConfig, connectionProvider, objectMapper)
+            jobRepository = JobRepositoryImpl(databaseModuleConfig, connectionProvider, objectMapper)
         )
     }
 }

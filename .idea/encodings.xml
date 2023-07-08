@@ -23,10 +23,10 @@
     <file url="file://$PROJECT_DIR$/mediator/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/modules/core/src/main/kotlin" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/modules/core/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/db-guice/src/main/kotlin" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/db-guice/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/db/src/main/kotlin" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/db/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/modules/database-guice/src/main/kotlin" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/modules/database-guice/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/modules/database/src/main/kotlin" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/modules/database/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/modules/job-queue/src/main/kotlin" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/modules/job-queue/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/modules/key-value-store-guice/src/main/kotlin" charset="UTF-8" />

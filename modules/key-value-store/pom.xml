@@ -26,7 +26,7 @@
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>db</artifactId>
+            <artifactId>database</artifactId>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>

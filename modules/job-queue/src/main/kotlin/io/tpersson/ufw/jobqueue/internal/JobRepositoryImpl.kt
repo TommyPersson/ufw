@@ -1,12 +1,11 @@
 package io.tpersson.ufw.jobqueue.internal
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.tpersson.ufw.db.DbModuleConfig
-import io.tpersson.ufw.db.jdbc.ConnectionProvider
-import io.tpersson.ufw.db.typedqueries.TypedUpdate
-import io.tpersson.ufw.db.unitofwork.UnitOfWork
+import io.tpersson.ufw.database.DatabaseModuleConfig
+import io.tpersson.ufw.database.jdbc.ConnectionProvider
+import io.tpersson.ufw.database.typedqueries.TypedUpdate
+import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.jobqueue.Job
-import io.tpersson.ufw.jobqueue.JobId
 import io.tpersson.ufw.jobqueue.JobQueueId
 import jakarta.inject.Inject
 import org.flywaydb.core.Flyway
@@ -14,7 +13,7 @@ import java.time.Duration
 import java.time.Instant
 
 public class JobRepositoryImpl @Inject constructor(
-    private val dbModuleConfig: DbModuleConfig,
+    private val databaseModuleConfig: DatabaseModuleConfig,
     private val connectionProvider: ConnectionProvider,
     private val objectMapper: ObjectMapper,
 ) : JobRepository {

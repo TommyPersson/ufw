@@ -1,7 +1,7 @@
 package io.tpersson.ufw.jobqueue.internal
 
 import io.tpersson.ufw.core.concurrency.ConsumerSignal
-import io.tpersson.ufw.db.unitofwork.UnitOfWork
+import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.jobqueue.Job
 import io.tpersson.ufw.jobqueue.JobOptionsBuilder
 import io.tpersson.ufw.jobqueue.JobQueueId

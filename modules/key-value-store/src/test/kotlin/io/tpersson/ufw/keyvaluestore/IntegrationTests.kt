@@ -2,9 +2,9 @@ package io.tpersson.ufw.keyvaluestore
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.tpersson.ufw.db.DbModuleConfig
-import io.tpersson.ufw.db.jdbc.ConnectionProviderImpl
-import io.tpersson.ufw.db.unitofwork.UnitOfWorkFactoryImpl
+import io.tpersson.ufw.database.DatabaseModuleConfig
+import io.tpersson.ufw.database.jdbc.ConnectionProviderImpl
+import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactoryImpl
 import io.tpersson.ufw.keyvaluestore.storageengine.PostgresStorageEngine
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -14,11 +14,9 @@ import org.junit.jupiter.api.Test
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.lifecycle.Startables
 import org.testcontainers.utility.DockerImageName
-import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 import java.time.InstantSource
-import java.time.ZoneId
 
 internal class IntegrationTests {
 
@@ -40,10 +38,10 @@ internal class IntegrationTests {
 
         val connectionProvider by lazy { ConnectionProviderImpl(dataSource) }
 
-        val unitOfWorkFactory by lazy { UnitOfWorkFactoryImpl(connectionProvider, DbModuleConfig.Default) }
+        val unitOfWorkFactory by lazy { UnitOfWorkFactoryImpl(connectionProvider, DatabaseModuleConfig.Default) }
 
         val storageEngine by lazy {
-            PostgresStorageEngine(unitOfWorkFactory, connectionProvider, DbModuleConfig.Default)
+            PostgresStorageEngine(unitOfWorkFactory, connectionProvider, DatabaseModuleConfig.Default)
         }
 
         val testClock = TestInstantSource()

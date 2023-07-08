@@ -11,8 +11,8 @@
 
     <modules>
         <module>modules/core</module>
-        <module>modules/db</module>
-        <module>modules/db-guice</module>
+        <module>modules/database</module>
+        <module>modules/database-guice</module>
         <module>modules/managed</module>
         <module>modules/managed-guice</module>
         <module>modules/mediator</module>
@@ -65,12 +65,12 @@
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
-                <artifactId>db</artifactId>
+                <artifactId>database</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
-                <artifactId>db-guice</artifactId>
+                <artifactId>database-guice</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>

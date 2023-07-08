@@ -1,26 +1,25 @@
 package io.tpersson.ufw.keyvaluestore.storageengine
 
-import io.tpersson.ufw.db.DbModuleConfig
-import io.tpersson.ufw.db.jdbc.ConnectionProvider
-import io.tpersson.ufw.db.jdbc.asMaps
-import io.tpersson.ufw.db.jdbc.useInTransaction
-import io.tpersson.ufw.db.typedqueries.TypedUpdate
-import io.tpersson.ufw.db.unitofwork.UnitOfWork
-import io.tpersson.ufw.db.unitofwork.UnitOfWorkFactory
+import io.tpersson.ufw.database.DatabaseModuleConfig
+import io.tpersson.ufw.database.jdbc.ConnectionProvider
+import io.tpersson.ufw.database.jdbc.asMaps
+import io.tpersson.ufw.database.jdbc.useInTransaction
+import io.tpersson.ufw.database.typedqueries.TypedUpdate
+import io.tpersson.ufw.database.unitofwork.UnitOfWork
+import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.withContext
 import org.flywaydb.core.Flyway
 import org.postgresql.util.PGobject
-import java.sql.Timestamp
 import java.time.Instant
 
 @Singleton
 public class PostgresStorageEngine @Inject constructor(
     private val unitOfWorkFactory: UnitOfWorkFactory,
     private val connectionProvider: ConnectionProvider,
-    private val config: DbModuleConfig
+    private val config: DatabaseModuleConfig
 ) : StorageEngine {
 
     // TODO custom exception for expectedVersion mismatch?

@@ -3,11 +3,9 @@ package io.tpersson.ufw.jobqueue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.tpersson.ufw.db.DbModuleConfig
-import io.tpersson.ufw.db.jdbc.ConnectionProviderImpl
-import io.tpersson.ufw.db.unitofwork.UnitOfWorkFactoryImpl
-import io.tpersson.ufw.jobqueue.internal.JobQueueImpl
-import io.tpersson.ufw.jobqueue.internal.JobRepositoryImpl
+import io.tpersson.ufw.database.DatabaseModuleConfig
+import io.tpersson.ufw.database.jdbc.ConnectionProviderImpl
+import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactoryImpl
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -37,7 +35,7 @@ internal class IntegrationTests {
 
         val connectionProvider by lazy { ConnectionProviderImpl(dataSource) }
 
-        val unitOfWorkFactory by lazy { UnitOfWorkFactoryImpl(connectionProvider, DbModuleConfig.Default) }
+        val unitOfWorkFactory by lazy { UnitOfWorkFactoryImpl(connectionProvider, DatabaseModuleConfig.Default) }
 
         val testClock = TestInstantSource()
 
@@ -50,7 +48,7 @@ internal class IntegrationTests {
 
             val objectMapper = jacksonObjectMapper()
 
-            JobQueue.create(config, DbModuleConfig.Default, testClock, connectionProvider, objectMapper)
+            JobQueue.create(config, DatabaseModuleConfig.Default, testClock, connectionProvider, objectMapper)
         }
 
         init {

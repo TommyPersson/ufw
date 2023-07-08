@@ -1,6 +1,6 @@
 package io.tpersson.ufw.keyvaluestore
 
-import io.tpersson.ufw.db.unitofwork.UnitOfWork
+import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.keyvaluestore.storageengine.EntryDataForWrite
 import io.tpersson.ufw.keyvaluestore.storageengine.StorageEngine
 import jakarta.inject.Inject

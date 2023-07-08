@@ -1,6 +1,6 @@
 package io.tpersson.ufw.keyvaluestore.storageengine
 
-import io.tpersson.ufw.db.unitofwork.UnitOfWork
+import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import java.time.Instant
 
 public interface StorageEngine {

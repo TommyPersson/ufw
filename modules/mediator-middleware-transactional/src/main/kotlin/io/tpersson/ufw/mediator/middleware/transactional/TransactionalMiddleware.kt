@@ -1,7 +1,7 @@
 package io.tpersson.ufw.mediator.middleware.transactional
 
-import io.tpersson.ufw.db.unitofwork.UnitOfWork
-import io.tpersson.ufw.db.unitofwork.UnitOfWorkFactory
+import io.tpersson.ufw.database.unitofwork.UnitOfWork
+import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.mediator.Command
 import io.tpersson.ufw.mediator.Context
 import io.tpersson.ufw.mediator.ContextKey

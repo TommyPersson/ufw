@@ -1,6 +1,6 @@
 package io.tpersson.ufw.jobqueue.internal
 
-import io.tpersson.ufw.db.unitofwork.UnitOfWork
+import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.jobqueue.Job
 import io.tpersson.ufw.jobqueue.JobQueueId
 
