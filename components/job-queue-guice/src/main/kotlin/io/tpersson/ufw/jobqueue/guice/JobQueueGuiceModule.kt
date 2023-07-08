@@ -2,6 +2,7 @@ package io.tpersson.ufw.jobqueue.guice
 
 import com.google.inject.Binder
 import com.google.inject.Module
+import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.jobqueue.JobHandlersProvider
 import io.tpersson.ufw.jobqueue.JobQueue
 import io.tpersson.ufw.jobqueue.JobQueueModuleConfig
@@ -14,6 +15,9 @@ public class JobQueueGuiceModule(
 ) : Module {
     override fun configure(binder: Binder) {
         with(binder) {
+            // TODO how to de-dupe with JobQueueComponent
+            Migrator.registerMigrationScript("io/tpersson/ufw/jobqueue/migrations/postgres/liquibase.xml")
+
             val config = JobQueueModuleConfig(scanPackages)
 
             bind(JobQueueModuleConfig::class.java).toInstance(config)

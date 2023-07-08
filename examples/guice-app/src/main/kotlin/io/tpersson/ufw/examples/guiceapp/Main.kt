@@ -5,6 +5,7 @@ import com.google.inject.Module
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.core.CoreGuiceModule
+import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.examples.common.commands.PerformGreetingCommand
 import io.tpersson.ufw.database.guice.DatabaseGuiceModule
 import io.tpersson.ufw.jobqueue.guice.JobQueueGuiceModule
@@ -43,6 +44,9 @@ public suspend fun main() {
         JobQueueGuiceModule(scanPackages = myAppPackages),
         ManagedGuiceModule(scanPackages = myAppPackages)
     )
+
+    val migrator = injector.getInstance(DatabaseComponent::class.java).migrator
+    migrator.run()
 
     val managedRunner = injector.getInstance(ManagedRunner::class.java)
     managedRunner.startAll()

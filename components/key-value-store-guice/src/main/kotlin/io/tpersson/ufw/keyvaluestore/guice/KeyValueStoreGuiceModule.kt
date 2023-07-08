@@ -3,6 +3,7 @@ package io.tpersson.ufw.keyvaluestore.guice
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.inject.Binder
 import com.google.inject.Module
+import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.keyvaluestore.KeyValueStore
 import io.tpersson.ufw.keyvaluestore.KeyValueStoreComponent
 import io.tpersson.ufw.keyvaluestore.KeyValueStoreImpl
@@ -18,6 +19,9 @@ public class KeyValueStoreGuiceModule(
     private val objectMapper: ObjectMapper = KeyValueStoreComponent.defaultObjectMapper,
 ) : Module {
     override fun configure(binder: Binder) {
+        // TODO how to de-dupe with KeyValueStoreComponent
+        Migrator.registerMigrationScript("io/tpersson/ufw/keyvaluestore/migrations/postgres/liquibase.xml")
+
         val config = KeyValueStoreModuleConfig(instantSource, objectMapper)
 
         with(binder) {
