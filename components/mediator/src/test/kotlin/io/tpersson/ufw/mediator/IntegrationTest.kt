@@ -1,6 +1,5 @@
-package io.tpersson.ufw.database
+package io.tpersson.ufw.mediator
 
-import io.tpersson.ufw.mediator.*
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -92,12 +91,12 @@ internal class IntegrationTest {
     }
 
     private fun createMediator() = Mediator.create(
-        handlers = listOf(
+        handlers = setOf(
             TestCommand1Handler(),
             TestQuery1Handler(),
             TestCommandWithLoggingHandler(),
         ),
-        middlewares = listOf(
+        middlewares = setOf(
             AnyRequestMiddleware(),
             AnyCommandMiddleware(),
             AnyQueryMiddleware(),

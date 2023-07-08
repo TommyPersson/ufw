@@ -5,8 +5,8 @@ public interface Mediator {
 
     public companion object {
         public fun create(
-            handlers: List<RequestHandler<*, *>>,
-            middlewares: List<Middleware<*, *>>
+            handlers: Set<RequestHandler<*, *>>,
+            middlewares: Set<Middleware<*, *>>
         ): MediatorImpl {
             return MediatorImpl(handlers, middlewares)
         }

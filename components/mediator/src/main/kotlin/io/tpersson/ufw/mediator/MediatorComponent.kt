@@ -7,8 +7,8 @@ public class MediatorComponent private constructor(
 ) {
     public companion object {
         public fun create(
-            handlers: List<RequestHandler<*, *>>,
-            middlewares: List<Middleware<*, *>>
+            handlers: Set<RequestHandler<*, *>>,
+            middlewares: Set<Middleware<*, *>>
         ): MediatorComponent {
             val mediator =  MediatorImpl(handlers, middlewares)
 

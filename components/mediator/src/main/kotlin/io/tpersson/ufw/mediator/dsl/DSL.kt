@@ -14,8 +14,8 @@ public fun UFWBuilder.RootBuilder.mediator(builder: MediatorComponentBuilder.() 
 
 @UfwDslMarker
 public class MediatorComponentBuilder(public val components: UFWRegistry) {
-    public var handlers: List<RequestHandler<*, *>> = emptyList()
-    public var middlewares: List<Middleware<*, *>> = emptyList()
+    public var handlers: Set<RequestHandler<*, *>> = emptySet()
+    public var middlewares: Set<Middleware<*, *>> = emptySet()
 
     public fun build(): MediatorComponent {
         return MediatorComponent.create(handlers, middlewares)

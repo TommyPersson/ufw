@@ -37,10 +37,10 @@ public suspend fun main() {
         keyValueStore {
         }
         mediator {
-            handlers = listOf(
+            handlers = setOf(
                 PerformGreetingCommandHandler(components.keyValueStore.keyValueStore)
             )
-            middlewares = listOf(
+            middlewares = setOf(
                 TransactionalMiddleware(components.database.unitOfWorkFactory)
             )
         }

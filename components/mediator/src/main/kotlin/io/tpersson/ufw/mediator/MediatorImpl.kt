@@ -6,8 +6,8 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 
 public class MediatorImpl(
-    handlers: List<RequestHandler<*, *>>,
-    private val middlewares: List<Middleware<*, *>>
+    handlers: Set<RequestHandler<*, *>>,
+    private val middlewares: Set<Middleware<*, *>>
 ) : Mediator {
 
     private val middlewaresByRequest = ConcurrentHashMap<KClass<*>, List<Middleware<*, *>>>()

@@ -16,7 +16,7 @@ public class DatabaseComponentBuilder {
     public var dataSource: DataSource? = null
 
     public fun build(): DatabaseComponent {
-        return DatabaseComponent.create(dataSource!!)
+        return DatabaseComponent.create(dataSource ?: error("dataSource must be set in 'database { }'!"))
     }
 }
 

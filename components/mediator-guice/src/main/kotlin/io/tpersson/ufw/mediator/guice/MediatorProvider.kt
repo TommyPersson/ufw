@@ -24,6 +24,7 @@ public class MediatorProvider @Inject constructor(
         .filter { !it.isAbstract }
         .loadClasses()
         .map { injector.getInstance(it) as RequestHandler<*, *> }
+        .toSet()
 
     private val middlewares = scanResult.allClasses
         .filter { it.implementsInterface(Middleware::class.java) }
@@ -31,6 +32,7 @@ public class MediatorProvider @Inject constructor(
         .loadClasses()
         .map { it.kotlin }
         .map { injector.getInstance(it.java) as Middleware<*, *> }
+        .toSet()
 
     private val mediator = MediatorImpl(handlers, middlewares)
 
