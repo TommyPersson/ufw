@@ -1,6 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/components/core/src/main/kotlin" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/core/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/database-guice/src/main/kotlin" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/database-guice/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/database/src/main/kotlin" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/database/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/job-queue/src/main/kotlin" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/job-queue/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/key-value-store-guice/src/main/kotlin" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/key-value-store-guice/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/key-value-store/src/main/kotlin" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/key-value-store/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/logging/src/main/kotlin" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/logging/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/managed-guice/src/main/kotlin" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/managed-guice/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/managed/src/main/kotlin" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/managed/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/mediator-guice/src/main/kotlin" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/mediator-guice/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/mediator-middleware-transactional/src/main/kotlin" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/mediator-middleware-transactional/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/mediator/src/main/kotlin" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/mediator/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/core/src/main/kotlin" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/core/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/coverage-report/src/main/kotlin" charset="UTF-8" />
@@ -25,30 +49,6 @@
     <file url="file://$PROJECT_DIR$/logging/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/mediator/src/main/kotlin" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/mediator/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/core/src/main/kotlin" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/core/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/database-guice/src/main/kotlin" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/database-guice/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/database/src/main/kotlin" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/database/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/job-queue/src/main/kotlin" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/job-queue/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/key-value-store-guice/src/main/kotlin" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/key-value-store-guice/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/key-value-store/src/main/kotlin" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/key-value-store/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/logging/src/main/kotlin" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/logging/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/managed-guice/src/main/kotlin" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/managed-guice/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/managed/src/main/kotlin" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/managed/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/mediator-guice/src/main/kotlin" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/mediator-guice/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/mediator-middleware-transactional/src/main/kotlin" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/mediator-middleware-transactional/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/mediator/src/main/kotlin" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/modules/mediator/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/kotlin" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
   </component>

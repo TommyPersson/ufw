@@ -10,17 +10,17 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>modules/core</module>
-        <module>modules/database</module>
-        <module>modules/database-guice</module>
-        <module>modules/managed</module>
-        <module>modules/managed-guice</module>
-        <module>modules/mediator</module>
-        <module>modules/mediator-guice</module>
-        <module>modules/mediator-middleware-transactional</module>
-        <module>modules/key-value-store</module>
-        <module>modules/key-value-store-guice</module>
-        <module>modules/job-queue</module>
+        <module>components/core</module>
+        <module>components/database</module>
+        <module>components/database-guice</module>
+        <module>components/managed</module>
+        <module>components/managed-guice</module>
+        <module>components/mediator</module>
+        <module>components/mediator-guice</module>
+        <module>components/mediator-middleware-transactional</module>
+        <module>components/key-value-store</module>
+        <module>components/key-value-store-guice</module>
+        <module>components/job-queue</module>
         <module>examples/common</module>
         <module>examples/guice-app</module>
         <module>examples/plain-app</module>
