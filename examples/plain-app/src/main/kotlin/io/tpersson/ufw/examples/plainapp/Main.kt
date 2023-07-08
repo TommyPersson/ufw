@@ -2,17 +2,18 @@ package io.tpersson.ufw.examples.plainapp
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.tpersson.ufw.core.CoreComponent
-import io.tpersson.ufw.database.DatabaseComponent
+import io.tpersson.ufw.core.dsl.UFW
+import io.tpersson.ufw.core.dsl.core
+import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.examples.common.commands.PerformGreetingCommand
 import io.tpersson.ufw.examples.common.commands.PerformGreetingCommandHandler
 import io.tpersson.ufw.examples.common.jobs.PrintJob
 import io.tpersson.ufw.examples.common.jobs.PrintJobHandler
 import io.tpersson.ufw.examples.common.managed.PeriodicLogger
-import io.tpersson.ufw.jobqueue.JobQueueComponent
-import io.tpersson.ufw.keyvaluestore.KeyValueStoreComponent
-import io.tpersson.ufw.managed.ManagedComponent
-import io.tpersson.ufw.mediator.MediatorComponent
+import io.tpersson.ufw.jobqueue.dsl.jobQueue
+import io.tpersson.ufw.keyvaluestore.dsl.keyValueStore
+import io.tpersson.ufw.managed.dsl.managed
+import io.tpersson.ufw.mediator.dsl.mediator
 import io.tpersson.ufw.mediator.middleware.transactional.TransactionalMiddleware
 import java.time.Clock
 import java.util.*
@@ -26,57 +27,48 @@ public suspend fun main() {
         it.maximumPoolSize = 30
     }
 
-    val dataSource = HikariDataSource(hikariConfig)
+    val ufw = UFW.build {
+        core {
+            instantSource = Clock.systemUTC()
+        }
+        database {
+            dataSource = HikariDataSource(hikariConfig)
+        }
+        keyValueStore {
+        }
+        mediator {
+            handlers = listOf(
+                PerformGreetingCommandHandler(components.keyValueStore.keyValueStore)
+            )
+            middlewares = listOf(
+                TransactionalMiddleware(components.database.unitOfWorkFactory)
+            )
+        }
+        jobQueue {
+            handlers = setOf(
+                PrintJobHandler()
+            )
+        }
+        managed {
+            instances = setOf(
+                PeriodicLogger(),
+                components.jobQueue.jobQueueRunner
+            )
+        }
+    }
 
-    val coreComponent = CoreComponent.create(
-        instantSource = Clock.systemUTC()
-    )
+    ufw.database.migrator.run()
 
-    val databaseComponent = DatabaseComponent.create(
-        dataSource = dataSource
-    )
+    val unitOfWorkFactory = ufw.database.unitOfWorkFactory
 
-    val keyValueStoreComponent = KeyValueStoreComponent.create(
-        coreComponent = coreComponent,
-        databaseComponent = databaseComponent
-    )
-
-    val mediatorComponent = MediatorComponent.create(
-        handlers = listOf(
-            PerformGreetingCommandHandler(keyValueStoreComponent.keyValueStore)
-        ),
-        middlewares = listOf(
-            TransactionalMiddleware(databaseComponent.unitOfWorkFactory)
-        )
-    )
-
-    val jobQueueComponent = JobQueueComponent.create(
-        coreComponent = coreComponent,
-        databaseComponent = databaseComponent,
-        jobHandlers = setOf(
-            PrintJobHandler()
-        )
-    )
-
-    val managedComponent = ManagedComponent.create(
-        instances = setOf(
-            PeriodicLogger(),
-            jobQueueComponent.jobQueueRunner
-        )
-    )
-
-    databaseComponent.migrator.run()
-
-    val unitOfWorkFactory = databaseComponent.unitOfWorkFactory
-
-    val managedRunner = managedComponent.managedRunner
+    val managedRunner = ufw.managed.managedRunner
     managedRunner.startAll()
 
-    val mediator = mediatorComponent.mediator
+    val mediator = ufw.mediator.mediator
 
     mediator.send(PerformGreetingCommand("World"))
 
-    val jobQueue = jobQueueComponent.jobQueue
+    val jobQueue = ufw.jobQueue.jobQueue
 
     val unitOfWork = unitOfWorkFactory.create()
     jobQueue.enqueue(PrintJob("Hello, World!"), unitOfWork)
@@ -89,6 +81,5 @@ public suspend fun main() {
 
     managedRunner.stopAll()
     println("Exiting")
+
 }
-
-
