@@ -22,6 +22,7 @@
         <module>modules/key-value-store-guice</module>
         <module>modules/job-queue</module>
         <module>examples/guice-app</module>
+        <module>examples/plain-app</module>
         <module>coverage-report</module>
     </modules>
 

@@ -40,16 +40,4 @@ public interface KeyValueStore {
             }
         }
     }
-
-    public companion object {
-        public fun create(
-            storage: StorageEngine,
-            instantSource: InstantSource = Clock.systemUTC(),
-            objectMapper: ObjectMapper = defaultObjectMapper
-        ): KeyValueStore {
-            return KeyValueStoreImpl(storage, KeyValueStoreModuleConfig(instantSource, objectMapper))
-        }
-
-        public val defaultObjectMapper: ObjectMapper = jacksonObjectMapper().findAndRegisterModules()
-    }
 }

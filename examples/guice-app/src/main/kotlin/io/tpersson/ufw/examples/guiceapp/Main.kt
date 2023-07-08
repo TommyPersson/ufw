@@ -6,6 +6,7 @@ import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.examples.guiceapp.commands.PerformGreetingCommand
 import io.tpersson.ufw.database.guice.DatabaseGuiceModule
 import io.tpersson.ufw.keyvaluestore.guice.KeyValueStoreGuiceModule
+import io.tpersson.ufw.managed.ManagedRunner
 import io.tpersson.ufw.managed.guice.internal.ManagedGuiceModule
 import io.tpersson.ufw.mediator.Mediator
 import io.tpersson.ufw.mediator.guice.MediatorGuiceModule
@@ -31,6 +32,9 @@ public suspend fun main() {
         ManagedGuiceModule(scanPackages = myAppPackages)
     )
 
+    val managedRunner = injector.getInstance(ManagedRunner::class.java)
+    managedRunner.startAll()
+
     val mediator = injector.getInstance(Mediator::class.java)
     mediator.send(PerformGreetingCommand("World"))
 
@@ -39,5 +43,6 @@ public suspend fun main() {
     val scanner = Scanner(System.`in`)
     scanner.nextLine()
 
+    managedRunner.stopAll()
     println("Exiting")
 }

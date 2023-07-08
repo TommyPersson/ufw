@@ -2,6 +2,7 @@ package io.tpersson.ufw.keyvaluestore
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.DatabaseModuleConfig
 import io.tpersson.ufw.database.jdbc.ConnectionProviderImpl
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactoryImpl
@@ -20,7 +21,6 @@ import java.time.InstantSource
 
 internal class IntegrationTests {
 
-
     private companion object {
         @JvmStatic
         var postgres: PostgreSQLContainer<*> = PostgreSQLContainer(DockerImageName.parse("postgres:15"))
@@ -34,19 +34,20 @@ internal class IntegrationTests {
                 it.isAutoCommit = false
             }
         }
+
         val dataSource by lazy { HikariDataSource(config) }
-
-        val connectionProvider by lazy { ConnectionProviderImpl(dataSource) }
-
-        val unitOfWorkFactory by lazy { UnitOfWorkFactoryImpl(connectionProvider, DatabaseModuleConfig.Default) }
-
-        val storageEngine by lazy {
-            PostgresStorageEngine(unitOfWorkFactory, connectionProvider, DatabaseModuleConfig.Default)
-        }
 
         val testClock = TestInstantSource()
 
-        val keyValueStore: KeyValueStore by lazy { KeyValueStore.create(storageEngine, testClock) }
+        val databaseComponent by lazy { DatabaseComponent.create(dataSource) }
+
+        val unitOfWorkFactory by lazy { databaseComponent.unitOfWorkFactory }
+
+        val keyValueStoreComponent by lazy { KeyValueStoreComponent.create(databaseComponent, testClock) }
+
+        val storageEngine by lazy { keyValueStoreComponent.storageEngine as PostgresStorageEngine }
+
+        val keyValueStore: KeyValueStore by lazy { keyValueStoreComponent.keyValueStore }
 
         init {
             runBlocking {
