@@ -13,6 +13,7 @@
         <module>components/all</module>
         <module>components/all-guice</module>
         <module>components/core</module>
+        <module>components/core-guice</module>
         <module>components/database</module>
         <module>components/database-guice</module>
         <module>components/managed</module>
@@ -23,6 +24,7 @@
         <module>components/key-value-store</module>
         <module>components/key-value-store-guice</module>
         <module>components/job-queue</module>
+        <module>components/job-queue-guice</module>
         <module>examples/common</module>
         <module>examples/guice-app</module>
         <module>examples/plain-app</module>
@@ -80,6 +82,11 @@
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
+                <artifactId>core-guice</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>io.tpersson.ufw</groupId>
                 <artifactId>database</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
@@ -101,6 +108,11 @@
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>job-queue</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>io.tpersson.ufw</groupId>
+                <artifactId>job-queue-guice</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>

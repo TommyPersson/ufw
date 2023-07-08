@@ -5,12 +5,13 @@ import io.tpersson.ufw.database.jdbc.ConnectionProviderImpl
 import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactoryImpl
+import jakarta.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import javax.sql.DataSource
 import kotlin.coroutines.CoroutineContext
 
 
-public class DatabaseComponent private constructor(
+public class DatabaseComponent @Inject constructor(
     public val connectionProvider: ConnectionProvider,
     public val unitOfWorkFactory: UnitOfWorkFactory,
     public val migrator: Migrator,

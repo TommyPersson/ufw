@@ -7,7 +7,6 @@ import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.jobqueue.internal.JobQueueImpl
 import io.tpersson.ufw.jobqueue.internal.JobRepositoryImpl
 import io.tpersson.ufw.managed.Managed
-import jakarta.inject.Inject
 
 public class JobQueueComponent private constructor(
     public val jobQueue: JobQueue,
@@ -37,17 +36,12 @@ public class JobQueueComponent private constructor(
                 jobRepository = jobRepository
             )
 
-            val jobQueueRunner = JobQueueRunner(jobHandlers)
+            val jobHandlersProvider = SimpleJobHandlersProvider(jobHandlers)
+
+            val jobQueueRunner = JobQueueRunner(jobHandlersProvider)
 
             return JobQueueComponent(jobQueue, jobQueueRunner)
         }
     }
 }
 
-public class JobQueueRunner @Inject constructor(
-    private val jobHandlers: Set<JobHandler<*>>
-) : Managed() {
-    override suspend fun launch() {
-
-    }
-}

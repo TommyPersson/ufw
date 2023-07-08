@@ -2,6 +2,7 @@ package io.tpersson.ufw.database.guice
 
 import com.google.inject.Binder
 import com.google.inject.Module
+import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.DatabaseModuleConfig
 import io.tpersson.ufw.database.jdbc.ConnectionProvider
 import io.tpersson.ufw.database.jdbc.ConnectionProviderImpl
@@ -18,6 +19,7 @@ public class DatabaseGuiceModule(
             bind(DatabaseModuleConfig::class.java).toInstance(config)
             bind(ConnectionProvider::class.java).to(ConnectionProviderImpl::class.java)
             bind(UnitOfWorkFactory::class.java).to(UnitOfWorkFactoryImpl::class.java)
+            bind(DatabaseComponent::class.java)
         }
     }
 }

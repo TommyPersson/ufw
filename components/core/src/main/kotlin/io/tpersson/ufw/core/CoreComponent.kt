@@ -1,9 +1,10 @@
 package io.tpersson.ufw.core
 
+import jakarta.inject.Inject
 import java.time.Clock
 import java.time.InstantSource
 
-public class CoreComponent private constructor(
+public class CoreComponent private @Inject constructor(
     public val instantSource: InstantSource
 ) {
     public companion object {

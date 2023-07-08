@@ -5,12 +5,16 @@
     <file url="file://$PROJECT_DIR$/components/all-guice/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/components/all/src/main/kotlin" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/components/all/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/core-guice/src/main/kotlin" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/core-guice/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/components/core/src/main/kotlin" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/components/core/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/components/database-guice/src/main/kotlin" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/components/database-guice/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/components/database/src/main/kotlin" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/components/database/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/job-queue-guice/src/main/kotlin" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/job-queue-guice/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/components/job-queue/src/main/kotlin" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/components/job-queue/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/components/key-value-store-guice/src/main/kotlin" charset="UTF-8" />

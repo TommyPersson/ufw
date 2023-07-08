@@ -8,7 +8,7 @@ import io.tpersson.ufw.managed.guice.internal.ManagedModuleConfig
 import jakarta.inject.Inject
 import jakarta.inject.Provider
 
-public class ManagedProvider @Inject constructor(
+public class ManagedRunnerProvider @Inject constructor(
     private val config: ManagedModuleConfig,
     private val injector: Injector
 ) : Provider<ManagedRunner> {
