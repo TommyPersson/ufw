@@ -3,9 +3,9 @@ package io.tpersson.ufw.examples.plainapp
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.database.DatabaseComponent
-import io.tpersson.ufw.examples.plainapp.commands.PerformGreetingCommand
-import io.tpersson.ufw.examples.plainapp.commands.PerformGreetingCommandHandler
-import io.tpersson.ufw.examples.plainapp.managed.PeriodicLogger
+import io.tpersson.ufw.examples.common.commands.PerformGreetingCommand
+import io.tpersson.ufw.examples.common.commands.PerformGreetingCommandHandler
+import io.tpersson.ufw.examples.common.managed.PeriodicLogger
 import io.tpersson.ufw.keyvaluestore.KeyValueStoreComponent
 import io.tpersson.ufw.managed.ManagedComponent
 import io.tpersson.ufw.mediator.MediatorComponent

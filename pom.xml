@@ -21,6 +21,7 @@
         <module>modules/key-value-store</module>
         <module>modules/key-value-store-guice</module>
         <module>modules/job-queue</module>
+        <module>examples/common</module>
         <module>examples/guice-app</module>
         <module>examples/plain-app</module>
         <module>coverage-report</module>
@@ -112,6 +113,11 @@
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>key-value-store-guice</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>io.tpersson.ufw</groupId>
+                <artifactId>example-common</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
 

@@ -11,7 +11,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>example-guice-app</artifactId>
+    <artifactId>example-common</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -22,23 +22,23 @@
     <dependencies>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>example-common</artifactId>
+            <artifactId>core</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>database-guice</artifactId>
+            <artifactId>database</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>key-value-store-guice</artifactId>
+            <artifactId>key-value-store</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>managed-guice</artifactId>
+            <artifactId>managed</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>mediator-guice</artifactId>
+            <artifactId>mediator</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>

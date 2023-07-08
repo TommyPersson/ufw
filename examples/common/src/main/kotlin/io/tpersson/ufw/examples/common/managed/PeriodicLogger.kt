@@ -1,4 +1,4 @@
-package io.tpersson.ufw.examples.guiceapp.managed
+package io.tpersson.ufw.examples.common.managed
 
 import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.managed.Managed

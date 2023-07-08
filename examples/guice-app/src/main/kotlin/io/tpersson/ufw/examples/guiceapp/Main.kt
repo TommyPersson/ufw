@@ -3,7 +3,7 @@ package io.tpersson.ufw.examples.guiceapp
 import com.google.inject.Guice
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.tpersson.ufw.examples.guiceapp.commands.PerformGreetingCommand
+import io.tpersson.ufw.examples.common.commands.PerformGreetingCommand
 import io.tpersson.ufw.database.guice.DatabaseGuiceModule
 import io.tpersson.ufw.keyvaluestore.guice.KeyValueStoreGuiceModule
 import io.tpersson.ufw.managed.ManagedRunner

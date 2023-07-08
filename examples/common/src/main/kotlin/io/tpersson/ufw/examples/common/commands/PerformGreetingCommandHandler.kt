@@ -1,4 +1,4 @@
-package io.tpersson.ufw.examples.plainapp.commands
+package io.tpersson.ufw.examples.common.commands
 
 import io.tpersson.ufw.keyvaluestore.KeyValueStore
 import io.tpersson.ufw.mediator.Command
