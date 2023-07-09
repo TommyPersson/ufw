@@ -1,19 +1,18 @@
 package io.tpersson.ufw.jobqueue
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
-import io.tpersson.ufw.jobqueue.internal.JobQueueImpl
-import io.tpersson.ufw.jobqueue.internal.JobRepository
-import io.tpersson.ufw.jobqueue.internal.JobRepositoryImpl
-import io.tpersson.ufw.jobqueue.internal.SimpleJobHandlersProvider
+import io.tpersson.ufw.jobqueue.internal.*
 import io.tpersson.ufw.managed.Managed
 
 public class JobQueueComponent private constructor(
     public val jobQueue: JobQueue,
-    public val jobQueueRunner: Managed,
-    internal val jobRepository: JobRepository
+    public val managedInstances: Set<Managed>,
+    internal val jobRepository: JobRepository,
+    internal val jobFailureRepository: JobFailureRepository
 ) {
     public companion object {
         public fun create(
@@ -23,7 +22,9 @@ public class JobQueueComponent private constructor(
         ): JobQueueComponent {
             Migrator.registerMigrationScript("io/tpersson/ufw/jobqueue/migrations/postgres/liquibase.xml")
 
-            val objectMapper = jacksonObjectMapper().findAndRegisterModules()
+            val objectMapper = jacksonObjectMapper().findAndRegisterModules().also {
+                it.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            }
 
             val config = JobQueueModuleConfig()
 
@@ -33,10 +34,15 @@ public class JobQueueComponent private constructor(
                 objectMapper = objectMapper
             )
 
+            val jobFailureRepository = JobFailureRepositoryImpl(
+                connectionProvider = databaseComponent.connectionProvider
+            )
+
             val jobQueue = JobQueueImpl(
                 config = config,
                 clock = coreComponent.instantSource,
-                jobRepository = jobRepository
+                jobRepository = jobRepository,
+                jobFailureRepository = jobFailureRepository
             )
 
             val jobHandlersProvider = SimpleJobHandlersProvider(jobHandlers)
@@ -45,10 +51,16 @@ public class JobQueueComponent private constructor(
                 jobQueue = jobQueue,
                 jobRepository = jobRepository,
                 unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
-                jobHandlersProvider = jobHandlersProvider
+                jobHandlersProvider = jobHandlersProvider,
+                clock = coreComponent.instantSource
             )
 
-            return JobQueueComponent(jobQueue, jobQueueRunner, jobRepository)
+            return JobQueueComponent(
+                jobQueue = jobQueue,
+                managedInstances = setOf(jobQueueRunner),
+                jobRepository = jobRepository,
+                jobFailureRepository = jobFailureRepository
+            )
         }
     }
 }

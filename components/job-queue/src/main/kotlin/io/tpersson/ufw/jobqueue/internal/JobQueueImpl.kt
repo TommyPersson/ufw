@@ -11,6 +11,7 @@ import java.lang.Exception
 import java.time.Duration
 import java.time.Instant
 import java.time.InstantSource
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 @Singleton
@@ -18,6 +19,7 @@ public class JobQueueImpl @Inject constructor(
     private val config: JobQueueModuleConfig,
     private val clock: InstantSource,
     private val jobRepository: JobRepository,
+    private val jobFailureRepository: JobFailureRepository,
 ) : JobQueueInternal {
 
     private val logger = createLogger()
@@ -52,38 +54,47 @@ public class JobQueueImpl @Inject constructor(
 
     override suspend fun <TJob : Job> pollOne(queueId: JobQueueId<TJob>, timeout: Duration): InternalJob<TJob>? {
         return withTimeoutOrNull(timeout) {
-            var next = jobRepository.getNext(queueId)
+            var next = jobRepository.getNext(queueId, clock.instant())
             while (next == null) {
                 getSignal(queueId).wait(pollWaitTime)
-                next = jobRepository.getNext(queueId)
+                next = jobRepository.getNext(queueId, clock.instant())
             }
 
             next
         }
     }
 
-    override fun <TJob : Job> markAsInProgress(job: InternalJob<TJob>, unitOfWork: UnitOfWork) {
+    override suspend fun <TJob : Job> markAsInProgress(job: InternalJob<TJob>, unitOfWork: UnitOfWork) {
         jobRepository.markAsInProgress(job, clock.instant(), unitOfWork)
     }
 
-    override fun <TJob : Job> markAsSuccessful(job: InternalJob<TJob>, unitOfWork: UnitOfWork) {
-        jobRepository.maskAsSuccessful(job, clock.instant(), unitOfWork)
+    override suspend fun <TJob : Job> markAsSuccessful(job: InternalJob<TJob>, unitOfWork: UnitOfWork) {
+        jobRepository.markAsSuccessful(job, clock.instant(), unitOfWork)
     }
 
-    override fun <TJob : Job> rescheduleAt(job: InternalJob<TJob>, at: Instant, unitOfWork: UnitOfWork) {
-        TODO("Not yet implemented")
+    override suspend fun <TJob : Job> rescheduleAt(job: InternalJob<TJob>, at: Instant, unitOfWork: UnitOfWork) {
+        jobRepository.markAsScheduled(job, clock.instant(), at, unitOfWork)
     }
 
-    override fun <TJob : Job> markAsFailed(job: InternalJob<TJob>, error: Exception, unitOfWork: UnitOfWork) {
-        TODO("Not yet implemented")
+    override suspend fun <TJob : Job> markAsFailed(job: InternalJob<TJob>, error: Exception, unitOfWork: UnitOfWork) {
+        jobRepository.markAsFailed(job, clock.instant(), unitOfWork)
     }
 
-    override fun <TJob : Job> recordFailure(job: InternalJob<TJob>, error: Exception, uow: UnitOfWork) {
-        TODO("Not yet implemented")
+    override suspend fun <TJob : Job> recordFailure(job: InternalJob<TJob>, error: Exception, uow: UnitOfWork) {
+        val jobFailure = JobFailure(
+            id = UUID.randomUUID(),
+            jobUid = job.uid!!,
+            timestamp = clock.instant(),
+            errorType = error::class.simpleName!!,
+            errorMessage = error.message ?: "<no message>",
+            errorStackTrace = error.stackTraceToString()
+        )
+
+        jobFailureRepository.insert(jobFailure, unitOfWork = uow)
     }
 
-    override fun <TJob : Job> getNumberOfFailuresFor(job: InternalJob<TJob>): Int {
-        TODO("Not yet implemented")
+    override suspend fun <TJob : Job> getNumberOfFailuresFor(job: InternalJob<TJob>): Int {
+        return jobFailureRepository.getNumberOfFailuresFor(job)
     }
 
     private fun getSignal(queueId: JobQueueId<*>): ConsumerSignal {

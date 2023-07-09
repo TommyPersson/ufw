@@ -36,13 +36,3 @@ public fun <T : Any> Connection.selectList(select: TypedSelect<T>): List<T> {
     return statement.executeQuery().asMaps().map { rowEntityMapper.map(it) }
 }
 
-
-internal fun main() {
-    data class Test1(val snakeCase: String)
-
-    val rowEntityMapper = RowEntityMapper(LinkedHashMap::class)
-
-    val result = rowEntityMapper.map(mapOf("snake_case" to "value"))
-
-    println(result)
-}

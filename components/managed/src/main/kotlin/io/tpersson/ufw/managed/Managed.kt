@@ -6,8 +6,8 @@ import kotlin.coroutines.CoroutineContext
 public abstract class Managed(
     context: CoroutineContext = Dispatchers.Default
 ) {
-    private val scope = CoroutineScope(context)
-    private lateinit var job: Job
+    private val scope = CoroutineScope(context + SupervisorJob())
+    private var job: Job? = null
 
     public fun start() {
         job = scope.launch {
@@ -16,7 +16,7 @@ public abstract class Managed(
     }
 
     public suspend fun stop() {
-        job.cancelAndJoin()
+        job?.cancelAndJoin()
     }
 
     protected abstract suspend fun launch(): Unit

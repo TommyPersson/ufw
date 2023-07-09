@@ -10,5 +10,6 @@ public interface JobHandler<TJob : Job> {
 
 public sealed class FailureAction {
     public class Reschedule(public val at: Instant) : FailureAction()
+    public object RescheduleNow : FailureAction()
     public object GiveUp : FailureAction()
 }

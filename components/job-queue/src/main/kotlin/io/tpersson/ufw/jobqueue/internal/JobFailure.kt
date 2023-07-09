@@ -1,10 +1,11 @@
 package io.tpersson.ufw.jobqueue.internal
 
-import io.tpersson.ufw.jobqueue.JobId
 import java.time.Instant
+import java.util.*
 
 public data class JobFailure(
-    val jobId: JobId,
+    val id: UUID,
+    val jobUid: Long,
     val timestamp: Instant,
     val errorType: String,
     val errorMessage: String,

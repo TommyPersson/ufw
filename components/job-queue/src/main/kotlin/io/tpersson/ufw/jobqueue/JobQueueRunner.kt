@@ -12,13 +12,15 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.Duration
+import java.time.InstantSource
 import kotlin.reflect.KClass
 
 public class JobQueueRunner @Inject constructor(
     private val jobQueue: JobQueueInternal,
     private val jobRepository: JobRepository,
     private val unitOfWorkFactory: UnitOfWorkFactory,
-    private val jobHandlersProvider: JobHandlersProvider
+    private val jobHandlersProvider: JobHandlersProvider,
+    private val clock: InstantSource
 ) : Managed() {
     override suspend fun launch(): Unit = coroutineScope {
         val handlers = jobHandlersProvider.get()
@@ -28,6 +30,7 @@ public class JobQueueRunner @Inject constructor(
                     jobQueue,
                     jobRepository,
                     unitOfWorkFactory,
+                    clock,
                     handler
                 ).run()
             }
@@ -39,6 +42,7 @@ public class SingleJobHandlerRunner<TJob : Job>(
     private val jobQueue: JobQueueInternal,
     private val jobRepository: JobRepository,
     private val unitOfWorkFactory: UnitOfWorkFactory,
+    private val clock: InstantSource,
     private val jobHandler: JobHandler<TJob>,
 ) {
     private val logger = createLogger()
@@ -77,7 +81,7 @@ public class SingleJobHandlerRunner<TJob : Job>(
         // TODO check for state conflicts
         unitOfWorkFactory.use { uow ->
             val failureContext = JobFailureContextImpl(
-                numberOfFailures = jobQueue.getNumberOfFailuresFor(job),
+                numberOfFailures = jobQueue.getNumberOfFailuresFor(job) + 1,
                 unitOfWork = uow
             )
 
@@ -87,6 +91,10 @@ public class SingleJobHandlerRunner<TJob : Job>(
             when (failureAction) {
                 is FailureAction.Reschedule -> {
                     jobQueue.rescheduleAt(job, failureAction.at, uow)
+                }
+
+                is FailureAction.RescheduleNow -> {
+                    jobQueue.rescheduleAt(job, clock.instant(), uow)
                 }
 
                 FailureAction.GiveUp -> {

@@ -2,13 +2,18 @@ package io.tpersson.ufw.jobqueue
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.tpersson.ufw.core.CoreComponent
-import io.tpersson.ufw.database.DatabaseComponent
+import io.tpersson.ufw.core.dsl.UFW
+import io.tpersson.ufw.core.dsl.core
+import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.database.unitofwork.use
+import io.tpersson.ufw.jobqueue.dsl.jobQueue
+import io.tpersson.ufw.managed.dsl.managed
 import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
+import org.junit.internal.runners.statements.Fail
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -36,61 +41,138 @@ internal class IntegrationTests {
         }
 
         val testClock = TestInstantSource()
-        val dataSource = HikariDataSource(config)
-        val coreComponent = CoreComponent.create(testClock)
-        val databaseComponent = DatabaseComponent.create(dataSource)
-        val connectionProvider = databaseComponent.connectionProvider
-        val unitOfWorkFactory = databaseComponent.unitOfWorkFactory
-        val jobQueueComponent = JobQueueComponent.create(
-            coreComponent,
-            databaseComponent,
-            setOf(TestJobHandler())
-        )
-        val jobQueue = jobQueueComponent.jobQueue
-        val jobRepository = jobQueueComponent.jobRepository
+
+        val ufw = UFW.build {
+            core {
+                instantSource = testClock
+            }
+            database {
+                dataSource = HikariDataSource(config)
+            }
+            jobQueue {
+                handlers = setOf(TestJobHandler())
+            }
+            managed {
+                instances = components.jobQueue.managedInstances
+            }
+        }
+
+        val unitOfWorkFactory = ufw.database.unitOfWorkFactory
+        val jobQueue = ufw.jobQueue.jobQueue
+        val jobRepository = ufw.jobQueue.jobRepository
+        val jobFailureRepository = ufw.jobQueue.jobFailureRepository
 
         init {
-            databaseComponent.migrator.run()
+            ufw.database.migrator.run()
         }
     }
 
     @BeforeEach
     fun setUp(): Unit = runBlocking {
-        jobQueueComponent.jobQueueRunner.start()
+        ufw.managed.managedRunner.startAll()
     }
 
     @AfterEach
     fun afterEach(): Unit = runBlocking {
-        jobQueueComponent.jobQueueRunner.stop()
+        ufw.managed.managedRunner.stopAll()
+
+        unitOfWorkFactory.use { uow ->
+            jobRepository.debugTruncate(uow)
+        }
     }
 
     @Test
-    fun `Basic`(): Unit = runBlocking {
+    fun `Basic - Can run jobs`(): Unit = runBlocking {
         val testJob = TestJob(greeting = "Hello, World!")
 
+        enqueueJob(testJob)
+
+        waitUntilQueueIsEmpty()
+
+        val job = jobRepository.getById(testJob.queueId, testJob.jobId)!!
+        assertThat(job.state).isEqualTo(JobState.Successful)
+    }
+
+    @Test
+    fun `Basic - Enqueueing the same job ID is idempotent`(): Unit = runBlocking {
+        val testJob = TestJob(greeting = "Hello, World!", jobId = JobId("test-1"))
+        val testJobDuplicate = TestJob(greeting = "Hello, World!", jobId = JobId("test-1"))
+
+        enqueueJob(testJob)
+        enqueueJob(testJobDuplicate)
+
+        waitUntilQueueIsEmpty()
+
+        val allJobs = jobRepository.debugGetAllJobs()
+
+        assertThat(allJobs).hasSize(1)
+    }
+
+    @Test
+    fun `Failures - Job state is set to 'Failed' on failure`(): Unit = runBlocking {
+        val testJob = TestJob(greeting = "Hello, World!", shouldFail = true)
+
+        enqueueJob(testJob)
+
+        waitUntilQueueIsEmpty()
+
+        val job = jobRepository.getById(testJob.queueId, testJob.jobId)!!
+        assertThat(job.state).isEqualTo(JobState.Failed)
+    }
+
+    @Test
+    fun `Failures - A JobFailure is recorded for each failure is set to 'Failed' on failure`(): Unit = runBlocking {
+        val testJob = TestJob(greeting = "Hello, World!", shouldFail = true, numRetries = 3)
+
+        enqueueJob(testJob)
+
+        waitUntilQueueIsEmpty()
+
+        val job = jobRepository.getById(testJob.queueId, testJob.jobId)!!
+        val numFailures = jobFailureRepository.getNumberOfFailuresFor(job)
+        val failures = jobFailureRepository.getLatestFor(job, 10)
+
+        assertThat(numFailures).isEqualTo(4)
+        assertThat(failures).hasSize(4)
+    }
+
+    private suspend fun enqueueJob(testJob: TestJob) {
         unitOfWorkFactory.use { uow ->
             jobQueue.enqueue(testJob, uow)
         }
+    }
 
+    private suspend fun waitUntilQueueIsEmpty() {
         await.untilCallTo {
-            jobRepository.getById(testJob.queueId, testJob.jobId)
+            runBlocking { jobRepository.debugGetAllJobs() }
         } matches {
-            it?.state == JobState.Successful
+            it!!.all { job -> job.state in setOf(JobState.Successful, JobState.Failed, JobState.Cancelled) }
         }
     }
 
-    public data class TestJob(
+    data class TestJob(
         val greeting: String,
+        val shouldFail: Boolean = false,
+        val numFailures: Int = Int.MAX_VALUE,
+        val numRetries: Int = 0,
         override val jobId: JobId = JobId.new()
     ) : Job
 
-    public class TestJobHandler : JobHandler<TestJob> {
+    class TestJobHandler : JobHandler<TestJob> {
         override suspend fun handle(job: TestJob, context: JobContext) {
+            if (job.shouldFail) {
+                error("Job programmed to fail")
+            }
+
             println(job.greeting)
         }
 
         override suspend fun onFailure(job: TestJob, error: Exception, context: JobFailureContext): FailureAction {
-            TODO("Not yet implemented")
+            return if (context.numberOfFailures > job.numRetries) {
+                FailureAction.GiveUp
+            } else {
+                FailureAction.RescheduleNow
+            }
         }
     }
 
