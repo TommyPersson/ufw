@@ -19,6 +19,6 @@ public abstract class Managed(
         job.cancelAndJoin()
     }
 
-    public abstract suspend fun launch(): Unit
+    protected abstract suspend fun launch(): Unit
 
 }

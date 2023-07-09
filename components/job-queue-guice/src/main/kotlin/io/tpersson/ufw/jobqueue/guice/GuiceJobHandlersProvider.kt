@@ -3,7 +3,7 @@ package io.tpersson.ufw.jobqueue.guice
 import com.google.inject.Injector
 import io.github.classgraph.ClassGraph
 import io.tpersson.ufw.jobqueue.JobHandler
-import io.tpersson.ufw.jobqueue.JobHandlersProvider
+import io.tpersson.ufw.jobqueue.internal.JobHandlersProvider
 import io.tpersson.ufw.jobqueue.JobQueueModuleConfig
 import jakarta.inject.Inject
 

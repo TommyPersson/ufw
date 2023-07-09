@@ -26,7 +26,7 @@ public interface JobQueue {
             objectMapper: ObjectMapper,
         ): JobQueue = JobQueueImpl(
             config = config,
-            instantSource = instantSource,
+            clock = instantSource,
             jobRepository = JobRepositoryImpl(databaseModuleConfig, connectionProvider, objectMapper)
         )
     }

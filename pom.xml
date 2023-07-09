@@ -61,6 +61,7 @@
         <mockito-kotlin.version>5.0.0</mockito-kotlin.version>
 
         <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
+        <awaitility.version>4.2.0</awaitility.version>
     </properties>
 
     <dependencyManagement>
@@ -275,7 +276,16 @@
                 <artifactId>assertj-core</artifactId>
                 <version>${assertj-core.version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>org.awaitility</groupId>
+                <artifactId>awaitility</artifactId>
+                <version>${awaitility.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.awaitility</groupId>
+                <artifactId>awaitility-kotlin</artifactId>
+                <version>${awaitility.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

@@ -1,18 +1,18 @@
 package io.tpersson.ufw.jobqueue
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
-import io.tpersson.ufw.database.DatabaseModuleConfig
-import io.tpersson.ufw.database.jdbc.ConnectionProviderImpl
-import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactoryImpl
+import io.tpersson.ufw.database.unitofwork.use
 import kotlinx.coroutines.runBlocking
+import org.awaitility.kotlin.await
+import org.awaitility.kotlin.matches
+import org.awaitility.kotlin.untilCallTo
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.testcontainers.containers.PostgreSQLContainer
-import org.testcontainers.lifecycle.Startable
 import org.testcontainers.lifecycle.Startables
 import org.testcontainers.utility.DockerImageName
 import java.time.Duration
@@ -41,8 +41,13 @@ internal class IntegrationTests {
         val databaseComponent = DatabaseComponent.create(dataSource)
         val connectionProvider = databaseComponent.connectionProvider
         val unitOfWorkFactory = databaseComponent.unitOfWorkFactory
-        val jobQueueComponent = JobQueueComponent.create(coreComponent, databaseComponent, emptySet())
+        val jobQueueComponent = JobQueueComponent.create(
+            coreComponent,
+            databaseComponent,
+            setOf(TestJobHandler())
+        )
         val jobQueue = jobQueueComponent.jobQueue
+        val jobRepository = jobQueueComponent.jobRepository
 
         init {
             databaseComponent.migrator.run()
@@ -51,17 +56,27 @@ internal class IntegrationTests {
 
     @BeforeEach
     fun setUp(): Unit = runBlocking {
+        jobQueueComponent.jobQueueRunner.start()
+    }
 
+    @AfterEach
+    fun afterEach(): Unit = runBlocking {
+        jobQueueComponent.jobQueueRunner.stop()
     }
 
     @Test
-    fun `Basic`() = runBlocking {
+    fun `Basic`(): Unit = runBlocking {
         val testJob = TestJob(greeting = "Hello, World!")
 
-        val unitOfWork = unitOfWorkFactory.create()
-        jobQueue.enqueue(testJob, unitOfWork)
+        unitOfWorkFactory.use { uow ->
+            jobQueue.enqueue(testJob, uow)
+        }
 
-        unitOfWork.commit()
+        await.untilCallTo {
+            jobRepository.getById(testJob.queueId, testJob.jobId)
+        } matches {
+            it?.state == JobState.Successful
+        }
     }
 
     public data class TestJob(
@@ -69,7 +84,7 @@ internal class IntegrationTests {
         override val jobId: JobId = JobId.new()
     ) : Job
 
-    public class MyJobHandler : JobHandler<TestJob> {
+    public class TestJobHandler : JobHandler<TestJob> {
         override suspend fun handle(job: TestJob, context: JobContext) {
             println(job.greeting)
         }

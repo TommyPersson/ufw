@@ -5,12 +5,15 @@ import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.jobqueue.internal.JobQueueImpl
+import io.tpersson.ufw.jobqueue.internal.JobRepository
 import io.tpersson.ufw.jobqueue.internal.JobRepositoryImpl
+import io.tpersson.ufw.jobqueue.internal.SimpleJobHandlersProvider
 import io.tpersson.ufw.managed.Managed
 
 public class JobQueueComponent private constructor(
     public val jobQueue: JobQueue,
     public val jobQueueRunner: Managed,
+    internal val jobRepository: JobRepository
 ) {
     public companion object {
         public fun create(
@@ -32,15 +35,20 @@ public class JobQueueComponent private constructor(
 
             val jobQueue = JobQueueImpl(
                 config = config,
-                instantSource = coreComponent.instantSource,
+                clock = coreComponent.instantSource,
                 jobRepository = jobRepository
             )
 
             val jobHandlersProvider = SimpleJobHandlersProvider(jobHandlers)
 
-            val jobQueueRunner = JobQueueRunner(jobHandlersProvider)
+            val jobQueueRunner = JobQueueRunner(
+                jobQueue = jobQueue,
+                jobRepository = jobRepository,
+                unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
+                jobHandlersProvider = jobHandlersProvider
+            )
 
-            return JobQueueComponent(jobQueue, jobQueueRunner)
+            return JobQueueComponent(jobQueue, jobQueueRunner, jobRepository)
         }
     }
 }

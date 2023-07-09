@@ -1,12 +1,105 @@
 package io.tpersson.ufw.jobqueue
 
+import io.tpersson.ufw.core.forever
+import io.tpersson.ufw.core.logging.createLogger
+import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
+import io.tpersson.ufw.database.unitofwork.use
+import io.tpersson.ufw.jobqueue.internal.*
 import io.tpersson.ufw.managed.Managed
 import jakarta.inject.Inject
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.time.Duration
+import kotlin.reflect.KClass
 
 public class JobQueueRunner @Inject constructor(
-    private val jobHandlers: JobHandlersProvider
+    private val jobQueue: JobQueueInternal,
+    private val jobRepository: JobRepository,
+    private val unitOfWorkFactory: UnitOfWorkFactory,
+    private val jobHandlersProvider: JobHandlersProvider
 ) : Managed() {
-    override suspend fun launch() {
-        println("launching $jobHandlers")
+    override suspend fun launch(): Unit = coroutineScope {
+        val handlers = jobHandlersProvider.get()
+        for (handler in handlers) {
+            launch {
+                SingleJobHandlerRunner(
+                    jobQueue,
+                    jobRepository,
+                    unitOfWorkFactory,
+                    handler
+                ).run()
+            }
+        }
     }
+}
+
+public class SingleJobHandlerRunner<TJob : Job>(
+    private val jobQueue: JobQueueInternal,
+    private val jobRepository: JobRepository,
+    private val unitOfWorkFactory: UnitOfWorkFactory,
+    private val jobHandler: JobHandler<TJob>,
+) {
+    private val logger = createLogger()
+
+    private val pollWaitTime = Duration.ofSeconds(30)
+    private val jobQueueId = JobQueueId(jobHandler.jobType)
+
+    public suspend fun run() {
+        forever(logger) {
+            val job = jobQueue.pollOne(jobQueueId, timeout = pollWaitTime)
+            if (job != null) {
+                withContext(NonCancellable) {
+                    unitOfWorkFactory.use { uow ->
+                        jobQueue.markAsInProgress(job, uow)
+                    }
+
+                    try {
+                        handleJob(job)
+                    } catch (e: Exception) {
+                        handleFailure(job, e)
+                    }
+                }
+            }
+        }
+    }
+
+    private suspend fun handleJob(job: InternalJob<TJob>) {
+        unitOfWorkFactory.use { uow ->
+            val context = JobContextImpl(uow)
+            jobHandler.handle(job.job, context)
+            jobQueue.markAsSuccessful(job, uow)
+        }
+    }
+
+    private suspend fun handleFailure(job: InternalJob<TJob>, error: Exception) {
+        // TODO check for state conflicts
+        unitOfWorkFactory.use { uow ->
+            val failureContext = JobFailureContextImpl(
+                numberOfFailures = jobQueue.getNumberOfFailuresFor(job),
+                unitOfWork = uow
+            )
+
+            jobQueue.recordFailure(job, error, uow)
+
+            val failureAction = jobHandler.onFailure(job.job, error, failureContext)
+            when (failureAction) {
+                is FailureAction.Reschedule -> {
+                    jobQueue.rescheduleAt(job, failureAction.at, uow)
+                }
+
+                FailureAction.GiveUp -> {
+                    jobQueue.markAsFailed(job, error, uow)
+                }
+            }
+        }
+    }
+
+    private val JobHandler<TJob>.jobType: KClass<TJob>
+        get() = javaClass.kotlin
+            .supertypes[0]
+            .arguments[0]
+            .type!!
+            .classifier as KClass<TJob>
 }
