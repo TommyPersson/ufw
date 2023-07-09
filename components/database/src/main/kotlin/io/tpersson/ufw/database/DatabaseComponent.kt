@@ -2,6 +2,7 @@ package io.tpersson.ufw.database
 
 import io.tpersson.ufw.database.jdbc.ConnectionProvider
 import io.tpersson.ufw.database.jdbc.ConnectionProviderImpl
+import io.tpersson.ufw.database.jdbc.Database
 import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactoryImpl
@@ -12,6 +13,7 @@ import kotlin.coroutines.CoroutineContext
 
 
 public class DatabaseComponent @Inject constructor(
+    public val database: Database,
     public val connectionProvider: ConnectionProvider,
     public val unitOfWorkFactory: UnitOfWorkFactory,
     public val migrator: Migrator,
@@ -28,10 +30,12 @@ public class DatabaseComponent @Inject constructor(
         ): DatabaseComponent {
             val config = DatabaseModuleConfig(ioContext)
             val connectionProvider = ConnectionProviderImpl(dataSource)
+            val database = Database(connectionProvider, config)
             val unitOfWorkFactory = UnitOfWorkFactoryImpl(connectionProvider, config)
             val migrator = Migrator(connectionProvider)
 
             return DatabaseComponent(
+                database = database,
                 connectionProvider = connectionProvider,
                 unitOfWorkFactory = unitOfWorkFactory,
                 config = config,

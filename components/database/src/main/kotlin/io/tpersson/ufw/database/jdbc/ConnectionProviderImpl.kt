@@ -9,7 +9,7 @@ import javax.sql.DataSource
 public class ConnectionProviderImpl @Inject constructor(
     override val dataSource: DataSource
 ) : ConnectionProvider {
-    override fun get(): Connection = dataSource.connection.also {
-        it.autoCommit = false
+    override fun get(autoCommit: Boolean): Connection = dataSource.connection.also {
+        it.autoCommit = autoCommit
     }
 }

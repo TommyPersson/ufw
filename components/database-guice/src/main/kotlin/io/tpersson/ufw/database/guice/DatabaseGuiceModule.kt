@@ -6,6 +6,7 @@ import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.DatabaseModuleConfig
 import io.tpersson.ufw.database.jdbc.ConnectionProvider
 import io.tpersson.ufw.database.jdbc.ConnectionProviderImpl
+import io.tpersson.ufw.database.jdbc.Database
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactoryImpl
 import javax.sql.DataSource
@@ -19,6 +20,7 @@ public class DatabaseGuiceModule(
             bind(DatabaseModuleConfig::class.java).toInstance(config)
             bind(ConnectionProvider::class.java).to(ConnectionProviderImpl::class.java)
             bind(UnitOfWorkFactory::class.java).to(UnitOfWorkFactoryImpl::class.java)
+            bind(Database::class.java)
             bind(DatabaseComponent::class.java)
         }
     }

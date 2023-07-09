@@ -28,8 +28,7 @@ public class KeyValueStoreComponent @Inject constructor(
         ): KeyValueStoreComponent {
             val storageEngine = PostgresStorageEngine(
                 unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
-                connectionProvider = databaseComponent.connectionProvider,
-                config = databaseComponent.config
+                database = databaseComponent.database,
             )
 
             val keyValueStore = KeyValueStoreImpl(

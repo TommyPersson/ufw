@@ -5,5 +5,5 @@ import javax.sql.DataSource
 
 public interface ConnectionProvider {
     public val dataSource: DataSource
-    public fun get(): Connection
+    public fun get(autoCommit: Boolean = false): Connection
 }

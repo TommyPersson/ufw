@@ -97,9 +97,7 @@ private suspend fun testJobQueue(ufw: UFWRegistry) {
     }
 }
 
-private suspend fun testAggregates(
-    ufw: UFWRegistry
-) {
+private suspend fun testAggregates(ufw: UFWRegistry) {
     val counterRepository = CounterAggregateRepository(ufw.aggregates)
     val unitOfWorkFactory = ufw.database.unitOfWorkFactory
     val clock = ufw.core.clock

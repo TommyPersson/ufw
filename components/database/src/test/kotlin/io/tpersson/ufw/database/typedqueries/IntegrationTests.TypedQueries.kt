@@ -37,43 +37,45 @@ internal class IntegrationTestsTypedQueries {
         val dataSource = HikariDataSource(config)
         val databaseComponent = DatabaseComponent.create(dataSource)
         val connectionProvider = databaseComponent.connectionProvider
-        val unitOfWorkFactory  = databaseComponent.unitOfWorkFactory
+        val database = databaseComponent.database
 
         init {
-            connectionProvider.get().useInTransaction {
-                it.prepareStatement(
-                    """
-                    CREATE TABLE basic_types (
-                    id UUID NOT NULL PRIMARY KEY,
-                    the_short SMALLINT,
-                    the_int INT,
-                    the_long BIGINT,
-                    the_double DOUBLE PRECISION,
-                    the_float FLOAT,
-                    the_boolean BOOLEAN,
-                    the_char CHAR,
-                    the_string TEXT                    
-                    )
-                    """.trimIndent()
-                ).execute()
+            runBlocking {
+                connectionProvider.get().useInTransaction {
+                    it.prepareStatement(
+                        """
+                        CREATE TABLE basic_types (
+                        id UUID NOT NULL PRIMARY KEY,
+                        the_short SMALLINT,
+                        the_int INT,
+                        the_long BIGINT,
+                        the_double DOUBLE PRECISION,
+                        the_float FLOAT,
+                        the_boolean BOOLEAN,
+                        the_char CHAR,
+                        the_string TEXT                    
+                        )
+                        """.trimIndent()
+                    ).execute()
 
-                it.prepareStatement(
-                    """
-                    CREATE TABLE time_types (
-                    id UUID NOT NULL PRIMARY KEY,
-                    the_instant TIMESTAMPTZ,
-                    the_local_date DATE
-                    )
-                    """.trimIndent()
-                ).execute()
+                    it.prepareStatement(
+                        """
+                        CREATE TABLE time_types (
+                        id UUID NOT NULL PRIMARY KEY,
+                        the_instant TIMESTAMPTZ,
+                        the_local_date DATE
+                        )
+                        """.trimIndent()
+                    ).execute()
+                }
             }
         }
     }
 
     @BeforeEach
-    fun beforeEach() {
-        connectionProvider.get().useInTransaction { it.performUpdate(TruncateBasicTypes) }
-        connectionProvider.get().useInTransaction { it.performUpdate(TruncateTimeTypes) }
+    fun beforeEach(): Unit = runBlocking {
+        database.update(TruncateBasicTypes)
+        database.update(TruncateTimeTypes)
     }
 
     @Test
@@ -91,9 +93,7 @@ internal class IntegrationTestsTypedQueries {
             theString = "Hello, World!"
         )
 
-        val unitOfWork = unitOfWorkFactory.create()
-        unitOfWork.add(InsertBasicTypesData(id, originalData))
-        unitOfWork.commit()
+        database.update(InsertBasicTypesData(id, originalData))
 
         val selectedData = connectionProvider.get().selectSingle(SelectBasicTypesData(id))
 
@@ -115,11 +115,9 @@ internal class IntegrationTestsTypedQueries {
             theString = null,
         )
 
-        val unitOfWork = unitOfWorkFactory.create()
-        unitOfWork.add(InsertBasicTypesData(id, originalData))
-        unitOfWork.commit()
+        database.update(InsertBasicTypesData(id, originalData))
 
-        val selectedData = connectionProvider.get().selectSingle(SelectBasicTypesData(id))
+        val selectedData = database.select(SelectBasicTypesData(id))
 
         assertThat(selectedData).isEqualTo(originalData)
     }
@@ -133,11 +131,9 @@ internal class IntegrationTestsTypedQueries {
             theLocalDate = LocalDate.of(2000, 1, 1),
         )
 
-        val unitOfWork = unitOfWorkFactory.create()
-        unitOfWork.add(InsertTimeTypesData(id, originalData))
-        unitOfWork.commit()
+        database.update(InsertTimeTypesData(id, originalData))
 
-        val selectedData = connectionProvider.get().selectSingle(SelectTimeTypesData(id))
+        val selectedData = database.select(SelectTimeTypesData(id))
 
         assertThat(selectedData).isEqualTo(originalData)
     }
@@ -185,7 +181,7 @@ internal class IntegrationTestsTypedQueries {
         val id: UUID
     ) : TypedSelect<BasicTypesEntity>("SELECT * FROM basic_types WHERE id = :id")
 
-    object TruncateBasicTypes : TypedUpdate("DELETE FROM basic_types")
+    object TruncateBasicTypes : TypedUpdate("DELETE FROM basic_types", minimumAffectedRows = 0)
 
     data class TimeTypesEntity(
         val theInstant: Instant?,
@@ -212,6 +208,6 @@ internal class IntegrationTestsTypedQueries {
         val id: UUID
     ) : TypedSelect<TimeTypesEntity>("SELECT * FROM time_types WHERE id = :id")
 
-    object TruncateTimeTypes : TypedUpdate("DELETE FROM time_types")
+    object TruncateTimeTypes : TypedUpdate("DELETE FROM time_types", minimumAffectedRows = 0)
 
 }

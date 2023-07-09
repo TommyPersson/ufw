@@ -2,6 +2,7 @@ package io.tpersson.ufw.database.unitofwork
 
 import io.tpersson.ufw.database.DatabaseModuleConfig
 import io.tpersson.ufw.database.jdbc.ConnectionProvider
+import io.tpersson.ufw.database.jdbc.Database
 import io.tpersson.ufw.database.jdbc.useInTransaction
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
 import kotlinx.coroutines.withContext
@@ -10,7 +11,7 @@ import java.sql.PreparedStatement
 
 public class UnitOfWorkImpl(
     private val connectionProvider: ConnectionProvider,
-    private val config: DatabaseModuleConfig
+    private val config: DatabaseModuleConfig,
 ) : UnitOfWork {
     private val operations = mutableListOf<Operation>()
 
@@ -33,9 +34,9 @@ public class UnitOfWorkImpl(
             connectionProvider.get().useInTransaction {
                 for (operation in operations) {
                     val affectedRows = operation.makePreparedStatement(it).executeUpdate()
-
                     if (affectedRows < operation.minimumAffectedRows) {
-                        // TODO custom exception?
+                        // TODO custom exception!
+                        // * include the query in the exception
                         throw Exception("MinimumAffectedRows not hit")
                     }
                 }

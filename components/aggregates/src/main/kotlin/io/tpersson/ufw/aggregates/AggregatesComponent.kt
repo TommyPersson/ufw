@@ -22,7 +22,7 @@ public class AggregatesComponent @Inject constructor(
             databaseComponent: DatabaseComponent,
         ): AggregatesComponent {
             val factRepository = AggregateFactRepositoryImpl(
-                connectionProvider = databaseComponent.connectionProvider,
+                database = databaseComponent.database,
                 ufwObjectMapper = coreComponent.objectMapper
             )
 

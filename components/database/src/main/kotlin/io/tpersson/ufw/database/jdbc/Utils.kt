@@ -1,5 +1,6 @@
 package io.tpersson.ufw.database.jdbc
 
+import org.postgresql.util.PGobject
 import java.sql.*
 import java.sql.Date
 import java.time.Instant
@@ -7,7 +8,7 @@ import java.time.LocalDate
 import java.util.*
 import kotlin.reflect.KClass
 
-public fun <T> Connection.useInTransaction(block: (Connection) -> T): T = use {
+public suspend fun <T> Connection.useInTransaction(block: suspend (Connection) -> T): T = use {
     try {
         val result = block(this)
         commit()
@@ -23,6 +24,7 @@ public fun <T> Connection.useInTransaction(block: (Connection) -> T): T = use {
     }
 }
 
+// TODO total rewrite, needs to know target properties to do proper type conversions (and support new deserializers easily)
 public fun ResultSet.asMaps(): List<Map<String, Any?>> {
     val result = mutableListOf<Map<String, Any?>>()
 
@@ -38,6 +40,7 @@ public fun ResultSet.asMaps(): List<Map<String, Any?>> {
             map[columnName] = when (columnValue) {
                 is Date -> columnValue.toLocalDate()
                 is Timestamp -> columnValue.toInstant()
+                is PGobject -> columnValue.value
                 // TODO more
                 else -> columnValue
             }

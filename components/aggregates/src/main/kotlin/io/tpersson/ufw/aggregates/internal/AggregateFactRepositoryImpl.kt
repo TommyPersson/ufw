@@ -5,19 +5,18 @@ import io.tpersson.ufw.aggregates.AggregateId
 import io.tpersson.ufw.aggregates.Fact
 import io.tpersson.ufw.aggregates.typeName
 import io.tpersson.ufw.core.UFWObjectMapper
-import io.tpersson.ufw.database.jdbc.ConnectionProvider
-import io.tpersson.ufw.database.jdbc.useInTransaction
+import io.tpersson.ufw.database.jdbc.Database
 import io.tpersson.ufw.database.typedqueries.TypedSelect
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
-import io.tpersson.ufw.database.typedqueries.selectList
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import jakarta.inject.Inject
+import java.lang.Exception
 import java.time.Instant
 import java.util.*
 import kotlin.reflect.KClass
 
 public class AggregateFactRepositoryImpl @Inject constructor(
-    private val connectionProvider: ConnectionProvider,
+    private val database: Database,
     ufwObjectMapper: UFWObjectMapper,
 ) : AggregateFactRepository {
 
@@ -33,13 +32,12 @@ public class AggregateFactRepositoryImpl @Inject constructor(
             version = version
         )
 
+        // some kind of exception mapper to wrap "MinimumAffectedRows"-exception in "VersionConflict"-exception?
         unitOfWork.add(Queries.Updates.Insert(factData))
     }
 
     override suspend fun <TFact : Fact> getAll(aggregateId: AggregateId, factClass: KClass<TFact>): List<TFact> {
-        val rawFacts = connectionProvider.get().useInTransaction {
-            it.selectList(Queries.Selects.GetAll(aggregateId.value))
-        }
+        val rawFacts = database.selectList(Queries.Selects.GetAll(aggregateId.value))
 
         return rawFacts.map { objectMapper.readValue(it.json, factClass.java) }
     }

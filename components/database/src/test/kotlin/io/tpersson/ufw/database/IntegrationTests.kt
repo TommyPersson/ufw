@@ -40,12 +40,14 @@ internal class IntegrationTests {
         init {
             Startables.deepStart(postgres).join()
 
-            dataSource.connection.useInTransaction {
-                it.prepareStatement(
-                    """
-                    CREATE TABLE test (id UUID NOT NULL PRIMARY KEY)
-                    """.trimIndent()
-                ).execute()
+            runBlocking {
+                dataSource.connection.useInTransaction {
+                    it.prepareStatement(
+                        """
+                        CREATE TABLE test (id UUID NOT NULL PRIMARY KEY)
+                        """.trimIndent()
+                    ).execute()
+                }
             }
         }
     }
@@ -147,7 +149,7 @@ internal class IntegrationTests {
         assertThat(doesItemExist(testItem1)).isTrue()
     }
 
-    private fun deleteAllItems() {
+    private fun deleteAllItems() = runBlocking {
         dataSource.connection.useInTransaction {
             it.prepareStatement("DELETE FROM test").execute()
         }

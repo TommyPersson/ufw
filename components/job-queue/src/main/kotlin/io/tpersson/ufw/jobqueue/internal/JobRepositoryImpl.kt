@@ -1,13 +1,9 @@
 package io.tpersson.ufw.jobqueue.internal
 
 import io.tpersson.ufw.core.UFWObjectMapper
-import io.tpersson.ufw.database.DatabaseModuleConfig
-import io.tpersson.ufw.database.jdbc.ConnectionProvider
-import io.tpersson.ufw.database.jdbc.useInTransaction
+import io.tpersson.ufw.database.jdbc.Database
 import io.tpersson.ufw.database.typedqueries.TypedSelect
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
-import io.tpersson.ufw.database.typedqueries.selectList
-import io.tpersson.ufw.database.typedqueries.selectSingle
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.jobqueue.Job
 import io.tpersson.ufw.jobqueue.JobId
@@ -18,8 +14,7 @@ import java.time.Duration
 import java.time.Instant
 
 public class JobRepositoryImpl @Inject constructor(
-    private val databaseModuleConfig: DatabaseModuleConfig,
-    private val connectionProvider: ConnectionProvider,
+    private val database: Database,
     ufwObjectMapper: UFWObjectMapper,
 ) : JobRepository {
 
@@ -46,17 +41,15 @@ public class JobRepositoryImpl @Inject constructor(
     }
 
     override suspend fun <TJob : Job> getNext(jobQueueId: JobQueueId<TJob>, now: Instant): InternalJob<TJob>? {
-        val jobData = connectionProvider.get().useInTransaction {
-            it.selectSingle(Queries.Selects.SelectNextJob(jobQueueId.typeName, now))
-        } ?: return null
+        val jobData = database.select(Queries.Selects.SelectNextJob(jobQueueId.typeName, now))
+            ?: return null
 
         return toInternalJob(jobData, jobQueueId)
     }
 
     override suspend fun <TJob : Job> getById(jobQueueId: JobQueueId<TJob>, jobId: JobId): InternalJob<TJob>? {
-        val jobData = connectionProvider.get().useInTransaction {
-            it.selectSingle(Queries.Selects.SelectById(jobId.value))
-        } ?: return null
+        val jobData = database.select(Queries.Selects.SelectById(jobId.value))
+            ?: return null
 
         return toInternalJob(jobData, jobQueueId)
     }
@@ -103,9 +96,7 @@ public class JobRepositoryImpl @Inject constructor(
     }
 
     override suspend fun debugGetAllJobs(): List<InternalJob<*>> {
-        val jobData = connectionProvider.get().useInTransaction {
-            it.selectList(Queries.Selects.DebugGetAll)
-        }
+        val jobData = database.selectList(Queries.Selects.DebugGetAll)
 
         return jobData.map { toInternalJob(it, JobQueueId(StubJob::class)) }
     }

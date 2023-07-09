@@ -1,6 +1,7 @@
 package io.tpersson.ufw.jobqueue.internal
 
 import io.tpersson.ufw.database.jdbc.ConnectionProvider
+import io.tpersson.ufw.database.jdbc.Database
 import io.tpersson.ufw.database.jdbc.useInTransaction
 import io.tpersson.ufw.database.typedqueries.TypedSelect
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
@@ -10,19 +11,15 @@ import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import jakarta.inject.Inject
 
 public class JobFailureRepositoryImpl @Inject constructor(
-    private val connectionProvider: ConnectionProvider
+    private val database: Database
 ) : JobFailureRepository {
 
     override suspend fun getLatestFor(job: InternalJob<*>, limit: Long): List<JobFailure> {
-        return connectionProvider.get().useInTransaction {
-            it.selectList(Queries.Selects.GetLatestFor(job.uid!!, limit))
-        } ?: emptyList()
+        return database.selectList(Queries.Selects.GetLatestFor(job.uid!!, limit))
     }
 
     override suspend fun getNumberOfFailuresFor(job: InternalJob<*>): Int {
-        return connectionProvider.get().useInTransaction {
-            it.selectSingle(Queries.Selects.GetNumberOfFailuresFor(job.uid!!))
-        }?.count ?: 0
+        return database.select(Queries.Selects.GetNumberOfFailuresFor(job.uid!!))?.count ?: 0
     }
 
     override suspend fun insert(failure: JobFailure, unitOfWork: UnitOfWork) {

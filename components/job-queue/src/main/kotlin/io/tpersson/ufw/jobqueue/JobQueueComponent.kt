@@ -29,13 +29,12 @@ public class JobQueueComponent @Inject constructor(
             val config = JobQueueModuleConfig()
 
             val jobRepository = JobRepositoryImpl(
-                databaseModuleConfig = databaseComponent.config,
-                connectionProvider = databaseComponent.connectionProvider,
+                database = databaseComponent.database,
                 ufwObjectMapper = coreComponent.objectMapper
             )
 
             val jobFailureRepository = JobFailureRepositoryImpl(
-                connectionProvider = databaseComponent.connectionProvider
+                database = databaseComponent.database,
             )
 
             val jobQueue = JobQueueImpl(
