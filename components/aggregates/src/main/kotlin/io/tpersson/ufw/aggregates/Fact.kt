@@ -3,6 +3,7 @@ package io.tpersson.ufw.aggregates
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
 import java.time.Instant
+import java.util.UUID
 import kotlin.reflect.full.findAnnotation
 
 @JsonTypeInfo(
@@ -10,8 +11,10 @@ import kotlin.reflect.full.findAnnotation
     include = JsonTypeInfo.As.PROPERTY,
     property = "type"
 )
-public interface Fact {
-    public val timestamp: Instant
+public abstract class Fact(
+    public val id: UUID = UUID.randomUUID()
+) {
+    public abstract val timestamp: Instant
 }
 
 public val Fact.typeName: String

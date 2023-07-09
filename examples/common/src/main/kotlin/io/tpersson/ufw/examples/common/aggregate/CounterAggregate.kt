@@ -45,7 +45,7 @@ public class CounterAggregate(
         }
     }
 
-    public sealed class Facts : Fact {
+    public sealed class Facts : Fact() {
         @JsonTypeName("CREATED")
         public class Created(
             override val timestamp: Instant

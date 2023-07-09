@@ -9,7 +9,7 @@ import jakarta.inject.Inject
 public class CounterAggregateRepository @Inject constructor(
     component: AggregatesComponent,
 ) : AbstractAggregateRepository<CounterAggregate, CounterAggregate.Facts>(component) {
-    override suspend fun doSave(aggregate: CounterAggregate, unitOfWork: UnitOfWork) {
+    override suspend fun doSave(aggregate: CounterAggregate, version: Long, unitOfWork: UnitOfWork) {
     }
 
     override suspend fun doLoad(id: AggregateId, version: Long, facts: List<CounterAggregate.Facts>): CounterAggregate {

@@ -3,10 +3,7 @@ package io.tpersson.ufw.database.typedqueries
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.database.DatabaseComponent
-import io.tpersson.ufw.database.DatabaseModuleConfig
-import io.tpersson.ufw.database.jdbc.ConnectionProviderImpl
 import io.tpersson.ufw.database.jdbc.useInTransaction
-import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactoryImpl
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach

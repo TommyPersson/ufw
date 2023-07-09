@@ -11,12 +11,17 @@ public abstract class AbstractAggregateRepository<TAggregate : AbstractAggregate
 
     public override suspend fun save(aggregate: TAggregate, unitOfWork: UnitOfWork) {
         val newFacts = aggregate.pendingFacts.toList()
+        if (newFacts.isEmpty()) {
+            return
+        }
 
         for ((i, fact) in newFacts.withIndex()) {
             factRepository.insert(aggregate.id, fact, aggregate.originalVersion + i + 1, unitOfWork)
         }
 
-        doSave(aggregate, unitOfWork)
+        val version = aggregate.originalVersion + newFacts.size
+
+        doSave(aggregate, version, unitOfWork)
 
         aggregate.pendingFacts.clear()
     }
@@ -28,7 +33,7 @@ public abstract class AbstractAggregateRepository<TAggregate : AbstractAggregate
         return doLoad(id, version, facts)
     }
 
-    protected abstract suspend fun doSave(aggregate: TAggregate, unitOfWork: UnitOfWork)
+    protected abstract suspend fun doSave(aggregate: TAggregate, version: Long, unitOfWork: UnitOfWork)
 
     protected abstract suspend fun doLoad(id: AggregateId, version: Long, facts: List<TFact>): TAggregate
 

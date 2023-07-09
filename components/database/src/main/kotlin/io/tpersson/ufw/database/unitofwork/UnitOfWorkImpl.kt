@@ -2,7 +2,6 @@ package io.tpersson.ufw.database.unitofwork
 
 import io.tpersson.ufw.database.DatabaseModuleConfig
 import io.tpersson.ufw.database.jdbc.ConnectionProvider
-import io.tpersson.ufw.database.jdbc.Database
 import io.tpersson.ufw.database.jdbc.useInTransaction
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
 import kotlinx.coroutines.withContext
@@ -18,11 +17,11 @@ public class UnitOfWorkImpl(
     private val postCommitHooks = mutableListOf<suspend () -> Unit>()
 
     override fun add(minimumAffectedRows: Int, block: Connection.() -> PreparedStatement) {
-        operations += Operation.Plain(minimumAffectedRows, block)
+        operations += Operation.Plain(minimumAffectedRows, update = block)
     }
 
-    override fun add(update: TypedUpdate) {
-        operations += Operation.TypedUpdate(update)
+    override fun add(update: TypedUpdate, exceptionMapper: (Exception) -> Exception) {
+        operations += Operation.TypedUpdate(update, exceptionMapper)
     }
 
     override fun addPostCommitHook(block: suspend () -> Unit) {
@@ -33,11 +32,15 @@ public class UnitOfWorkImpl(
         withContext(config.ioContext) {
             connectionProvider.get().useInTransaction {
                 for (operation in operations) {
-                    val affectedRows = operation.makePreparedStatement(it).executeUpdate()
-                    if (affectedRows < operation.minimumAffectedRows) {
-                        // TODO custom exception!
-                        // * include the query in the exception
-                        throw Exception("MinimumAffectedRows not hit")
+                    try {
+                        val affectedRows = operation.makePreparedStatement(it).executeUpdate()
+                        if (affectedRows < operation.minimumAffectedRows) {
+                            // TODO custom exception!
+                            // * include the query in the exception
+                            throw Exception("MinimumAffectedRows not hit")
+                        }
+                    } catch (e: Exception) {
+                        throw operation.exceptionMapper(e)
                     }
                 }
             }
@@ -50,17 +53,20 @@ public class UnitOfWorkImpl(
 
     internal sealed interface Operation {
         val minimumAffectedRows: Int
+        val exceptionMapper: (Exception) -> Exception
         fun makePreparedStatement(connection: Connection): PreparedStatement
 
         data class Plain(
             override val minimumAffectedRows: Int,
+            override val exceptionMapper: (Exception) -> Exception = { it },
             val update: Connection.() -> PreparedStatement,
         ) : Operation {
             override fun makePreparedStatement(connection: Connection): PreparedStatement = update(connection)
         }
 
         data class TypedUpdate(
-            val update: io.tpersson.ufw.database.typedqueries.TypedUpdate
+            val update: io.tpersson.ufw.database.typedqueries.TypedUpdate,
+            override val exceptionMapper: (Exception) -> Exception = { it }
         ) : Operation {
             override val minimumAffectedRows = update.minimumAffectedRows
             override fun makePreparedStatement(connection: Connection): PreparedStatement {
