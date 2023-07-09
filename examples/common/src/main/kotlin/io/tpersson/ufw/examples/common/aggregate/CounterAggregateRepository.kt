@@ -13,6 +13,6 @@ public class CounterAggregateRepository @Inject constructor(
     }
 
     override suspend fun doLoad(id: AggregateId, version: Long, facts: List<CounterAggregate.Facts>): CounterAggregate {
-        return CounterAggregate.load(id, version, facts)
+        return CounterAggregate(id, version, facts)
     }
 }

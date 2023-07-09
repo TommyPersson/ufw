@@ -3,8 +3,8 @@ package io.tpersson.ufw.managed
 public class ManagedComponent private constructor(
     public val managedRunner: ManagedRunner
 ) {
-    public fun startAll() {
-        managedRunner.startAll()
+    public fun startAll(addShutdownHook: Boolean = true) {
+        managedRunner.startAll(addShutdownHook)
     }
 
     public suspend fun stopAll() {

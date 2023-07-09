@@ -65,7 +65,7 @@ public suspend fun main() {
 
     ufw.database.runMigrations()
 
-    ufw.managed.startAll()
+    ufw.managed.startAll(addShutdownHook = true)
 
     testMediator(ufw)
 
@@ -77,8 +77,6 @@ public suspend fun main() {
 
     val scanner = Scanner(System.`in`)
     scanner.nextLine()
-
-    ufw.managed.stopAll()
 
     println("Exiting")
 

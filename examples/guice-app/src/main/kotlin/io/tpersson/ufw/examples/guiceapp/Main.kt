@@ -5,23 +5,17 @@ import com.google.inject.Injector
 import com.google.inject.Module
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.tpersson.ufw.aggregates.dsl.aggregates
 import io.tpersson.ufw.aggregates.guice.AggregatesGuiceModule
 import io.tpersson.ufw.core.CoreGuiceModule
-import io.tpersson.ufw.core.dsl.UFWRegistry
-import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.database.DatabaseComponent
-import io.tpersson.ufw.database.dsl.database
-import io.tpersson.ufw.examples.common.commands.PerformGreetingCommand
 import io.tpersson.ufw.database.guice.DatabaseGuiceModule
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.database.unitofwork.use
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregate
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregateRepository
+import io.tpersson.ufw.examples.common.commands.PerformGreetingCommand
 import io.tpersson.ufw.examples.common.jobs.PrintJob
 import io.tpersson.ufw.jobqueue.JobQueue
-import io.tpersson.ufw.jobqueue.JobQueueId
-import io.tpersson.ufw.jobqueue.dsl.jobQueue
 import io.tpersson.ufw.jobqueue.guice.JobQueueGuiceModule
 import io.tpersson.ufw.keyvaluestore.guice.KeyValueStoreGuiceModule
 import io.tpersson.ufw.managed.ManagedRunner
@@ -30,7 +24,7 @@ import io.tpersson.ufw.mediator.Mediator
 import io.tpersson.ufw.mediator.guice.MediatorGuiceModule
 import java.time.Clock
 import java.time.InstantSource
-import java.util.Scanner
+import java.util.*
 import javax.sql.DataSource
 
 public suspend fun main() {
@@ -65,7 +59,7 @@ public suspend fun main() {
     migrator.run()
 
     val managedRunner = injector.getInstance(ManagedRunner::class.java)
-    managedRunner.startAll()
+    managedRunner.startAll(addShutdownHook = true)
 
     testMediator(injector)
 
@@ -78,7 +72,6 @@ public suspend fun main() {
     val scanner = Scanner(System.`in`)
     scanner.nextLine()
 
-    managedRunner.stopAll()
     println("Exiting")
 }
 

@@ -7,27 +7,18 @@ import java.util.*
 
 public class CounterAggregate(
     id: AggregateId,
-    originalVersion: Long
-) : AbstractAggregate<CounterAggregate.Facts>(id, originalVersion) {
+    originalVersion: Long,
+    facts: List<Facts> = emptyList()
+) : AbstractAggregate<CounterAggregate.Facts>(id, originalVersion, facts) {
 
     public companion object {
         public fun new(now: Instant): CounterAggregate {
             return CounterAggregate(now)
         }
-
-        public fun load(id: AggregateId, version: Long, facts: List<Facts>): CounterAggregate {
-            return CounterAggregate(id, version, facts)
-        }
     }
 
     private constructor(now: Instant) : this(AggregateId(UUID.randomUUID().toString()), 0) {
         record(Facts.Created(now))
-    }
-
-    private constructor(id: AggregateId, version: Long, facts: List<Facts>) : this(id, version) {
-        for (fact in facts) {
-            mutate(fact)
-        }
     }
 
     private var _value: Long = 0
