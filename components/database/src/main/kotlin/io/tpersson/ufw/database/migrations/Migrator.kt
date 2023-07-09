@@ -13,24 +13,26 @@ public class Migrator @Inject constructor(
     private val connectionProvider: ConnectionProvider
 ) {
     public companion object {
-        private val scripts = mutableListOf<String>()
+        private val scripts = mutableListOf<MigrationScript>()
 
-        public fun registerMigrationScript(script: String) {
-            scripts.add(script)
+        public fun registerMigrationScript(componentName: String, scriptLocation: String) {
+            scripts.add(MigrationScript(componentName, scriptLocation))
         }
     }
+
+    public data class MigrationScript(val componentName: String, val scriptLocation: String)
 
     public fun run() {
         val jdbcConnection = JdbcConnection(connectionProvider.get())
 
-        val database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(jdbcConnection).also {
-            it.databaseChangeLogTableName = "ufw__liquibase_changelog"
-            it.databaseChangeLogLockTableName = "ufw__liquibase_changelog__locks"
-        }
-
         for (script in scripts) {
+            val database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(jdbcConnection).also {
+                it.databaseChangeLogTableName = "ufw__${script.componentName}__liquibase"
+                it.databaseChangeLogLockTableName = "ufw__${script.componentName}__liquibase_locks"
+            }
+
             val resourceAccessor = ClassLoaderResourceAccessor()
-            val liquibase = Liquibase(script, resourceAccessor, database)
+            val liquibase = Liquibase(script.scriptLocation, resourceAccessor, database)
             liquibase.update(Contexts(), LabelExpression())
         }
 

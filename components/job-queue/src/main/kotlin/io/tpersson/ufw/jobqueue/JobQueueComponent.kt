@@ -14,14 +14,19 @@ public class JobQueueComponent private constructor(
     internal val jobRepository: JobRepository,
     internal val jobFailureRepository: JobFailureRepository
 ) {
+    init {
+        Migrator.registerMigrationScript(
+            componentName = "job_queue",
+            scriptLocation = "io/tpersson/ufw/jobqueue/migrations/postgres/liquibase.xml"
+        )
+    }
+
     public companion object {
         public fun create(
             coreComponent: CoreComponent,
             databaseComponent: DatabaseComponent,
             jobHandlers: Set<JobHandler<*>>,
         ): JobQueueComponent {
-            Migrator.registerMigrationScript("io/tpersson/ufw/jobqueue/migrations/postgres/liquibase.xml")
-
             val objectMapper = jacksonObjectMapper().findAndRegisterModules().also {
                 it.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             }

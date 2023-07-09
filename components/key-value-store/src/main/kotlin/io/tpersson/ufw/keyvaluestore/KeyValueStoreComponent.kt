@@ -13,14 +13,19 @@ public class KeyValueStoreComponent private constructor(
     public val keyValueStore: KeyValueStore,
     public val storageEngine: StorageEngine,
 ) {
+    init {
+        Migrator.registerMigrationScript(
+            componentName = "key_value_store",
+            scriptLocation = "io/tpersson/ufw/keyvaluestore/migrations/postgres/liquibase.xml"
+        )
+    }
+
     public companion object {
         public fun create(
             coreComponent: CoreComponent,
             databaseComponent: DatabaseComponent,
             objectMapper: ObjectMapper = defaultObjectMapper,
         ): KeyValueStoreComponent {
-            Migrator.registerMigrationScript("io/tpersson/ufw/keyvaluestore/migrations/postgres/liquibase.xml")
-
             val storageEngine = PostgresStorageEngine(
                 databaseComponent.unitOfWorkFactory,
                 databaseComponent.connectionProvider,

@@ -2,6 +2,7 @@ package io.tpersson.ufw.examples.plainapp
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.tpersson.ufw.aggregates.dsl.aggregates
 import io.tpersson.ufw.core.dsl.UFW
 import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.database.dsl.database
@@ -49,11 +50,12 @@ public suspend fun main() {
                 PrintJobHandler()
             )
         }
+        aggregates {
+        }
         managed {
             instances = setOf(
-                PeriodicLogger(),
-                components.jobQueue.jobQueueRunner
-            )
+                PeriodicLogger()
+            ) + components.jobQueue.managedInstances
         }
     }
 

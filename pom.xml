@@ -25,6 +25,7 @@
         <module>components/key-value-store-guice</module>
         <module>components/job-queue</module>
         <module>components/job-queue-guice</module>
+        <module>components/aggregates</module>
         <module>examples/common</module>
         <module>examples/guice-app</module>
         <module>examples/plain-app</module>
@@ -141,6 +142,13 @@
                 <artifactId>key-value-store-guice</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
+            <dependency>
+                <groupId>io.tpersson.ufw</groupId>
+                <artifactId>aggregates</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+
+
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>example-common</artifactId>
