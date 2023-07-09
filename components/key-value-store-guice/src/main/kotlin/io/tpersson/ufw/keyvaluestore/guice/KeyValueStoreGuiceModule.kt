@@ -19,15 +19,13 @@ public class KeyValueStoreGuiceModule(
     private val objectMapper: ObjectMapper = KeyValueStoreComponent.defaultObjectMapper,
 ) : Module {
     override fun configure(binder: Binder) {
-        // TODO how to de-dupe with KeyValueStoreComponent
-        Migrator.registerMigrationScript("io/tpersson/ufw/keyvaluestore/migrations/postgres/liquibase.xml")
-
         val config = KeyValueStoreModuleConfig(instantSource, objectMapper)
 
         with(binder) {
             bind(KeyValueStoreModuleConfig::class.java).toInstance(config)
             bind(StorageEngine::class.java).to(PostgresStorageEngine::class.java)
             bind(KeyValueStore::class.java).to(KeyValueStoreImpl::class.java)
+            bind(KeyValueStoreComponent::class.java).asEagerSingleton()
         }
     }
 }

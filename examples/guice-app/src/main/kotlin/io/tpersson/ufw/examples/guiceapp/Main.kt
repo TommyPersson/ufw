@@ -4,6 +4,7 @@ import com.google.inject.Guice
 import com.google.inject.Module
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.tpersson.ufw.aggregates.guice.AggregatesGuiceModule
 import io.tpersson.ufw.core.CoreGuiceModule
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.examples.common.commands.PerformGreetingCommand
@@ -11,7 +12,7 @@ import io.tpersson.ufw.database.guice.DatabaseGuiceModule
 import io.tpersson.ufw.jobqueue.guice.JobQueueGuiceModule
 import io.tpersson.ufw.keyvaluestore.guice.KeyValueStoreGuiceModule
 import io.tpersson.ufw.managed.ManagedRunner
-import io.tpersson.ufw.managed.guice.internal.ManagedGuiceModule
+import io.tpersson.ufw.managed.guice.ManagedGuiceModule
 import io.tpersson.ufw.mediator.Mediator
 import io.tpersson.ufw.mediator.guice.MediatorGuiceModule
 import java.time.Clock
@@ -42,7 +43,8 @@ public suspend fun main() {
         KeyValueStoreGuiceModule(),
         MediatorGuiceModule(scanPackages = myAppPackages),
         JobQueueGuiceModule(scanPackages = myAppPackages),
-        ManagedGuiceModule(scanPackages = myAppPackages)
+        AggregatesGuiceModule(),
+        ManagedGuiceModule(scanPackages = myAppPackages),
     )
 
     val migrator = injector.getInstance(DatabaseComponent::class.java).migrator

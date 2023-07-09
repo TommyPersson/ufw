@@ -7,8 +7,9 @@ import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.jobqueue.internal.*
 import io.tpersson.ufw.managed.Managed
+import jakarta.inject.Inject
 
-public class JobQueueComponent private constructor(
+public class JobQueueComponent @Inject constructor(
     public val jobQueue: JobQueue,
     public val managedInstances: Set<Managed>,
     internal val jobRepository: JobRepository,

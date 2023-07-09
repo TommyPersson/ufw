@@ -4,6 +4,7 @@ import com.google.inject.Binder
 import com.google.inject.Module
 import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.jobqueue.JobQueue
+import io.tpersson.ufw.jobqueue.JobQueueComponent
 import io.tpersson.ufw.jobqueue.JobQueueModuleConfig
 import io.tpersson.ufw.jobqueue.internal.*
 
@@ -12,9 +13,6 @@ public class JobQueueGuiceModule(
 ) : Module {
     override fun configure(binder: Binder) {
         with(binder) {
-            // TODO how to de-dupe with JobQueueComponent
-            Migrator.registerMigrationScript("io/tpersson/ufw/jobqueue/migrations/postgres/liquibase.xml")
-
             val config = JobQueueModuleConfig(scanPackages)
 
             bind(JobQueueModuleConfig::class.java).toInstance(config)
@@ -22,6 +20,8 @@ public class JobQueueGuiceModule(
             bind(JobQueueInternal::class.java).to(JobQueueImpl::class.java)
             bind(JobHandlersProvider::class.java).to(GuiceJobHandlersProvider::class.java).asEagerSingleton()
             bind(JobRepository::class.java).to(JobRepositoryImpl::class.java)
+            bind(JobFailureRepository::class.java).to(JobFailureRepositoryImpl::class.java)
+            bind(JobQueueComponent::class.java).asEagerSingleton()
         }
     }
 }

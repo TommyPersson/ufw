@@ -8,8 +8,9 @@ import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.keyvaluestore.storageengine.PostgresStorageEngine
 import io.tpersson.ufw.keyvaluestore.storageengine.StorageEngine
+import jakarta.inject.Inject
 
-public class KeyValueStoreComponent private constructor(
+public class KeyValueStoreComponent @Inject constructor(
     public val keyValueStore: KeyValueStore,
     public val storageEngine: StorageEngine,
 ) {

@@ -3,8 +3,9 @@ package io.tpersson.ufw.aggregates
 import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
+import jakarta.inject.Inject
 
-public class AggregatesComponent private constructor(
+public class AggregatesComponent @Inject constructor(
     private val coreComponent: CoreComponent,
     private val databaseComponent: DatabaseComponent
 ) {

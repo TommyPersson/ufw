@@ -26,6 +26,7 @@
         <module>components/job-queue</module>
         <module>components/job-queue-guice</module>
         <module>components/aggregates</module>
+        <module>components/aggregates-guice</module>
         <module>examples/common</module>
         <module>examples/guice-app</module>
         <module>examples/plain-app</module>
@@ -145,6 +146,11 @@
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>aggregates</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>io.tpersson.ufw</groupId>
+                <artifactId>aggregates-guice</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
 
