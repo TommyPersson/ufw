@@ -13,7 +13,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
-import org.junit.internal.runners.statements.Fail
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -87,7 +86,7 @@ internal class IntegrationTests {
 
         enqueueJob(testJob)
 
-        waitUntilQueueIsEmpty()
+        waitUntilQueueIsCompleted()
 
         val job = jobRepository.getById(testJob.queueId, testJob.jobId)!!
         assertThat(job.state).isEqualTo(JobState.Successful)
@@ -101,7 +100,7 @@ internal class IntegrationTests {
         enqueueJob(testJob)
         enqueueJob(testJobDuplicate)
 
-        waitUntilQueueIsEmpty()
+        waitUntilQueueIsCompleted()
 
         val allJobs = jobRepository.debugGetAllJobs()
 
@@ -114,23 +113,23 @@ internal class IntegrationTests {
 
         enqueueJob(testJob)
 
-        waitUntilQueueIsEmpty()
+        waitUntilQueueIsCompleted()
 
         val job = jobRepository.getById(testJob.queueId, testJob.jobId)!!
         assertThat(job.state).isEqualTo(JobState.Failed)
     }
 
     @Test
-    fun `Failures - A JobFailure is recorded for each failure is set to 'Failed' on failure`(): Unit = runBlocking {
+    fun `Failures - A JobFailure is recorded for each failure`(): Unit = runBlocking {
         val testJob = TestJob(greeting = "Hello, World!", shouldFail = true, numRetries = 3)
 
         enqueueJob(testJob)
 
-        waitUntilQueueIsEmpty()
+        waitUntilQueueIsCompleted()
 
         val job = jobRepository.getById(testJob.queueId, testJob.jobId)!!
         val numFailures = jobFailureRepository.getNumberOfFailuresFor(job)
-        val failures = jobFailureRepository.getLatestFor(job, 10)
+        val failures = jobFailureRepository.getLatestFor(job, limit = 10)
 
         assertThat(numFailures).isEqualTo(4)
         assertThat(failures).hasSize(4)
@@ -142,7 +141,7 @@ internal class IntegrationTests {
         }
     }
 
-    private suspend fun waitUntilQueueIsEmpty() {
+    private suspend fun waitUntilQueueIsCompleted() {
         await.untilCallTo {
             runBlocking { jobRepository.debugGetAllJobs() }
         } matches {
