@@ -2,6 +2,7 @@ package io.tpersson.ufw.core
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
@@ -24,6 +25,7 @@ public class CoreComponent @Inject private constructor(
 
         public val defaultObjectMapper: ObjectMapper = jacksonObjectMapper().findAndRegisterModules().also {
             it.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            it.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         }
     }
 }
