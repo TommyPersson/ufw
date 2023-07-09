@@ -43,7 +43,7 @@ internal class IntegrationTests {
 
         val ufw = UFW.build {
             core {
-                instantSource = testClock
+                clock = testClock
             }
             database {
                 dataSource = HikariDataSource(config)

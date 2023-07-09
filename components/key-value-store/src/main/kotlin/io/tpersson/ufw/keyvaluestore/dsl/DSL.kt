@@ -22,8 +22,7 @@ public class KeyValueStoreComponentBuilder(
     public fun build(): KeyValueStoreComponent {
         return KeyValueStoreComponent.create(
             components["core"] as CoreComponent,
-            components["database"] as DatabaseComponent,
-            objectMapper ?: KeyValueStoreComponent.defaultObjectMapper,
+            components["database"] as DatabaseComponent
         )
     }
 }

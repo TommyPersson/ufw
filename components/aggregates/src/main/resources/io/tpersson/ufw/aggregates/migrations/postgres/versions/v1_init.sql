@@ -12,5 +12,5 @@ CREATE TABLE ufw__aggregates__facts
     version          BIGINT      NOT NULL
 );
 
-CREATE UNIQUE INDEX UX_ufw__job_queue__facts_1
+CREATE UNIQUE INDEX UX_ufw__aggregates__facts_1
     ON ufw__aggregates__facts (aggregate_id, version ASC);

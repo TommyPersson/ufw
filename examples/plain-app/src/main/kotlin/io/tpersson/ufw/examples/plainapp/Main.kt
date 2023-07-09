@@ -4,8 +4,12 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.aggregates.dsl.aggregates
 import io.tpersson.ufw.core.dsl.UFW
+import io.tpersson.ufw.core.dsl.UFWRegistry
 import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.database.dsl.database
+import io.tpersson.ufw.database.unitofwork.use
+import io.tpersson.ufw.examples.common.aggregate.CounterAggregate
+import io.tpersson.ufw.examples.common.aggregate.CounterAggregateRepository
 import io.tpersson.ufw.examples.common.commands.PerformGreetingCommand
 import io.tpersson.ufw.examples.common.commands.PerformGreetingCommandHandler
 import io.tpersson.ufw.examples.common.jobs.PrintJob
@@ -30,7 +34,7 @@ public suspend fun main() {
 
     val ufw = UFW.build {
         core {
-            instantSource = Clock.systemUTC()
+            clock = Clock.systemUTC()
         }
         database {
             dataSource = HikariDataSource(hikariConfig)
@@ -59,29 +63,65 @@ public suspend fun main() {
         }
     }
 
-    ufw.database.migrator.run()
+    ufw.database.runMigrations()
 
-    val unitOfWorkFactory = ufw.database.unitOfWorkFactory
+    ufw.managed.startAll()
 
-    val managedRunner = ufw.managed.managedRunner
-    managedRunner.startAll()
+    testMediator(ufw)
 
-    val mediator = ufw.mediator.mediator
+    testJobQueue(ufw)
 
-    mediator.send(PerformGreetingCommand("World"))
-
-    val jobQueue = ufw.jobQueue.jobQueue
-
-    val unitOfWork = unitOfWorkFactory.create()
-    jobQueue.enqueue(PrintJob("Hello, World!"), unitOfWork)
-    unitOfWork.commit()
+    testAggregates(ufw)
 
     println("Press Enter to exit")
 
     val scanner = Scanner(System.`in`)
     scanner.nextLine()
 
-    managedRunner.stopAll()
+    ufw.managed.stopAll()
+
     println("Exiting")
 
+}
+
+private suspend fun testMediator(ufw: UFWRegistry) {
+    val mediator = ufw.mediator.mediator
+    mediator.send(PerformGreetingCommand("World"))
+}
+
+private suspend fun testJobQueue(ufw: UFWRegistry) {
+    val jobQueue = ufw.jobQueue.jobQueue
+
+    ufw.database.unitOfWorkFactory.use { uow ->
+        jobQueue.enqueue(PrintJob("Hello, World!"), uow)
+    }
+}
+
+private suspend fun testAggregates(
+    ufw: UFWRegistry
+) {
+    val counterRepository = CounterAggregateRepository(ufw.aggregates)
+    val unitOfWorkFactory = ufw.database.unitOfWorkFactory
+    val clock = ufw.core.clock
+
+    val counterId = unitOfWorkFactory.use { uow ->
+        val counter = CounterAggregate.new(clock.instant())
+        counter.increment(clock.instant())
+        counterRepository.save(counter, uow)
+        counter.id
+    }
+
+    run {
+        val counter = counterRepository.getById(counterId)!!
+        println("CounterAggregate.value = ${counter.value}")
+        unitOfWorkFactory.use { uow ->
+            counter.increment(clock.instant())
+            counterRepository.save(counter, uow)
+        }
+    }
+
+    run {
+        val counter = counterRepository.getById(counterId)!!
+        println("CounterAggregate.value = ${counter.value}")
+    }
 }

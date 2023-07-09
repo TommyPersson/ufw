@@ -17,6 +17,10 @@ public class DatabaseComponent @Inject constructor(
     public val migrator: Migrator,
     public val config: DatabaseModuleConfig,
 ) {
+    public fun runMigrations() {
+        migrator.run()
+    }
+
     public companion object {
         public fun create(
             dataSource: DataSource,

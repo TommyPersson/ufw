@@ -1,13 +1,13 @@
 package io.tpersson.ufw.aggregates
 
+import io.tpersson.ufw.aggregates.internal.AggregateFactRepositoryImpl
 import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
 import jakarta.inject.Inject
 
 public class AggregatesComponent @Inject constructor(
-    private val coreComponent: CoreComponent,
-    private val databaseComponent: DatabaseComponent
+    public val factRepository: AggregateFactRepository
 ) {
     init {
         Migrator.registerMigrationScript(
@@ -21,8 +21,12 @@ public class AggregatesComponent @Inject constructor(
             coreComponent: CoreComponent,
             databaseComponent: DatabaseComponent,
         ): AggregatesComponent {
+            val factRepository = AggregateFactRepositoryImpl(
+                connectionProvider = databaseComponent.connectionProvider,
+                ufwObjectMapper = coreComponent.objectMapper
+            )
 
-            return AggregatesComponent(coreComponent, databaseComponent)
+            return AggregatesComponent(factRepository)
         }
     }
 }

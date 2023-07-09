@@ -1,6 +1,6 @@
 package io.tpersson.ufw.jobqueue.internal
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import io.tpersson.ufw.core.UFWObjectMapper
 import io.tpersson.ufw.database.DatabaseModuleConfig
 import io.tpersson.ufw.database.jdbc.ConnectionProvider
 import io.tpersson.ufw.database.jdbc.useInTransaction
@@ -16,17 +16,18 @@ import io.tpersson.ufw.jobqueue.JobState
 import jakarta.inject.Inject
 import java.time.Duration
 import java.time.Instant
-import java.time.InstantSource
-import kotlin.math.exp
-import kotlin.math.min
 
 public class JobRepositoryImpl @Inject constructor(
     private val databaseModuleConfig: DatabaseModuleConfig,
     private val connectionProvider: ConnectionProvider,
-    private val objectMapper: ObjectMapper,
+    ufwObjectMapper: UFWObjectMapper,
 ) : JobRepository {
 
+    private val objectMapper = ufwObjectMapper.objectMapper
+
     // TODO implement stale job detection
+    // * due to failed concurrent changes
+    // * due to crashes
 
     override suspend fun insert(job: InternalJob<*>, unitOfWork: UnitOfWork) {
         val jobData = JobData(

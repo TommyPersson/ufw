@@ -1,7 +1,5 @@
 package io.tpersson.ufw.jobqueue
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
@@ -28,16 +26,12 @@ public class JobQueueComponent @Inject constructor(
             databaseComponent: DatabaseComponent,
             jobHandlers: Set<JobHandler<*>>,
         ): JobQueueComponent {
-            val objectMapper = jacksonObjectMapper().findAndRegisterModules().also {
-                it.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            }
-
             val config = JobQueueModuleConfig()
 
             val jobRepository = JobRepositoryImpl(
                 databaseModuleConfig = databaseComponent.config,
                 connectionProvider = databaseComponent.connectionProvider,
-                objectMapper = objectMapper
+                ufwObjectMapper = coreComponent.objectMapper
             )
 
             val jobFailureRepository = JobFailureRepositoryImpl(
@@ -46,7 +40,7 @@ public class JobQueueComponent @Inject constructor(
 
             val jobQueue = JobQueueImpl(
                 config = config,
-                clock = coreComponent.instantSource,
+                clock = coreComponent.clock,
                 jobRepository = jobRepository,
                 jobFailureRepository = jobFailureRepository
             )
@@ -58,7 +52,7 @@ public class JobQueueComponent @Inject constructor(
                 jobRepository = jobRepository,
                 unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
                 jobHandlersProvider = jobHandlersProvider,
-                clock = coreComponent.instantSource
+                clock = coreComponent.clock
             )
 
             return JobQueueComponent(

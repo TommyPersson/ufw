@@ -4,8 +4,9 @@ public interface UnitOfWorkFactory {
     public fun create(): UnitOfWork
 }
 
-public suspend fun UnitOfWorkFactory.use(block: suspend (UnitOfWork) -> Unit) {
+public suspend fun <T> UnitOfWorkFactory.use(block: suspend (UnitOfWork) -> T): T {
     val unitOfWork = create()
-    block(unitOfWork)
+    val result = block(unitOfWork)
     unitOfWork.commit()
+    return result
 }

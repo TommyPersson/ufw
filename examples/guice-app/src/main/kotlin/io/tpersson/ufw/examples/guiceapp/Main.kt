@@ -1,14 +1,27 @@
 package io.tpersson.ufw.examples.guiceapp
 
 import com.google.inject.Guice
+import com.google.inject.Injector
 import com.google.inject.Module
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.tpersson.ufw.aggregates.dsl.aggregates
 import io.tpersson.ufw.aggregates.guice.AggregatesGuiceModule
 import io.tpersson.ufw.core.CoreGuiceModule
+import io.tpersson.ufw.core.dsl.UFWRegistry
+import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.database.DatabaseComponent
+import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.examples.common.commands.PerformGreetingCommand
 import io.tpersson.ufw.database.guice.DatabaseGuiceModule
+import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
+import io.tpersson.ufw.database.unitofwork.use
+import io.tpersson.ufw.examples.common.aggregate.CounterAggregate
+import io.tpersson.ufw.examples.common.aggregate.CounterAggregateRepository
+import io.tpersson.ufw.examples.common.jobs.PrintJob
+import io.tpersson.ufw.jobqueue.JobQueue
+import io.tpersson.ufw.jobqueue.JobQueueId
+import io.tpersson.ufw.jobqueue.dsl.jobQueue
 import io.tpersson.ufw.jobqueue.guice.JobQueueGuiceModule
 import io.tpersson.ufw.keyvaluestore.guice.KeyValueStoreGuiceModule
 import io.tpersson.ufw.managed.ManagedRunner
@@ -37,6 +50,7 @@ public suspend fun main() {
         Module {
             it.bind(DataSource::class.java).toInstance(dataSource)
             it.bind(InstantSource::class.java).toInstance(Clock.systemUTC())
+            it.bind(CounterAggregateRepository::class.java)
         },
         CoreGuiceModule(),
         DatabaseGuiceModule(),
@@ -53,8 +67,11 @@ public suspend fun main() {
     val managedRunner = injector.getInstance(ManagedRunner::class.java)
     managedRunner.startAll()
 
-    val mediator = injector.getInstance(Mediator::class.java)
-    mediator.send(PerformGreetingCommand("World"))
+    testMediator(injector)
+
+    testJobQueue(injector)
+
+    testAggregates(injector)
 
     println("Press Enter to exit")
 
@@ -63,4 +80,45 @@ public suspend fun main() {
 
     managedRunner.stopAll()
     println("Exiting")
+}
+
+private suspend fun testMediator(injector: Injector) {
+    val mediator = injector.getInstance(Mediator::class.java)
+    mediator.send(PerformGreetingCommand("World"))
+}
+
+private suspend fun testJobQueue(injector: Injector) {
+    val jobQueue = injector.getInstance(JobQueue::class.java)
+    val unitOfWorkFactory = injector.getInstance(UnitOfWorkFactory::class.java)
+
+    unitOfWorkFactory.use { uow ->
+        jobQueue.enqueue(PrintJob("Hello, World!"), uow)
+    }
+}
+
+private suspend fun testAggregates(injector: Injector) {
+    val counterRepository = injector.getInstance(CounterAggregateRepository::class.java)
+    val unitOfWorkFactory = injector.getInstance(UnitOfWorkFactory::class.java)
+    val clock = injector.getInstance(InstantSource::class.java)
+
+    val counterId = unitOfWorkFactory.use { uow ->
+        val counter = CounterAggregate.new(clock.instant())
+        counter.increment(clock.instant())
+        counterRepository.save(counter, uow)
+        counter.id
+    }
+
+    run {
+        val counter = counterRepository.getById(counterId)!!
+        println("CounterAggregate.value = ${counter.value}")
+        unitOfWorkFactory.use { uow ->
+            counter.increment(clock.instant())
+            counterRepository.save(counter, uow)
+        }
+    }
+
+    run {
+        val counter = counterRepository.getById(counterId)!!
+        println("CounterAggregate.value = ${counter.value}")
+    }
 }

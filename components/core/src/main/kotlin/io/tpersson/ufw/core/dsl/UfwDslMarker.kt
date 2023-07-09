@@ -43,10 +43,10 @@ public fun UFWBuilder.RootBuilder.core(builder: CoreComponentBuilder.() -> Unit)
 
 @UfwDslMarker
 public class CoreComponentBuilder {
-    public var instantSource: InstantSource = Clock.systemUTC()
+    public var clock: InstantSource = Clock.systemUTC()
 
     public fun build(): CoreComponent {
-        return CoreComponent.create(instantSource)
+        return CoreComponent.create(clock)
     }
 }
 

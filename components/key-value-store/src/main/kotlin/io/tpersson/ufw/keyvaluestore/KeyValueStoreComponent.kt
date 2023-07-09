@@ -24,18 +24,19 @@ public class KeyValueStoreComponent @Inject constructor(
     public companion object {
         public fun create(
             coreComponent: CoreComponent,
-            databaseComponent: DatabaseComponent,
-            objectMapper: ObjectMapper = defaultObjectMapper,
+            databaseComponent: DatabaseComponent
         ): KeyValueStoreComponent {
             val storageEngine = PostgresStorageEngine(
-                databaseComponent.unitOfWorkFactory,
-                databaseComponent.connectionProvider,
-                databaseComponent.config
+                unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
+                connectionProvider = databaseComponent.connectionProvider,
+                config = databaseComponent.config
             )
 
-            val config = KeyValueStoreModuleConfig(coreComponent.instantSource, objectMapper)
-
-            val keyValueStore = KeyValueStoreImpl(storageEngine, config)
+            val keyValueStore = KeyValueStoreImpl(
+                storageEngine = storageEngine,
+                clock = coreComponent.clock,
+                ufwObjectMapper = coreComponent.objectMapper
+            )
 
             return KeyValueStoreComponent(keyValueStore, storageEngine)
         }
