@@ -1,5 +1,6 @@
 package io.tpersson.ufw.examples.guiceapp
 
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.google.inject.Guice
 import com.google.inject.Injector
 import com.google.inject.Module
@@ -46,7 +47,9 @@ public suspend fun main() {
             it.bind(InstantSource::class.java).toInstance(Clock.systemUTC())
             it.bind(CounterAggregateRepository::class.java)
         },
-        CoreGuiceModule(),
+        CoreGuiceModule(configureObjectMapper = {
+            enable(SerializationFeature.INDENT_OUTPUT)
+        }),
         DatabaseGuiceModule(),
         KeyValueStoreGuiceModule(),
         MediatorGuiceModule(scanPackages = myAppPackages),

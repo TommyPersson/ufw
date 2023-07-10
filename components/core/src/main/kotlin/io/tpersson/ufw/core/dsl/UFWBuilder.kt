@@ -1,8 +1,6 @@
 package io.tpersson.ufw.core.dsl
 
 import io.tpersson.ufw.core.CoreComponent
-import java.time.Clock
-import java.time.InstantSource
 
 @DslMarker
 public annotation class UfwDslMarker()
@@ -35,19 +33,3 @@ public object UFW {
 public class UFWRegistry(
     public val _components: Map<String, Any>
 )
-
-@UfwDslMarker
-public fun UFWBuilder.RootBuilder.core(builder: CoreComponentBuilder.() -> Unit) {
-    components["core"] = CoreComponentBuilder().also(builder).build()
-}
-
-@UfwDslMarker
-public class CoreComponentBuilder {
-    public var clock: InstantSource = Clock.systemUTC()
-
-    public fun build(): CoreComponent {
-        return CoreComponent.create(clock)
-    }
-}
-
-public val UFWRegistry.core: CoreComponent get() = _components["core"] as CoreComponent

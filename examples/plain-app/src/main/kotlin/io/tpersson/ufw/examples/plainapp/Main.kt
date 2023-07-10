@@ -1,11 +1,13 @@
 package io.tpersson.ufw.examples.plainapp
 
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.aggregates.dsl.aggregates
 import io.tpersson.ufw.core.dsl.UFW
 import io.tpersson.ufw.core.dsl.UFWRegistry
 import io.tpersson.ufw.core.dsl.core
+import io.tpersson.ufw.core.dsl.objectMapper
 import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.database.unitofwork.use
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregate
@@ -35,6 +37,10 @@ public suspend fun main() {
     val ufw = UFW.build {
         core {
             clock = Clock.systemUTC()
+
+            objectMapper {
+                enable(SerializationFeature.INDENT_OUTPUT)
+            }
         }
         database {
             dataSource = HikariDataSource(hikariConfig)

@@ -62,9 +62,9 @@
         <jakarta.inject-api.version>2.0.1</jakarta.inject-api.version>
         <mockito.version>5.4.0</mockito.version>
         <mockito-kotlin.version>5.0.0</mockito-kotlin.version>
+        <awaitility.version>4.2.0</awaitility.version>
 
         <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
-        <awaitility.version>4.2.0</awaitility.version>
     </properties>
 
     <dependencyManagement>
@@ -398,7 +398,6 @@
                 </executions>
             </plugin>
         </plugins>
-
     </build>
 
     <distributionManagement>
