@@ -11,7 +11,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>mediator-guice</artifactId>
+    <artifactId>ufw-mediator-guice</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -22,7 +22,7 @@
     <dependencies>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>mediator</artifactId>
+            <artifactId>ufw-mediator</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.inject</groupId>

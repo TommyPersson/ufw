@@ -11,7 +11,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>job-queue</artifactId>
+    <artifactId>ufw-job-queue</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -22,15 +22,15 @@
     <dependencies>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>core</artifactId>
+            <artifactId>ufw-core</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>managed</artifactId>
+            <artifactId>ufw-managed</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>database</artifactId>
+            <artifactId>ufw-database</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>

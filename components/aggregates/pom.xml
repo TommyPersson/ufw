@@ -11,7 +11,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>aggregates</artifactId>
+    <artifactId>ufw-aggregates</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -22,11 +22,11 @@
     <dependencies>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>core</artifactId>
+            <artifactId>ufw-core</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>database</artifactId>
+            <artifactId>ufw-database</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>

@@ -11,7 +11,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>job-queue-guice</artifactId>
+    <artifactId>ufw-job-queue-guice</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -22,7 +22,7 @@
     <dependencies>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>job-queue</artifactId>
+            <artifactId>ufw-job-queue</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.inject</groupId>

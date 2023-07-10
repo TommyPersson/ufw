@@ -11,7 +11,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>key-value-store-guice</artifactId>
+    <artifactId>ufw-key-value-store-guice</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -22,7 +22,7 @@
     <dependencies>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>key-value-store</artifactId>
+            <artifactId>ufw-key-value-store</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.inject</groupId>

@@ -11,7 +11,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>mediator</artifactId>
+    <artifactId>ufw-mediator</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -22,7 +22,7 @@
     <dependencies>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>core</artifactId>
+            <artifactId>ufw-core</artifactId>
         </dependency>
 
         <dependency>

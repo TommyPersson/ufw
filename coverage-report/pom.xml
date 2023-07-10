@@ -24,39 +24,39 @@
     <dependencies>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>core</artifactId>
+            <artifactId>ufw-core</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>database</artifactId>
+            <artifactId>ufw-database</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>database-guice</artifactId>
+            <artifactId>ufw-database-guice</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>job-queue</artifactId>
+            <artifactId>ufw-job-queue</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>key-value-store</artifactId>
+            <artifactId>ufw-key-value-store</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>key-value-store-guice</artifactId>
+            <artifactId>ufw-key-value-store-guice</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>mediator</artifactId>
+            <artifactId>ufw-mediator</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>mediator-guice</artifactId>
+            <artifactId>ufw-mediator-guice</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>mediator-middleware-transactional</artifactId>
+            <artifactId>ufw-mediator-middleware-transactional</artifactId>
         </dependency>
     </dependencies>
 
@@ -94,6 +94,15 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.7</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
         </plugins>
+
     </build>
 </project>

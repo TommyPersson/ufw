@@ -70,90 +70,89 @@
         <dependencies>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
-                <artifactId>all</artifactId>
+                <artifactId>ufw-all</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
-                <artifactId>all-guice</artifactId>
+                <artifactId>ufw-all-guice</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
-                <artifactId>core</artifactId>
+                <artifactId>ufw-core</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
-                <artifactId>core-guice</artifactId>
+                <artifactId>ufw-core-guice</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
-                <artifactId>database</artifactId>
+                <artifactId>ufw-database</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
-                <artifactId>database-guice</artifactId>
+                <artifactId>ufw-database-guice</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
-                <artifactId>managed</artifactId>
+                <artifactId>ufw-managed</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
-                <artifactId>managed-guice</artifactId>
+                <artifactId>ufw-managed-guice</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
-                <artifactId>job-queue</artifactId>
+                <artifactId>ufw-job-queue</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
-                <artifactId>job-queue-guice</artifactId>
+                <artifactId>ufw-job-queue-guice</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
-                <artifactId>mediator</artifactId>
+                <artifactId>ufw-mediator</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
-                <artifactId>mediator-guice</artifactId>
+                <artifactId>ufw-mediator-guice</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
-                <artifactId>mediator-middleware-transactional</artifactId>
+                <artifactId>ufw-mediator-middleware-transactional</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
-                <artifactId>key-value-store</artifactId>
+                <artifactId>ufw-key-value-store</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
-                <artifactId>key-value-store-guice</artifactId>
+                <artifactId>ufw-key-value-store-guice</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
-                <artifactId>aggregates</artifactId>
+                <artifactId>ufw-aggregates</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
-                <artifactId>aggregates-guice</artifactId>
+                <artifactId>ufw-aggregates-guice</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
-
 
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>

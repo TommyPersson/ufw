@@ -11,7 +11,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>mediator-middleware-transactional</artifactId>
+    <artifactId>ufw-mediator-middleware-transactional</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -22,11 +22,11 @@
     <dependencies>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>mediator</artifactId>
+            <artifactId>ufw-mediator</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>database</artifactId>
+            <artifactId>ufw-database</artifactId>
         </dependency>
         <dependency>
             <groupId>jakarta.inject</groupId>

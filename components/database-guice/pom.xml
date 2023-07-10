@@ -11,7 +11,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>database-guice</artifactId>
+    <artifactId>ufw-database-guice</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -22,7 +22,7 @@
     <dependencies>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>database</artifactId>
+            <artifactId>ufw-database</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.inject</groupId>

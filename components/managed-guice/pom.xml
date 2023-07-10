@@ -11,7 +11,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>managed-guice</artifactId>
+    <artifactId>ufw-managed-guice</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -22,7 +22,7 @@
     <dependencies>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>managed</artifactId>
+            <artifactId>ufw-managed</artifactId>
         </dependency>
 
         <dependency>
