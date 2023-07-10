@@ -34,7 +34,7 @@ public class KeyValueStoreComponent @Inject constructor(
             val keyValueStore = KeyValueStoreImpl(
                 storageEngine = storageEngine,
                 clock = coreComponent.clock,
-                ufwObjectMapper = coreComponent.objectMapper
+                objectMapper = coreComponent.objectMapper
             )
 
             return KeyValueStoreComponent(keyValueStore, storageEngine)

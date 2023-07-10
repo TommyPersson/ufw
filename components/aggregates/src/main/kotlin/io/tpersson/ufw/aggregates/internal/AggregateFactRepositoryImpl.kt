@@ -1,13 +1,15 @@
 package io.tpersson.ufw.aggregates.internal
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.tpersson.ufw.aggregates.*
 import io.tpersson.ufw.aggregates.exceptions.AggregateVersionConflictException
-import io.tpersson.ufw.core.UFWObjectMapper
+import io.tpersson.ufw.core.NamedBindings
 import io.tpersson.ufw.database.jdbc.Database
 import io.tpersson.ufw.database.typedqueries.TypedSelect
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import jakarta.inject.Inject
+import jakarta.inject.Named
 import org.postgresql.util.PSQLException
 import java.time.Instant
 import java.util.*
@@ -15,10 +17,8 @@ import kotlin.reflect.KClass
 
 public class AggregateFactRepositoryImpl @Inject constructor(
     private val database: Database,
-    ufwObjectMapper: UFWObjectMapper,
+    @Named(NamedBindings.ObjectMapper) private val objectMapper: ObjectMapper,
 ) : AggregateFactRepository {
-
-    private val objectMapper = ufwObjectMapper.objectMapper
 
     override suspend fun insert(aggregateId: AggregateId, fact: Fact, version: Long, unitOfWork: UnitOfWork) {
         val factData = FactData(

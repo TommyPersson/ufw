@@ -8,7 +8,7 @@ import java.time.Instant
 internal class ObjectMapperTest {
     @Test
     fun `Can serialize and deserialize Instants as ISO-8601`() {
-        val objectMapper = UFWObjectMapper.default.objectMapper
+        val objectMapper = CoreComponent.defaultObjectMapper
 
         val expectedString = "2020-02-02T12:02:02.002Z"
         val expectedInstant = Instant.parse(expectedString)

@@ -30,7 +30,7 @@ public class JobQueueComponent @Inject constructor(
 
             val jobRepository = JobRepositoryImpl(
                 database = databaseComponent.database,
-                ufwObjectMapper = coreComponent.objectMapper
+                objectMapper = coreComponent.objectMapper
             )
 
             val jobFailureRepository = JobFailureRepositoryImpl(

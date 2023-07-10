@@ -14,10 +14,12 @@ public class CoreGuiceModule(
     private val scanPackages: Set<String> = emptySet(),
 ) : Module {
     override fun configure(binder: Binder) {
-        val objectMapper = UFWObjectMapper.default.objectMapper.also(configureObjectMapper)
+        val objectMapper = CoreComponent.defaultObjectMapper.also(configureObjectMapper)
 
         binder.bind(CoreComponent::class.java).asEagerSingleton()
-        binder.bind(UFWObjectMapper::class.java).toInstance(UFWObjectMapper(objectMapper))
+        binder.bind(ObjectMapper::class.java)
+            .annotatedWith(Names.named(NamedBindings.ObjectMapper))
+            .toInstance(objectMapper)
 
         OptionalBinder.newOptionalBinder(binder, OpenTelemetry::class.java)
 
@@ -28,7 +30,7 @@ public class CoreGuiceModule(
             .scan()
 
         binder.bind(ScanResult::class.java)
-            .annotatedWith(Names.named("UFW_ScanResult"))
+            .annotatedWith(Names.named(NamedBindings.ScanResult))
             .toInstance(scanResult)
     }
 }

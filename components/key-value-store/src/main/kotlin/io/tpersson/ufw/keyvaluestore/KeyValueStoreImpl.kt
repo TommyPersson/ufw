@@ -1,10 +1,12 @@
 package io.tpersson.ufw.keyvaluestore
 
-import io.tpersson.ufw.core.UFWObjectMapper
+import com.fasterxml.jackson.databind.ObjectMapper
+import io.tpersson.ufw.core.NamedBindings
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.keyvaluestore.storageengine.EntryDataForWrite
 import io.tpersson.ufw.keyvaluestore.storageengine.StorageEngine
 import jakarta.inject.Inject
+import jakarta.inject.Named
 import jakarta.inject.Singleton
 import java.time.Duration
 import java.time.InstantSource
@@ -13,10 +15,8 @@ import java.time.InstantSource
 public class KeyValueStoreImpl @Inject constructor(
     private val storageEngine: StorageEngine,
     private val clock: InstantSource,
-    ufwObjectMapper: UFWObjectMapper,
+    @Named(NamedBindings.ObjectMapper) private val objectMapper: ObjectMapper,
 ) : KeyValueStore {
-
-    private val objectMapper = ufwObjectMapper.objectMapper
 
     override suspend fun <T> get(key: KeyValueStore.Key<T>): KeyValueStore.Entry<T>? {
         val data = storageEngine.get(key.name)

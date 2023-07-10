@@ -1,6 +1,7 @@
 package io.tpersson.ufw.jobqueue.internal
 
-import io.tpersson.ufw.core.UFWObjectMapper
+import com.fasterxml.jackson.databind.ObjectMapper
+import io.tpersson.ufw.core.NamedBindings
 import io.tpersson.ufw.database.jdbc.Database
 import io.tpersson.ufw.database.typedqueries.TypedSelect
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
@@ -10,15 +11,14 @@ import io.tpersson.ufw.jobqueue.JobId
 import io.tpersson.ufw.jobqueue.JobQueueId
 import io.tpersson.ufw.jobqueue.JobState
 import jakarta.inject.Inject
+import jakarta.inject.Named
 import java.time.Duration
 import java.time.Instant
 
 public class JobRepositoryImpl @Inject constructor(
     private val database: Database,
-    ufwObjectMapper: UFWObjectMapper,
+    @Named(NamedBindings.ObjectMapper) private val objectMapper: ObjectMapper,
 ) : JobRepository {
-
-    private val objectMapper = ufwObjectMapper.objectMapper
 
     // TODO implement stale job detection
     // * due to failed concurrent changes
