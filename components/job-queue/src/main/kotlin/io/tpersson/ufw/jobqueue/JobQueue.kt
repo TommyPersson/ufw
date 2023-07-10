@@ -13,7 +13,6 @@ public interface JobQueue {
 }
 
 public data class JobQueueModuleConfig(
-    val scanPackages: List<String> = emptyList(),
     val pollWaitTime: Duration = Duration.ofSeconds(5),
     val defaultJobTimeout: Duration = Duration.ofMinutes(10),
     val defaultJobRetention: Duration = Duration.ofDays(14),

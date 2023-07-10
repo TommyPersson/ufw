@@ -30,24 +30,27 @@ import javax.sql.DataSource
 
 public suspend fun main() {
 
-    val myAppPackages = listOf("io.tpersson.ufw.examples.guiceapp")
+    val myAppPackages = setOf("io.tpersson.ufw.examples.guiceapp")
 
     val injector = Guice.createInjector(
         Module {
             it.bind(DataSource::class.java).toInstance(Globals.dataSource)
             it.bind(InstantSource::class.java).toInstance(Clock.systemUTC())
-            //it.bind(OpenTelemetry::class.java).toInstance(Globals.openTelemetry)
+            it.bind(OpenTelemetry::class.java).toInstance(Globals.openTelemetry)
             it.bind(CounterAggregateRepository::class.java)
         },
-        CoreGuiceModule(configureObjectMapper = {
-            enable(SerializationFeature.INDENT_OUTPUT)
-        }),
+        CoreGuiceModule(
+            scanPackages = myAppPackages,
+            configureObjectMapper = {
+                enable(SerializationFeature.INDENT_OUTPUT)
+            }
+        ),
         DatabaseGuiceModule(),
         KeyValueStoreGuiceModule(),
-        MediatorGuiceModule(scanPackages = myAppPackages),
-        JobQueueGuiceModule(scanPackages = myAppPackages),
+        MediatorGuiceModule(),
+        JobQueueGuiceModule(),
         AggregatesGuiceModule(),
-        ManagedGuiceModule(scanPackages = myAppPackages),
+        ManagedGuiceModule(),
     )
 
     val migrator = injector.getInstance(DatabaseComponent::class.java).migrator

@@ -1,20 +1,17 @@
 package io.tpersson.ufw.jobqueue.guice
 
 import com.google.inject.Injector
-import io.github.classgraph.ClassGraph
+import io.github.classgraph.ScanResult
+import io.tpersson.ufw.core.NamedBindings
 import io.tpersson.ufw.jobqueue.JobHandler
 import io.tpersson.ufw.jobqueue.internal.JobHandlersProvider
-import io.tpersson.ufw.jobqueue.JobQueueModuleConfig
 import jakarta.inject.Inject
+import jakarta.inject.Named
 
 public class GuiceJobHandlersProvider @Inject constructor(
-    private val config: JobQueueModuleConfig,
-    private val injector: Injector
+    @Named(NamedBindings.ScanResult) private val scanResult: ScanResult,
+    private val injector: Injector,
 ) : JobHandlersProvider {
-    private val scanResult = ClassGraph()
-        .enableClassInfo()
-        .acceptPackages(*config.scanPackages.toTypedArray(), "io.tpersson.ufw")
-        .scan()
 
     private val handlers = scanResult.allClasses
         .filter { it.implementsInterface(JobHandler::class.java) }

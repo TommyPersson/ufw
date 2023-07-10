@@ -5,11 +5,12 @@ import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import java.time.Clock
 import java.time.InstantSource
+import java.util.*
 
 @Singleton
 public class CoreComponent @Inject private constructor(
     public val clock: InstantSource,
-    public val openTelemetry: OpenTelemetry?,
+    public val openTelemetry: Optional<OpenTelemetry>,
     public val objectMapper: UFWObjectMapper,
 ) {
     public companion object {
@@ -18,7 +19,7 @@ public class CoreComponent @Inject private constructor(
             openTelemetry: OpenTelemetry? = null,
             objectMapper: UFWObjectMapper = UFWObjectMapper.default,
         ): CoreComponent {
-            return CoreComponent(clock, openTelemetry, objectMapper)
+            return CoreComponent(clock, Optional.ofNullable(openTelemetry), objectMapper)
         }
     }
 }

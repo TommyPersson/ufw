@@ -8,12 +8,10 @@ import io.tpersson.ufw.jobqueue.JobQueueComponent
 import io.tpersson.ufw.jobqueue.JobQueueModuleConfig
 import io.tpersson.ufw.jobqueue.internal.*
 
-public class JobQueueGuiceModule(
-    private val scanPackages: List<String>
-) : Module {
+public class JobQueueGuiceModule : Module {
     override fun configure(binder: Binder) {
         with(binder) {
-            val config = JobQueueModuleConfig(scanPackages)
+            val config = JobQueueModuleConfig()
 
             bind(JobQueueModuleConfig::class.java).toInstance(config)
             bind(JobQueue::class.java).to(JobQueueImpl::class.java)
@@ -21,7 +19,6 @@ public class JobQueueGuiceModule(
             bind(JobHandlersProvider::class.java).to(GuiceJobHandlersProvider::class.java).asEagerSingleton()
             bind(JobRepository::class.java).to(JobRepositoryImpl::class.java)
             bind(JobFailureRepository::class.java).to(JobFailureRepositoryImpl::class.java)
-            bind(JobQueueComponent::class.java).asEagerSingleton()
         }
     }
 }
