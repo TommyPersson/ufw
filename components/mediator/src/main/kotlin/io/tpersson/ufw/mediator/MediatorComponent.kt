@@ -1,7 +1,5 @@
 package io.tpersson.ufw.mediator
 
-import io.tpersson.ufw.core.Components
-
 public class MediatorComponent private constructor(
     public val mediator: Mediator
 ) {
@@ -16,6 +14,3 @@ public class MediatorComponent private constructor(
         }
     }
 }
-
-@Suppress("UnusedReceiverParameter")
-public val Components.Mediator: MediatorComponent.Companion get() = MediatorComponent

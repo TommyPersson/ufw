@@ -35,7 +35,3 @@ public class CoreComponent @Inject private constructor(
 
     }
 }
-
-@Suppress("UnusedReceiverParameter")
-public val Components.Core: CoreComponent.Companion get() = CoreComponent
-

@@ -2,7 +2,6 @@ package io.tpersson.ufw.keyvaluestore
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.tpersson.ufw.core.Components
 import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
@@ -42,10 +41,4 @@ public class KeyValueStoreComponent @Inject constructor(
 
         public val defaultObjectMapper: ObjectMapper = jacksonObjectMapper().findAndRegisterModules()
     }
-}
-
-@Suppress("UnusedReceiverParameter")
-public val Components.KeyValueStore: KeyValueStoreComponent.Companion get() {
-    println(this)
-  return KeyValueStoreComponent
 }
