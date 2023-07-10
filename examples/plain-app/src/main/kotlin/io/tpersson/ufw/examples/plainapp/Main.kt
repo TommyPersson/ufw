@@ -1,8 +1,6 @@
 package io.tpersson.ufw.examples.plainapp
 
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.zaxxer.hikari.HikariConfig
-import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.aggregates.dsl.aggregates
 import io.tpersson.ufw.core.dsl.UFW
 import io.tpersson.ufw.core.dsl.UFWRegistry
@@ -10,6 +8,7 @@ import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.core.dsl.objectMapper
 import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.database.unitofwork.use
+import io.tpersson.ufw.examples.common.Globals
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregate
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregateRepository
 import io.tpersson.ufw.examples.common.commands.PerformGreetingCommand
@@ -25,25 +24,20 @@ import io.tpersson.ufw.mediator.middleware.transactional.TransactionalMiddleware
 import java.time.Clock
 import java.util.*
 
-public suspend fun main() {
 
-    val hikariConfig = HikariConfig().also {
-        it.jdbcUrl = "jdbc:postgresql://localhost:5432/postgres"
-        it.username = "postgres"
-        it.password = "postgres"
-        it.maximumPoolSize = 30
-    }
+public suspend fun main() {
 
     val ufw = UFW.build {
         core {
             clock = Clock.systemUTC()
+            openTelemetry = Globals.openTelemetry
 
             objectMapper {
                 enable(SerializationFeature.INDENT_OUTPUT)
             }
         }
         database {
-            dataSource = HikariDataSource(hikariConfig)
+            dataSource = Globals.dataSource
         }
         keyValueStore {
         }

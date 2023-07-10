@@ -4,9 +4,6 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
-import io.tpersson.ufw.database.DatabaseModuleConfig
-import io.tpersson.ufw.database.jdbc.ConnectionProviderImpl
-import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactoryImpl
 import io.tpersson.ufw.keyvaluestore.storageengine.PostgresStorageEngine
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat

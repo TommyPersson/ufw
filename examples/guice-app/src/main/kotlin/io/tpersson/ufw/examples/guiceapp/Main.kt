@@ -4,14 +4,14 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.google.inject.Guice
 import com.google.inject.Injector
 import com.google.inject.Module
-import com.zaxxer.hikari.HikariConfig
-import com.zaxxer.hikari.HikariDataSource
+import io.opentelemetry.api.OpenTelemetry
 import io.tpersson.ufw.aggregates.guice.AggregatesGuiceModule
 import io.tpersson.ufw.core.CoreGuiceModule
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.guice.DatabaseGuiceModule
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.database.unitofwork.use
+import io.tpersson.ufw.examples.common.Globals
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregate
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregateRepository
 import io.tpersson.ufw.examples.common.commands.PerformGreetingCommand
@@ -30,21 +30,13 @@ import javax.sql.DataSource
 
 public suspend fun main() {
 
-    val hikariConfig = HikariConfig().also {
-        it.jdbcUrl = "jdbc:postgresql://localhost:5432/postgres"
-        it.username = "postgres"
-        it.password = "postgres"
-        it.maximumPoolSize = 30
-    }
-
-    val dataSource = HikariDataSource(hikariConfig)
-
     val myAppPackages = listOf("io.tpersson.ufw.examples.guiceapp")
 
     val injector = Guice.createInjector(
         Module {
-            it.bind(DataSource::class.java).toInstance(dataSource)
+            it.bind(DataSource::class.java).toInstance(Globals.dataSource)
             it.bind(InstantSource::class.java).toInstance(Clock.systemUTC())
+            //it.bind(OpenTelemetry::class.java).toInstance(Globals.openTelemetry)
             it.bind(CounterAggregateRepository::class.java)
         },
         CoreGuiceModule(configureObjectMapper = {
