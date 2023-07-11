@@ -19,6 +19,7 @@ public class JobQueueGuiceModule : Module {
             bind(JobHandlersProvider::class.java).to(GuiceJobHandlersProvider::class.java).asEagerSingleton()
             bind(JobRepository::class.java).to(JobRepositoryImpl::class.java)
             bind(JobFailureRepository::class.java).to(JobFailureRepositoryImpl::class.java)
+            bind(JobQueueComponent::class.java).asEagerSingleton()
         }
     }
 }

@@ -1,15 +1,11 @@
 package io.tpersson.ufw.core.dsl
 
-import io.tpersson.ufw.core.CoreComponent
-
 @DslMarker
 public annotation class UfwDslMarker()
 
 public class UFWBuilder {
 
     public val components: MutableMap<String, Any> = mutableMapOf()
-
-    public var coreComponent: CoreComponent? = null
 
     @UfwDslMarker
     public fun build(builder: RootBuilder.() -> Unit): UFWRegistry {
@@ -20,7 +16,7 @@ public class UFWBuilder {
 
     @UfwDslMarker
     public inner class RootBuilder(
-        public val components: MutableMap<String, Any>
+        public val components: MutableMap<String, Any>,
     )
 }
 

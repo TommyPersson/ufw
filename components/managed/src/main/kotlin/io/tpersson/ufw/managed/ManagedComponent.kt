@@ -1,8 +1,14 @@
 package io.tpersson.ufw.managed
 
-public class ManagedComponent private constructor(
+import jakarta.inject.Inject
+
+public class ManagedComponent @Inject constructor(
     public val managedRunner: ManagedRunner
 ) {
+    public fun register(instance: Managed) {
+        managedRunner.register(instance)
+    }
+
     public fun startAll(addShutdownHook: Boolean = true) {
         managedRunner.startAll(addShutdownHook)
     }

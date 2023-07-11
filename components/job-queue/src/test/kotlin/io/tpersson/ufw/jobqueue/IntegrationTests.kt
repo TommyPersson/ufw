@@ -45,14 +45,13 @@ internal class IntegrationTests {
             core {
                 clock = testClock
             }
+            managed {
+            }
             database {
                 dataSource = HikariDataSource(config)
             }
             jobQueue {
                 handlers = setOf(TestJobHandler())
-            }
-            managed {
-                instances = components.jobQueue.managedInstances
             }
         }
 

@@ -7,6 +7,7 @@ import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.jobqueue.JobHandler
 import io.tpersson.ufw.jobqueue.JobQueueComponent
+import io.tpersson.ufw.managed.dsl.managed
 
 @UfwDslMarker
 public fun UFWBuilder.RootBuilder.jobQueue(builder: JobQueueComponentBuilder.() -> Unit) {
@@ -17,7 +18,7 @@ public fun UFWBuilder.RootBuilder.jobQueue(builder: JobQueueComponentBuilder.() 
 public class JobQueueComponentBuilder(public val components: UFWRegistry) {
     public var handlers: Set<JobHandler<*>> = emptySet()
     public fun build(): JobQueueComponent {
-        return JobQueueComponent.create(components.core, components.database, handlers)
+        return JobQueueComponent.create(components.core, components.managed, components.database, handlers)
     }
 }
 

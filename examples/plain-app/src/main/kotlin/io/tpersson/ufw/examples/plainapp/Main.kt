@@ -36,6 +36,11 @@ public suspend fun main() {
                 enable(SerializationFeature.INDENT_OUTPUT)
             }
         }
+        managed {
+            instances = setOf(
+                PeriodicLogger()
+            )
+        }
         database {
             dataSource = Globals.dataSource
         }
@@ -55,11 +60,6 @@ public suspend fun main() {
             )
         }
         aggregates {
-        }
-        managed {
-            instances = setOf(
-                PeriodicLogger()
-            ) + components.jobQueue.managedInstances
         }
     }
 

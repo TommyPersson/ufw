@@ -4,12 +4,11 @@ import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.jobqueue.internal.*
-import io.tpersson.ufw.managed.Managed
+import io.tpersson.ufw.managed.ManagedComponent
 import jakarta.inject.Inject
 
 public class JobQueueComponent @Inject constructor(
     public val jobQueue: JobQueue,
-    public val managedInstances: Set<Managed>,
     internal val jobRepository: JobRepository,
     internal val jobFailureRepository: JobFailureRepository
 ) {
@@ -23,6 +22,7 @@ public class JobQueueComponent @Inject constructor(
     public companion object {
         public fun create(
             coreComponent: CoreComponent,
+            managedComponent: ManagedComponent,
             databaseComponent: DatabaseComponent,
             jobHandlers: Set<JobHandler<*>>,
         ): JobQueueComponent {
@@ -54,9 +54,10 @@ public class JobQueueComponent @Inject constructor(
                 clock = coreComponent.clock
             )
 
+            managedComponent.register(jobQueueRunner)
+
             return JobQueueComponent(
                 jobQueue = jobQueue,
-                managedInstances = setOf(jobQueueRunner),
                 jobRepository = jobRepository,
                 jobFailureRepository = jobFailureRepository
             )

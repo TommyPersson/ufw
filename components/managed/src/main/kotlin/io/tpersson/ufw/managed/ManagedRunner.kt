@@ -2,11 +2,18 @@ package io.tpersson.ufw.managed
 
 import jakarta.inject.Inject
 import kotlinx.coroutines.*
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 
 public class ManagedRunner @Inject constructor(
-    private val instances: Set<Managed>
+    _instances: Set<Managed>
 ) {
+    private val instances = _instances.toMutableSet()
+
+    public fun register(instance: Managed) {
+        instances.add(instance)
+    }
+
     public fun startAll(addShutdownHook: Boolean = true) {
         instances.forEach {
             it.start()
