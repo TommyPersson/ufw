@@ -13,6 +13,7 @@ CREATE TABLE ufw__job_queue__jobs
     scheduled_for      TIMESTAMPTZ NOT NULL,
     state_changed_at   TIMESTAMPTZ NOT NULL,
     watchdog_timestamp TIMESTAMPTZ NULL,
+    watchdog_owner     TEXT NULL,
     expire_at          TIMESTAMPTZ NULL
 );
 

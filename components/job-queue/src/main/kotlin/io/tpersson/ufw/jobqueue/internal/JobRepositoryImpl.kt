@@ -12,13 +12,18 @@ import io.tpersson.ufw.jobqueue.JobQueueId
 import io.tpersson.ufw.jobqueue.JobState
 import jakarta.inject.Inject
 import jakarta.inject.Named
+import jakarta.inject.Singleton
 import java.time.Duration
 import java.time.Instant
+import java.util.*
 
+@Singleton
 public class JobRepositoryImpl @Inject constructor(
     private val database: Database,
     @Named(NamedBindings.ObjectMapper) private val objectMapper: ObjectMapper,
 ) : JobRepository {
+
+    private val watchdogId = UUID.randomUUID().toString()
 
     override suspend fun insert(job: InternalJob<*>, unitOfWork: UnitOfWork) {
         val jobData = JobData(
@@ -32,6 +37,7 @@ public class JobRepositoryImpl @Inject constructor(
             stateChangedAt = job.stateChangedAt,
             expireAt = null,
             watchdogTimestamp = null,
+            watchdogOwner = null
         )
 
         unitOfWork.add(Queries.Updates.InsertJob(jobData))
@@ -52,7 +58,13 @@ public class JobRepositoryImpl @Inject constructor(
     }
 
     override suspend fun <TJob : Job> markAsInProgress(job: InternalJob<TJob>, now: Instant, unitOfWork: UnitOfWork) {
-        unitOfWork.add(Queries.Updates.MarkJobAsInProgress(id = job.job.jobId.value, timestamp = now))
+        unitOfWork.add(
+            Queries.Updates.MarkJobAsInProgress(
+                id = job.job.jobId.value,
+                timestamp = now,
+                watchdogOwner = watchdogId
+            )
+        )
     }
 
     override suspend fun <TJob : Job> markAsSuccessful(job: InternalJob<TJob>, now: Instant, unitOfWork: UnitOfWork) {
@@ -61,7 +73,8 @@ public class JobRepositoryImpl @Inject constructor(
             Queries.Updates.MarkJobAsSuccessful(
                 id = job.job.jobId.value,
                 timestamp = now,
-                expireAt = expireAt
+                expireAt = expireAt,
+                expectedWatchdogOwner = watchdogId
             )
         )
     }
@@ -72,7 +85,8 @@ public class JobRepositoryImpl @Inject constructor(
             Queries.Updates.MarkJobAsFailed(
                 id = job.job.jobId.value,
                 timestamp = now,
-                expireAt = expireAt
+                expireAt = expireAt,
+                expectedWatchdogOwner = watchdogId
             )
         )
     }
@@ -87,22 +101,34 @@ public class JobRepositoryImpl @Inject constructor(
             Queries.Updates.MarkJobAsScheduled(
                 id = job.job.jobId.value,
                 timestamp = now,
-                scheduledFor = scheduleFor
+                scheduledFor = scheduleFor,
+                expectedWatchdogOwner = watchdogId
             )
         )
     }
 
     override suspend fun markStaleJobsAsScheduled(
         now: Instant,
-        staleIfWatchdogOlderThan: Instant,
-        unitOfWork: UnitOfWork
-    ) {
-        unitOfWork.add(
+        staleIfWatchdogOlderThan: Instant
+    ): Int {
+        return database.update(
             Queries.Updates.MarkStaleJobsAsScheduled(
                 timestamp = now,
                 staleIfWatchdogOlderThan = staleIfWatchdogOlderThan
             )
         )
+    }
+
+    override suspend fun <TJob : Job> updateWatchdog(job: InternalJob<TJob>, now: Instant): Boolean {
+        val affectedRows = database.update(
+            Queries.Updates.UpdateWatchdog(
+                jobUid = job.uid!!,
+                watchdogTimestamp = now,
+                expectedWatchdogOwner = watchdogId
+            )
+        )
+
+        return affectedRows > 0
     }
 
     override suspend fun debugGetAllJobs(): List<InternalJob<*>> {
@@ -197,12 +223,14 @@ public class JobRepositoryImpl @Inject constructor(
                 val id: String,
                 val timestamp: Instant,
                 val toState: Int = JobState.InProgress.id,
+                val watchdogOwner: String
             ) : TypedUpdate(
                 """
                 UPDATE $TableName
                 SET state = :toState,
                     state_changed_at = :timestamp,
-                    watchdog_timestamp = :timestamp
+                    watchdog_timestamp = :timestamp,
+                    watchdog_owner = :watchdogOwner
                 WHERE state = ${JobState.Scheduled.id}
                   AND id = :id
                 """.trimIndent()
@@ -213,15 +241,18 @@ public class JobRepositoryImpl @Inject constructor(
                 val timestamp: Instant,
                 val expireAt: Instant,
                 val toState: Int = JobState.Successful.id,
+                val expectedWatchdogOwner: String,
             ) : TypedUpdate(
                 """
                 UPDATE $TableName
                 SET state = :toState,
                     state_changed_at = :timestamp,
                     expire_at = :expireAt,
-                    watchdog_timestamp = NULL
+                    watchdog_timestamp = NULL,
+                    watchdog_owner = NULL
                 WHERE state = ${JobState.InProgress.id}
                   AND id = :id
+                  AND watchdog_owner = :expectedWatchdogOwner
                 """.trimIndent()
             )
 
@@ -230,15 +261,18 @@ public class JobRepositoryImpl @Inject constructor(
                 val timestamp: Instant,
                 val expireAt: Instant,
                 val toState: Int = JobState.Failed.id,
+                val expectedWatchdogOwner: String,
             ) : TypedUpdate(
                 """
                 UPDATE $TableName
                 SET state = :toState,
                     state_changed_at = :timestamp,
                     expire_at = :expireAt,
-                    watchdog_timestamp = NULL
+                    watchdog_timestamp = NULL,
+                    watchdog_owner = NULL
                 WHERE state = ${JobState.InProgress.id}
                   AND id = :id
+                  AND watchdog_owner = :expectedWatchdogOwner
                 """.trimIndent()
             )
 
@@ -247,31 +281,48 @@ public class JobRepositoryImpl @Inject constructor(
                 val timestamp: Instant,
                 val scheduledFor: Instant,
                 val toState: Int = JobState.Scheduled.id,
+                val expectedWatchdogOwner: String,
             ) : TypedUpdate(
                 """
                 UPDATE $TableName
                 SET state = :toState,
                     state_changed_at = :timestamp,
                     scheduled_for = :scheduledFor,
-                    watchdog_timestamp = NULL
+                    watchdog_timestamp = NULL,
+                    watchdog_owner = NULL
                 WHERE state = ${JobState.InProgress.id}
                   AND id = :id
+                  AND watchdog_owner = :expectedWatchdogOwner
                 """.trimIndent()
             )
 
-            // TODO check for watchdog_owner (or version all queries?)
             data class MarkStaleJobsAsScheduled(
                 val timestamp: Instant,
-                val staleIfWatchdogOlderThan: Instant
+                val staleIfWatchdogOlderThan: Instant,
             ) : TypedUpdate(
                 """
                 UPDATE $TableName
                 SET state = ${JobState.Scheduled.id},
                     state_changed_at = :timestamp,
                     scheduled_for = :timestamp,
-                    watchdog_timestamp = NULL
+                    watchdog_timestamp = NULL,
+                    watchdog_owner = NULL
                 WHERE state = ${JobState.InProgress.id}
                   AND watchdog_timestamp < :staleIfWatchdogOlderThan
+                """.trimIndent(),
+                minimumAffectedRows = 0
+            )
+
+            data class UpdateWatchdog(
+                val jobUid: Long,
+                val watchdogTimestamp: Instant,
+                val expectedWatchdogOwner: String,
+            ) : TypedUpdate(
+                """
+                UPDATE $TableName
+                SET watchdog_timestamp = :watchdogTimestamp
+                WHERE uid = :jobUid
+                  AND watchdog_owner = :expectedWatchdogOwner
                 """.trimIndent(),
                 minimumAffectedRows = 0
             )
@@ -291,5 +342,6 @@ public class JobRepositoryImpl @Inject constructor(
         val stateChangedAt: Instant,
         val expireAt: Instant?,
         val watchdogTimestamp: Instant?,
+        val watchdogOwner: String?,
     )
 }

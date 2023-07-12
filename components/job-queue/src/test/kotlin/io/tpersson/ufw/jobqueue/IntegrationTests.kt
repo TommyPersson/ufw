@@ -11,6 +11,7 @@ import io.tpersson.ufw.jobqueue.dsl.jobQueue
 import io.tpersson.ufw.jobqueue.internal.JobQueueImpl
 import io.tpersson.ufw.jobqueue.internal.JobQueueInternal
 import io.tpersson.ufw.jobqueue.internal.JobRepositoryImpl
+import io.tpersson.ufw.jobqueue.internal.StaleJobRescheduler
 import io.tpersson.ufw.managed.dsl.managed
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -61,15 +62,19 @@ internal class IntegrationTests {
                 handlers = setOf(TestJobHandler())
 
                 configure {
-                    stalenessDetectionInterval = Duration.ofMillis(20)
+                    stalenessDetectionInterval = Duration.ofMillis(50)
+                    stalenessAge = Duration.ofMillis(90)
+                    watchdogRefreshInterval = Duration.ofMillis(20)
                 }
             }
         }
 
+        val database = ufw.database.database
         val unitOfWorkFactory = ufw.database.unitOfWorkFactory
         val jobQueue = ufw.jobQueue.jobQueue as JobQueueImpl
         val jobRepository = ufw.jobQueue.jobRepository
         val jobFailureRepository = ufw.jobQueue.jobFailureRepository
+        val staleJobRescheduler = ufw.jobQueue.staleJobRescheduler
 
         init {
             ufw.database.migrator.run()
@@ -151,15 +156,14 @@ internal class IntegrationTests {
         val jobId = JobId(UUID.randomUUID().toString())
         val queueId = JobQueueId(TestJob::class)
 
-        unitOfWorkFactory.use { uow ->
-            uow.add(
-                JobRepositoryImpl.Queries.Updates.InsertJob(
-                    JobRepositoryImpl.JobData(
-                        uid = 0,
-                        id = jobId.value,
-                        type = queueId.typeName,
-                        state = JobState.InProgress.id,
-                        json = """
+        database.update(
+            JobRepositoryImpl.Queries.Updates.InsertJob(
+                JobRepositoryImpl.JobData(
+                    uid = 0,
+                    id = jobId.value,
+                    type = queueId.typeName,
+                    state = JobState.InProgress.id,
+                    json = """
                             {
                                 "jobId": "$jobId",
                                 "type": "${queueId.typeName}",
@@ -169,15 +173,15 @@ internal class IntegrationTests {
                                 "numRetries": 0
                             }
                         """.trimIndent(),
-                        createdAt = testClock.instant(),
-                        scheduledFor = testClock.instant(),
-                        stateChangedAt = testClock.instant(),
-                        expireAt = null,
-                        watchdogTimestamp = testClock.instant().minus(Duration.ofMinutes(2))
-                    )
+                    createdAt = testClock.instant(),
+                    scheduledFor = testClock.instant(),
+                    stateChangedAt = testClock.instant(),
+                    expireAt = null,
+                    watchdogTimestamp = testClock.instant().minus(Duration.ofSeconds(1)),
+                    watchdogOwner = "anyone"
                 )
             )
-        }
+        )
 
         do {
             // Wait for the rescheduler to do its thing
@@ -198,6 +202,22 @@ internal class IntegrationTests {
         val job = jobRepository.getById(queueId, jobId)!!
 
         assertThat(job.state).isEqualTo(JobState.Successful)
+        assertThat(staleJobRescheduler.hasFoundStaleJobs).isTrue()
+    }
+
+    @Test
+    @Timeout(5)
+    fun `Staleness - An automatic watchdog refresher keeps long-running jobs from being stale`(): Unit = runBlocking {
+        val testJob = TestJob(greeting = "Hello, World!", delayTime = Duration.ofSeconds(2))
+
+        enqueueJob(testJob)
+
+        waitUntilQueueIsCompleted()
+
+        val job = jobRepository.getById(testJob.queueId, testJob.jobId)!!
+
+        assertThat(job.state).isEqualTo(JobState.Successful)
+        assertThat(staleJobRescheduler.hasFoundStaleJobs).isFalse()
     }
 
     private suspend fun enqueueJob(testJob: TestJob) {
@@ -219,6 +239,7 @@ internal class IntegrationTests {
         val shouldFail: Boolean = false,
         val numFailures: Int = Int.MAX_VALUE,
         val numRetries: Int = 0,
+        val delayTime: Duration? = null,
         override val jobId: JobId = JobId.new()
     ) : Job
 
@@ -226,6 +247,10 @@ internal class IntegrationTests {
         override suspend fun handle(job: TestJob, context: JobContext) {
             if (job.shouldFail) {
                 error("Job programmed to fail")
+            }
+
+            if (job.delayTime != null) {
+                delay(job.delayTime.toMillis())
             }
 
             println(job.greeting)

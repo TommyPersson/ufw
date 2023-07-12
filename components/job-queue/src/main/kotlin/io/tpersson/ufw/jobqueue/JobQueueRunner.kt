@@ -2,15 +2,13 @@ package io.tpersson.ufw.jobqueue
 
 import io.tpersson.ufw.core.forever
 import io.tpersson.ufw.core.logging.createLogger
+import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.database.unitofwork.use
 import io.tpersson.ufw.jobqueue.internal.*
 import io.tpersson.ufw.managed.Managed
 import jakarta.inject.Inject
-import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.time.Duration
 import java.time.InstantSource
 import kotlin.reflect.KClass
@@ -20,6 +18,7 @@ public class JobQueueRunner @Inject constructor(
     private val jobRepository: JobRepository,
     private val unitOfWorkFactory: UnitOfWorkFactory,
     private val jobHandlersProvider: JobHandlersProvider,
+    private val config: JobQueueConfig,
     private val clock: InstantSource
 ) : Managed() {
     override suspend fun launch(): Unit = coroutineScope {
@@ -31,6 +30,7 @@ public class JobQueueRunner @Inject constructor(
                     jobRepository,
                     unitOfWorkFactory,
                     clock,
+                    config,
                     handler
                 ).run()
             }
@@ -43,6 +43,7 @@ public class SingleJobHandlerRunner<TJob : Job>(
     private val jobRepository: JobRepository,
     private val unitOfWorkFactory: UnitOfWorkFactory,
     private val clock: InstantSource,
+    private val config: JobQueueConfig,
     private val jobHandler: JobHandler<TJob>,
 ) {
     private val logger = createLogger()
@@ -69,12 +70,27 @@ public class SingleJobHandlerRunner<TJob : Job>(
         }
     }
 
-    private suspend fun handleJob(job: InternalJob<TJob>) {
+    private suspend fun handleJob(job: InternalJob<TJob>) = coroutineScope {
+        val watchdogJob = launch {
+            forever(logger) {
+                delay(config.watchdogRefreshInterval.toMillis())
+                if (!jobRepository.updateWatchdog(job, clock.instant())) {
+                    this@coroutineScope.cancel()
+                }
+            }
+        }
+
         unitOfWorkFactory.use { uow ->
-            val context = JobContextImpl(uow)
+            val context = createJobContext(uow)
+
             jobHandler.handle(job.job, context)
             jobQueue.markAsSuccessful(job, uow)
+            watchdogJob.cancel()
         }
+    }
+
+    private fun createJobContext(uow: UnitOfWork): JobContextImpl {
+        return JobContextImpl(uow)
     }
 
     private suspend fun handleFailure(job: InternalJob<TJob>, error: Exception) {

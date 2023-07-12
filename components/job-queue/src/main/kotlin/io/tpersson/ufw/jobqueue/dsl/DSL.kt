@@ -40,6 +40,7 @@ public class JobQueueComponentBuilder(private val components: UFWRegistry) {
 public class JobQueueConfigBuilder {
     public var stalenessDetectionInterval: Duration = JobQueueConfig.Default.stalenessDetectionInterval
     public var stalenessAge: Duration  = JobQueueConfig.Default.stalenessAge
+    public var watchdogRefreshInterval: Duration = JobQueueConfig.Default.watchdogRefreshInterval
     public var pollWaitTime: Duration  = JobQueueConfig.Default.pollWaitTime
     public var defaultJobTimeout: Duration  = JobQueueConfig.Default.defaultJobTimeout
     public var defaultJobRetention: Duration  = JobQueueConfig.Default.defaultJobRetention

@@ -10,7 +10,8 @@ import jakarta.inject.Inject
 public class JobQueueComponent @Inject constructor(
     public val jobQueue: JobQueue,
     internal val jobRepository: JobRepository,
-    internal val jobFailureRepository: JobFailureRepository
+    internal val jobFailureRepository: JobFailureRepository,
+    internal val staleJobRescheduler: StaleJobRescheduler,
 ) {
     init {
         Migrator.registerMigrationScript(
@@ -51,12 +52,12 @@ public class JobQueueComponent @Inject constructor(
                 jobRepository = jobRepository,
                 unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
                 jobHandlersProvider = jobHandlersProvider,
-                clock = coreComponent.clock
+                clock = coreComponent.clock,
+                config = config
             )
 
             val staleJobRescheduler = StaleJobRescheduler(
                 jobRepository = jobRepository,
-                unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
                 clock = coreComponent.clock,
                 config = config,
             )
@@ -67,7 +68,8 @@ public class JobQueueComponent @Inject constructor(
             return JobQueueComponent(
                 jobQueue = jobQueue,
                 jobRepository = jobRepository,
-                jobFailureRepository = jobFailureRepository
+                jobFailureRepository = jobFailureRepository,
+                staleJobRescheduler = staleJobRescheduler
             )
         }
     }
