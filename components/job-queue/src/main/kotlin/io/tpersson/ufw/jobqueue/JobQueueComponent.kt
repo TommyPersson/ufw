@@ -24,9 +24,9 @@ public class JobQueueComponent @Inject constructor(
             coreComponent: CoreComponent,
             managedComponent: ManagedComponent,
             databaseComponent: DatabaseComponent,
+            config: JobQueueConfig,
             jobHandlers: Set<JobHandler<*>>,
         ): JobQueueComponent {
-            val config = JobQueueModuleConfig()
 
             val jobRepository = JobRepositoryImpl(
                 database = databaseComponent.database,
@@ -54,7 +54,15 @@ public class JobQueueComponent @Inject constructor(
                 clock = coreComponent.clock
             )
 
+            val staleJobRescheduler = StaleJobRescheduler(
+                jobRepository = jobRepository,
+                unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
+                clock = coreComponent.clock,
+                config = config,
+            )
+
             managedComponent.register(jobQueueRunner)
+            managedComponent.register(staleJobRescheduler)
 
             return JobQueueComponent(
                 jobQueue = jobQueue,

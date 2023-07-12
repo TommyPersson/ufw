@@ -22,6 +22,8 @@ public interface JobRepository {
 
     public suspend fun <TJob : Job> markAsScheduled(job: InternalJob<TJob>, now: Instant, scheduleFor: Instant, unitOfWork: UnitOfWork)
 
+    public suspend fun markStaleJobsAsScheduled(now: Instant, staleIfWatchdogOlderThan: Instant, unitOfWork: UnitOfWork)
+
     public suspend fun debugGetAllJobs(): List<InternalJob<*>>
 
     public suspend fun debugTruncate(unitOfWork: UnitOfWork)

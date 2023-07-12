@@ -22,6 +22,7 @@ import io.tpersson.ufw.managed.dsl.managed
 import io.tpersson.ufw.mediator.dsl.mediator
 import io.tpersson.ufw.mediator.middleware.transactional.TransactionalMiddleware
 import java.time.Clock
+import java.time.Duration
 import java.util.*
 
 
@@ -55,6 +56,10 @@ public suspend fun main() {
             )
         }
         jobQueue {
+            configure {
+                stalenessDetectionInterval = Duration.ofMinutes(1)
+                stalenessAge = Duration.ofMinutes(1)
+            }
             handlers = setOf(
                 PrintJobHandler()
             )

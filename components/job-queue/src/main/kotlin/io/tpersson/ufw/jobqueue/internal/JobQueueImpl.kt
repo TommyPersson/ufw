@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 @Singleton
 public class JobQueueImpl @Inject constructor(
-    private val config: JobQueueModuleConfig,
+    private val config: JobQueueConfig,
     private val clock: InstantSource,
     private val jobRepository: JobRepository,
     private val jobFailureRepository: JobFailureRepository,
@@ -50,6 +50,11 @@ public class JobQueueImpl @Inject constructor(
         unitOfWork.addPostCommitHook {
             getSignal(queueId).signal()
         }
+    }
+
+    // Used by tests
+    internal fun <TJob : Job> debugSignal(queueId: JobQueueId<TJob>) {
+        getSignal(queueId).signal()
     }
 
     override suspend fun <TJob : Job> pollOne(queueId: JobQueueId<TJob>, timeout: Duration): InternalJob<TJob>? {

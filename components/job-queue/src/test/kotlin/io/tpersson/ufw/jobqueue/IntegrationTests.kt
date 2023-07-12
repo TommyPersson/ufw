@@ -2,12 +2,17 @@ package io.tpersson.ufw.jobqueue
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.tpersson.ufw.core.concurrency.ConsumerSignal
 import io.tpersson.ufw.core.dsl.UFW
 import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.database.unitofwork.use
 import io.tpersson.ufw.jobqueue.dsl.jobQueue
+import io.tpersson.ufw.jobqueue.internal.JobQueueImpl
+import io.tpersson.ufw.jobqueue.internal.JobQueueInternal
+import io.tpersson.ufw.jobqueue.internal.JobRepositoryImpl
 import io.tpersson.ufw.managed.dsl.managed
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
@@ -16,12 +21,14 @@ import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Timeout
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.lifecycle.Startables
 import org.testcontainers.utility.DockerImageName
 import java.time.Duration
 import java.time.Instant
 import java.time.InstantSource
+import java.util.UUID
 
 internal class IntegrationTests {
 
@@ -52,11 +59,15 @@ internal class IntegrationTests {
             }
             jobQueue {
                 handlers = setOf(TestJobHandler())
+
+                configure {
+                    stalenessDetectionInterval = Duration.ofMillis(20)
+                }
             }
         }
 
         val unitOfWorkFactory = ufw.database.unitOfWorkFactory
-        val jobQueue = ufw.jobQueue.jobQueue
+        val jobQueue = ufw.jobQueue.jobQueue as JobQueueImpl
         val jobRepository = ufw.jobQueue.jobRepository
         val jobFailureRepository = ufw.jobQueue.jobFailureRepository
 
@@ -132,6 +143,61 @@ internal class IntegrationTests {
 
         assertThat(numFailures).isEqualTo(4)
         assertThat(failures).hasSize(4)
+    }
+
+    @Test
+    @Timeout(5)
+    fun `Staleness - Stale jobs are automatically rescheduled`(): Unit = runBlocking {
+        val jobId = JobId(UUID.randomUUID().toString())
+        val queueId = JobQueueId(TestJob::class)
+
+        unitOfWorkFactory.use { uow ->
+            uow.add(
+                JobRepositoryImpl.Queries.Updates.InsertJob(
+                    JobRepositoryImpl.JobData(
+                        uid = 0,
+                        id = jobId.value,
+                        type = queueId.typeName,
+                        state = JobState.InProgress.id,
+                        json = """
+                            {
+                                "jobId": "$jobId",
+                                "type": "${queueId.typeName}",
+                                "greeting": "hello",
+                                "shouldFail": false,
+                                "numFailures": 0,
+                                "numRetries": 0
+                            }
+                        """.trimIndent(),
+                        createdAt = testClock.instant(),
+                        scheduledFor = testClock.instant(),
+                        stateChangedAt = testClock.instant(),
+                        expireAt = null,
+                        watchdogTimestamp = testClock.instant().minus(Duration.ofMinutes(2))
+                    )
+                )
+            )
+        }
+
+        do {
+            // Wait for the rescheduler to do its thing
+            delay(1)
+            val job = jobRepository.getById(queueId, jobId)!!
+        } while (job.state != JobState.Scheduled)
+
+        do {
+            // Speed up the test by triggering the queue manually
+            delay(1)
+            jobQueue.debugSignal(queueId)
+            val job = jobRepository.getById(queueId, jobId)!!
+        } while (job.state == JobState.Scheduled)
+
+        // Then wait for the job to complete normally
+        waitUntilQueueIsCompleted()
+
+        val job = jobRepository.getById(queueId, jobId)!!
+
+        assertThat(job.state).isEqualTo(JobState.Successful)
     }
 
     private suspend fun enqueueJob(testJob: TestJob) {

@@ -17,6 +17,7 @@ import io.tpersson.ufw.examples.common.aggregate.CounterAggregateRepository
 import io.tpersson.ufw.examples.common.commands.PerformGreetingCommand
 import io.tpersson.ufw.examples.common.jobs.PrintJob
 import io.tpersson.ufw.jobqueue.JobQueue
+import io.tpersson.ufw.jobqueue.JobQueueConfig
 import io.tpersson.ufw.jobqueue.guice.JobQueueGuiceModule
 import io.tpersson.ufw.keyvaluestore.guice.KeyValueStoreGuiceModule
 import io.tpersson.ufw.managed.ManagedRunner
@@ -24,6 +25,7 @@ import io.tpersson.ufw.managed.guice.ManagedGuiceModule
 import io.tpersson.ufw.mediator.Mediator
 import io.tpersson.ufw.mediator.guice.MediatorGuiceModule
 import java.time.Clock
+import java.time.Duration
 import java.time.InstantSource
 import java.util.*
 import javax.sql.DataSource
@@ -48,7 +50,11 @@ public suspend fun main() {
         DatabaseGuiceModule(),
         KeyValueStoreGuiceModule(),
         MediatorGuiceModule(),
-        JobQueueGuiceModule(),
+        JobQueueGuiceModule(
+            config = JobQueueConfig(
+                stalenessDetectionInterval = Duration.ofSeconds(30)
+            )
+        ),
         AggregatesGuiceModule(),
         ManagedGuiceModule(),
     )

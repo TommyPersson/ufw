@@ -20,10 +20,6 @@ public class JobRepositoryImpl @Inject constructor(
     @Named(NamedBindings.ObjectMapper) private val objectMapper: ObjectMapper,
 ) : JobRepository {
 
-    // TODO implement stale job detection
-    // * due to failed concurrent changes
-    // * due to crashes
-
     override suspend fun insert(job: InternalJob<*>, unitOfWork: UnitOfWork) {
         val jobData = JobData(
             uid = 0,
@@ -35,6 +31,7 @@ public class JobRepositoryImpl @Inject constructor(
             scheduledFor = job.scheduledFor,
             stateChangedAt = job.stateChangedAt,
             expireAt = null,
+            watchdogTimestamp = null,
         )
 
         unitOfWork.add(Queries.Updates.InsertJob(jobData))
@@ -95,6 +92,19 @@ public class JobRepositoryImpl @Inject constructor(
         )
     }
 
+    override suspend fun markStaleJobsAsScheduled(
+        now: Instant,
+        staleIfWatchdogOlderThan: Instant,
+        unitOfWork: UnitOfWork
+    ) {
+        unitOfWork.add(
+            Queries.Updates.MarkStaleJobsAsScheduled(
+                timestamp = now,
+                staleIfWatchdogOlderThan = staleIfWatchdogOlderThan
+            )
+        )
+    }
+
     override suspend fun debugGetAllJobs(): List<InternalJob<*>> {
         val jobData = database.selectList(Queries.Selects.DebugGetAll)
 
@@ -124,7 +134,7 @@ public class JobRepositoryImpl @Inject constructor(
         )
     }
 
-    private object Queries {
+    internal object Queries {
         private val TableName = "ufw__job_queue__jobs"
 
         object Selects {
@@ -165,7 +175,8 @@ public class JobRepositoryImpl @Inject constructor(
                     created_at,   
                     scheduled_for,
                     state_changed_at, 
-                    expire_at        
+                    expire_at,
+                    watchdog_timestamp
                 ) VALUES (
                     :data.id,
                     :data.type,
@@ -174,7 +185,8 @@ public class JobRepositoryImpl @Inject constructor(
                     :data.createdAt,
                     :data.scheduledFor,
                     :data.stateChangedAt,
-                    :data.expireAt
+                    :data.expireAt,
+                    :data.watchdogTimestamp
                 )
                 ON CONFLICT (id) DO NOTHING        
                 """,
@@ -189,7 +201,8 @@ public class JobRepositoryImpl @Inject constructor(
                 """
                 UPDATE $TableName
                 SET state = :toState,
-                    state_changed_at = :timestamp
+                    state_changed_at = :timestamp,
+                    watchdog_timestamp = :timestamp
                 WHERE state = ${JobState.Scheduled.id}
                   AND id = :id
                 """.trimIndent()
@@ -205,7 +218,8 @@ public class JobRepositoryImpl @Inject constructor(
                 UPDATE $TableName
                 SET state = :toState,
                     state_changed_at = :timestamp,
-                    expire_at = :expireAt
+                    expire_at = :expireAt,
+                    watchdog_timestamp = NULL
                 WHERE state = ${JobState.InProgress.id}
                   AND id = :id
                 """.trimIndent()
@@ -221,7 +235,8 @@ public class JobRepositoryImpl @Inject constructor(
                 UPDATE $TableName
                 SET state = :toState,
                     state_changed_at = :timestamp,
-                    expire_at = :expireAt
+                    expire_at = :expireAt,
+                    watchdog_timestamp = NULL
                 WHERE state = ${JobState.InProgress.id}
                   AND id = :id
                 """.trimIndent()
@@ -237,10 +252,28 @@ public class JobRepositoryImpl @Inject constructor(
                 UPDATE $TableName
                 SET state = :toState,
                     state_changed_at = :timestamp,
-                    scheduled_for = :scheduledFor
+                    scheduled_for = :scheduledFor,
+                    watchdog_timestamp = NULL
                 WHERE state = ${JobState.InProgress.id}
                   AND id = :id
                 """.trimIndent()
+            )
+
+            // TODO check for watchdog_owner (or version all queries?)
+            data class MarkStaleJobsAsScheduled(
+                val timestamp: Instant,
+                val staleIfWatchdogOlderThan: Instant
+            ) : TypedUpdate(
+                """
+                UPDATE $TableName
+                SET state = ${JobState.Scheduled.id},
+                    state_changed_at = :timestamp,
+                    scheduled_for = :timestamp,
+                    watchdog_timestamp = NULL
+                WHERE state = ${JobState.InProgress.id}
+                  AND watchdog_timestamp < :staleIfWatchdogOlderThan
+                """.trimIndent(),
+                minimumAffectedRows = 0
             )
 
             object DebugTruncate : TypedUpdate("DELETE FROM $TableName", minimumAffectedRows = 0)
@@ -257,5 +290,6 @@ public class JobRepositoryImpl @Inject constructor(
         val scheduledFor: Instant,
         val stateChangedAt: Instant,
         val expireAt: Instant?,
+        val watchdogTimestamp: Instant?,
     )
 }
