@@ -5,11 +5,13 @@ import io.tpersson.ufw.core.NamedBindings
 import io.tpersson.ufw.database.jdbc.Database
 import io.tpersson.ufw.database.typedqueries.TypedSelect
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
+import io.tpersson.ufw.database.exceptions.TypedUpdateMinimumAffectedRowsException
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.jobqueue.Job
 import io.tpersson.ufw.jobqueue.JobId
 import io.tpersson.ufw.jobqueue.JobQueueId
 import io.tpersson.ufw.jobqueue.JobState
+import io.tpersson.ufw.jobqueue.internal.exceptions.JobOwnershipLostException
 import jakarta.inject.Inject
 import jakarta.inject.Named
 import jakarta.inject.Singleton
@@ -22,8 +24,6 @@ public class JobRepositoryImpl @Inject constructor(
     private val database: Database,
     @Named(NamedBindings.ObjectMapper) private val objectMapper: ObjectMapper,
 ) : JobRepository {
-
-    private val watchdogId = UUID.randomUUID().toString()
 
     override suspend fun insert(job: InternalJob<*>, unitOfWork: UnitOfWork) {
         val jobData = JobData(
@@ -57,7 +57,12 @@ public class JobRepositoryImpl @Inject constructor(
         return toInternalJob(jobData, jobQueueId)
     }
 
-    override suspend fun <TJob : Job> markAsInProgress(job: InternalJob<TJob>, now: Instant, unitOfWork: UnitOfWork) {
+    override suspend fun <TJob : Job> markAsInProgress(
+        job: InternalJob<TJob>,
+        now: Instant,
+        watchdogId: String,
+        unitOfWork: UnitOfWork,
+    ) {
         unitOfWork.add(
             Queries.Updates.MarkJobAsInProgress(
                 id = job.job.jobId.value,
@@ -67,7 +72,12 @@ public class JobRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun <TJob : Job> markAsSuccessful(job: InternalJob<TJob>, now: Instant, unitOfWork: UnitOfWork) {
+    override suspend fun <TJob : Job> markAsSuccessful(
+        job: InternalJob<TJob>,
+        now: Instant,
+        watchdogId: String,
+        unitOfWork: UnitOfWork
+    ) {
         val expireAt = now + Duration.ofDays(7) // TODO get from job or other parameter
         unitOfWork.add(
             Queries.Updates.MarkJobAsSuccessful(
@@ -75,11 +85,12 @@ public class JobRepositoryImpl @Inject constructor(
                 timestamp = now,
                 expireAt = expireAt,
                 expectedWatchdogOwner = watchdogId
-            )
+            ),
+            ::exceptionMapper
         )
     }
 
-    override suspend fun <TJob : Job> markAsFailed(job: InternalJob<TJob>, now: Instant, unitOfWork: UnitOfWork) {
+    override suspend fun <TJob : Job> markAsFailed(job: InternalJob<TJob>, now: Instant, watchdogId: String, unitOfWork: UnitOfWork) {
         val expireAt = now + Duration.ofDays(7) // TODO get from job or other parameter
         unitOfWork.add(
             Queries.Updates.MarkJobAsFailed(
@@ -87,7 +98,8 @@ public class JobRepositoryImpl @Inject constructor(
                 timestamp = now,
                 expireAt = expireAt,
                 expectedWatchdogOwner = watchdogId
-            )
+            ),
+            ::exceptionMapper
         )
     }
 
@@ -95,6 +107,7 @@ public class JobRepositoryImpl @Inject constructor(
         job: InternalJob<TJob>,
         now: Instant,
         scheduleFor: Instant,
+        watchdogId: String,
         unitOfWork: UnitOfWork
     ) {
         unitOfWork.add(
@@ -103,7 +116,8 @@ public class JobRepositoryImpl @Inject constructor(
                 timestamp = now,
                 scheduledFor = scheduleFor,
                 expectedWatchdogOwner = watchdogId
-            )
+            ),
+            ::exceptionMapper
         )
     }
 
@@ -119,13 +133,14 @@ public class JobRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun <TJob : Job> updateWatchdog(job: InternalJob<TJob>, now: Instant): Boolean {
+    override suspend fun <TJob : Job> updateWatchdog(job: InternalJob<TJob>, now: Instant, watchdogId: String): Boolean {
         val affectedRows = database.update(
             Queries.Updates.UpdateWatchdog(
                 jobUid = job.uid!!,
                 watchdogTimestamp = now,
                 expectedWatchdogOwner = watchdogId
-            )
+            ),
+            ::exceptionMapper
         )
 
         return affectedRows > 0
@@ -160,6 +175,17 @@ public class JobRepositoryImpl @Inject constructor(
         )
     }
 
+    private fun exceptionMapper(exception: Exception): Exception {
+        throw when (exception) {
+            is TypedUpdateMinimumAffectedRowsException -> {
+                if (exception.query::class in Queries.Updates.queriesThatRequireOwnership) {
+                    JobOwnershipLostException(exception)
+                } else exception
+            }
+            else -> exception
+        }
+    }
+
     internal object Queries {
         private val TableName = "ufw__job_queue__jobs"
 
@@ -189,6 +215,13 @@ public class JobRepositoryImpl @Inject constructor(
         }
 
         object Updates {
+            val queriesThatRequireOwnership = listOf(
+                MarkJobAsSuccessful::class,
+                MarkJobAsFailed::class,
+                MarkJobAsScheduled::class,
+                UpdateWatchdog::class
+            )
+
             data class InsertJob(
                 val data: JobData
             ) : TypedUpdate(

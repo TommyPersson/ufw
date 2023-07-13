@@ -5,6 +5,7 @@ import io.tpersson.ufw.database.typedqueries.TypedSelect
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
 import io.tpersson.ufw.database.typedqueries.selectList
 import io.tpersson.ufw.database.typedqueries.selectSingle
+import io.tpersson.ufw.database.exceptions.TypedUpdateMinimumAffectedRowsException
 import jakarta.inject.Inject
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.withContext
@@ -26,19 +27,27 @@ public class Database @Inject constructor(
         }
     }
 
-    public suspend fun update(query: TypedUpdate, connection: Connection? = null): Int = io {
-        if (connection == null) {
-            return@io connectionProvider.get().useInTransaction {
-                update(query, it)
+    public suspend fun update(
+        query: TypedUpdate,
+        exceptionMapper: (Exception) -> Exception = { it },
+        connection: Connection? = null
+    ): Int = io {
+        try {
+            if (connection == null) {
+                return@io connectionProvider.get().useInTransaction {
+                    update(query, exceptionMapper, it)
+                }
             }
-        }
 
-        val affectedRows = query.asPreparedStatement(connection).executeUpdate()
-        if (affectedRows < query.minimumAffectedRows) {
-            error("minimum affected rows")
-        }
+            val affectedRows = query.asPreparedStatement(connection).executeUpdate()
+            if (affectedRows < query.minimumAffectedRows) {
+                throw TypedUpdateMinimumAffectedRowsException(query.minimumAffectedRows, affectedRows, query)
+            }
 
-        affectedRows
+            affectedRows
+        } catch (e: Exception) {
+            throw exceptionMapper(e)
+        }
     }
 
     private suspend fun <T> io(block: suspend () -> T): T {

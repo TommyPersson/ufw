@@ -30,7 +30,11 @@ public class JobQueueImpl @Inject constructor(
 
     private val signals = ConcurrentHashMap<JobQueueId<*>, ConsumerSignal>()
 
-    override suspend fun <TJob : Job>  enqueue(job: TJob, unitOfWork: UnitOfWork, builder: JobOptionsBuilder.() -> Unit) {
+    override suspend fun <TJob : Job> enqueue(
+        job: TJob,
+        unitOfWork: UnitOfWork,
+        builder: JobOptionsBuilder.() -> Unit
+    ) {
         val jobOptions = JobOptionsBuilder().apply(builder)
 
         val queueId = JobQueueId(job::class)
@@ -69,20 +73,38 @@ public class JobQueueImpl @Inject constructor(
         }
     }
 
-    override suspend fun <TJob : Job> markAsInProgress(job: InternalJob<TJob>, unitOfWork: UnitOfWork) {
-        jobRepository.markAsInProgress(job, clock.instant(), unitOfWork)
+    override suspend fun <TJob : Job> markAsInProgress(
+        job: InternalJob<TJob>,
+        watchdogId: String,
+        unitOfWork: UnitOfWork
+    ) {
+        jobRepository.markAsInProgress(job, clock.instant(), watchdogId, unitOfWork)
     }
 
-    override suspend fun <TJob : Job> markAsSuccessful(job: InternalJob<TJob>, unitOfWork: UnitOfWork) {
-        jobRepository.markAsSuccessful(job, clock.instant(), unitOfWork)
+    override suspend fun <TJob : Job> markAsSuccessful(
+        job: InternalJob<TJob>,
+        watchdogId: String,
+        unitOfWork: UnitOfWork
+    ) {
+        jobRepository.markAsSuccessful(job, clock.instant(), watchdogId, unitOfWork)
     }
 
-    override suspend fun <TJob : Job> rescheduleAt(job: InternalJob<TJob>, at: Instant, unitOfWork: UnitOfWork) {
-        jobRepository.markAsScheduled(job, clock.instant(), at, unitOfWork)
+    override suspend fun <TJob : Job> rescheduleAt(
+        job: InternalJob<TJob>,
+        at: Instant,
+        watchdogId: String,
+        unitOfWork: UnitOfWork
+    ) {
+        jobRepository.markAsScheduled(job, clock.instant(), at, watchdogId, unitOfWork)
     }
 
-    override suspend fun <TJob : Job> markAsFailed(job: InternalJob<TJob>, error: Exception, unitOfWork: UnitOfWork) {
-        jobRepository.markAsFailed(job, clock.instant(), unitOfWork)
+    override suspend fun <TJob : Job> markAsFailed(
+        job: InternalJob<TJob>,
+        error: Exception,
+        watchdogId: String,
+        unitOfWork: UnitOfWork
+    ) {
+        jobRepository.markAsFailed(job, clock.instant(), watchdogId, unitOfWork)
     }
 
     override suspend fun <TJob : Job> recordFailure(job: InternalJob<TJob>, error: Exception, uow: UnitOfWork) {

@@ -2,16 +2,14 @@ package io.tpersson.ufw.jobqueue
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.tpersson.ufw.core.concurrency.ConsumerSignal
 import io.tpersson.ufw.core.dsl.UFW
 import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.database.dsl.database
+import io.tpersson.ufw.database.typedqueries.TypedUpdate
 import io.tpersson.ufw.database.unitofwork.use
 import io.tpersson.ufw.jobqueue.dsl.jobQueue
 import io.tpersson.ufw.jobqueue.internal.JobQueueImpl
-import io.tpersson.ufw.jobqueue.internal.JobQueueInternal
 import io.tpersson.ufw.jobqueue.internal.JobRepositoryImpl
-import io.tpersson.ufw.jobqueue.internal.StaleJobRescheduler
 import io.tpersson.ufw.managed.dsl.managed
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -220,6 +218,28 @@ internal class IntegrationTests {
         assertThat(staleJobRescheduler.hasFoundStaleJobs).isFalse()
     }
 
+    @Test
+    fun `Staleness - If a runner loses ownership of a job, it will not modify its state or record failures`(): Unit = runBlocking {
+        staleJobRescheduler.stop()
+
+        val testJob = TestJob(greeting = "Hello, World!", delayTime = Duration.ofMillis(100))
+
+        enqueueJob(testJob)
+
+        do {
+            delay(1)
+            val numStolen = database.update(TestQueries.Updates.StealAnyInProgressJobs)
+        } while (numStolen == 0)
+
+        // Testing "stuff not happening" is not fun. Add monitoring events to runner?
+        delay(200)
+
+        val job = jobRepository.getById(testJob.queueId, testJob.jobId)!!
+
+        assertThat(job.state).isEqualTo(JobState.InProgress)
+        assertThat(jobFailureRepository.getNumberOfFailuresFor(job)).isZero()
+    }
+
     private suspend fun enqueueJob(testJob: TestJob) {
         unitOfWorkFactory.use { uow ->
             jobQueue.enqueue(testJob, uow)
@@ -274,6 +294,18 @@ internal class IntegrationTests {
 
         fun advance(duration: Duration) {
             now += duration
+        }
+    }
+
+    object TestQueries {
+        object Updates {
+            object StealAnyInProgressJobs : TypedUpdate(
+                """
+                UPDATE ufw__job_queue__jobs
+                SET watchdog_owner = 'stolen'
+                WHERE state = ${JobState.InProgress.id}
+                """.trimIndent(),
+                minimumAffectedRows = 0)
         }
     }
 }

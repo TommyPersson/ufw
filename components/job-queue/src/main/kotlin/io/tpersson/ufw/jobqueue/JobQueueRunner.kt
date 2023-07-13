@@ -6,11 +6,13 @@ import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.database.unitofwork.use
 import io.tpersson.ufw.jobqueue.internal.*
+import io.tpersson.ufw.jobqueue.internal.exceptions.JobOwnershipLostException
 import io.tpersson.ufw.managed.Managed
 import jakarta.inject.Inject
 import kotlinx.coroutines.*
 import java.time.Duration
 import java.time.InstantSource
+import java.util.UUID
 import kotlin.reflect.KClass
 
 public class JobQueueRunner @Inject constructor(
@@ -51,13 +53,15 @@ public class SingleJobHandlerRunner<TJob : Job>(
     private val pollWaitTime = Duration.ofSeconds(30)
     private val jobQueueId = JobQueueId(jobHandler.jobType)
 
+    private val watchdogId = UUID.randomUUID().toString()
+
     public suspend fun run() {
         forever(logger) {
             val job = jobQueue.pollOne(jobQueueId, timeout = pollWaitTime)
             if (job != null) {
                 withContext(NonCancellable) {
                     unitOfWorkFactory.use { uow ->
-                        jobQueue.markAsInProgress(job, uow)
+                        jobQueue.markAsInProgress(job, watchdogId, uow)
                     }
 
                     try {
@@ -74,7 +78,7 @@ public class SingleJobHandlerRunner<TJob : Job>(
         val watchdogJob = launch {
             forever(logger) {
                 delay(config.watchdogRefreshInterval.toMillis())
-                if (!jobRepository.updateWatchdog(job, clock.instant())) {
+                if (!jobRepository.updateWatchdog(job, clock.instant(), watchdogId)) {
                     this@coroutineScope.cancel()
                 }
             }
@@ -84,7 +88,7 @@ public class SingleJobHandlerRunner<TJob : Job>(
             val context = createJobContext(uow)
 
             jobHandler.handle(job.job, context)
-            jobQueue.markAsSuccessful(job, uow)
+            jobQueue.markAsSuccessful(job, watchdogId, uow)
             watchdogJob.cancel()
         }
     }
@@ -94,7 +98,10 @@ public class SingleJobHandlerRunner<TJob : Job>(
     }
 
     private suspend fun handleFailure(job: InternalJob<TJob>, error: Exception) {
-        // TODO check for state conflicts
+        if (error is JobOwnershipLostException) {
+            return
+        }
+
         unitOfWorkFactory.use { uow ->
             val failureContext = JobFailureContextImpl(
                 numberOfFailures = jobQueue.getNumberOfFailuresFor(job) + 1,
@@ -106,15 +113,15 @@ public class SingleJobHandlerRunner<TJob : Job>(
             val failureAction = jobHandler.onFailure(job.job, error, failureContext)
             when (failureAction) {
                 is FailureAction.Reschedule -> {
-                    jobQueue.rescheduleAt(job, failureAction.at, uow)
+                    jobQueue.rescheduleAt(job, failureAction.at, watchdogId, uow)
                 }
 
                 is FailureAction.RescheduleNow -> {
-                    jobQueue.rescheduleAt(job, clock.instant(), uow)
+                    jobQueue.rescheduleAt(job, clock.instant(), watchdogId, uow)
                 }
 
                 FailureAction.GiveUp -> {
-                    jobQueue.markAsFailed(job, error, uow)
+                    jobQueue.markAsFailed(job, error, watchdogId, uow)
                 }
             }
         }
