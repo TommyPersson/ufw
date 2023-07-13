@@ -29,6 +29,7 @@ import java.time.Instant
 import java.time.InstantSource
 import java.util.UUID
 
+@Timeout(5)
 internal class IntegrationTests {
 
     private companion object {
@@ -63,6 +64,9 @@ internal class IntegrationTests {
                     stalenessDetectionInterval = Duration.ofMillis(50)
                     stalenessAge = Duration.ofMillis(90)
                     watchdogRefreshInterval = Duration.ofMillis(20)
+                    successfulJobRetention = Duration.ofDays(1)
+                    failedJobRetention = Duration.ofDays(2)
+                    expiredJobReapingInterval = Duration.ofMillis(50)
                 }
             }
         }
@@ -204,7 +208,6 @@ internal class IntegrationTests {
     }
 
     @Test
-    @Timeout(5)
     fun `Staleness - An automatic watchdog refresher keeps long-running jobs from being stale`(): Unit = runBlocking {
         val testJob = TestJob(greeting = "Hello, World!", delayTime = Duration.ofSeconds(2))
 
@@ -238,6 +241,44 @@ internal class IntegrationTests {
 
         assertThat(job.state).isEqualTo(JobState.InProgress)
         assertThat(jobFailureRepository.getNumberOfFailuresFor(job)).isZero()
+    }
+
+    @Test
+    fun `Retention - Successful jobs are automatically removed after their retention duration`(): Unit = runBlocking {
+        staleJobRescheduler.stop()
+
+        val testJob = TestJob(greeting = "Hello, World!")
+
+        enqueueJob(testJob)
+
+        waitUntilQueueIsCompleted()
+
+        testClock.advance(Duration.ofDays(2).plusSeconds(1))
+
+        await.untilCallTo {
+            runBlocking { jobRepository.debugGetAllJobs() }
+        } matches {
+            it!!.isEmpty()
+        }
+    }
+
+    @Test
+    fun `Retention - Failed jobs are automatically removed after their retention duration`(): Unit = runBlocking {
+        staleJobRescheduler.stop()
+
+        val testJob = TestJob(greeting = "Hello, World!", shouldFail = true)
+
+        enqueueJob(testJob)
+
+        waitUntilQueueIsCompleted()
+
+        testClock.advance(Duration.ofDays(2).plusSeconds(1))
+
+        await.untilCallTo {
+            runBlocking { jobRepository.debugGetAllJobs() }
+        } matches {
+            it!!.isEmpty()
+        }
     }
 
     private suspend fun enqueueJob(testJob: TestJob) {

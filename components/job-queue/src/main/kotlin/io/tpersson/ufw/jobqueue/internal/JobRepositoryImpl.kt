@@ -75,10 +75,10 @@ public class JobRepositoryImpl @Inject constructor(
     override suspend fun <TJob : Job> markAsSuccessful(
         job: InternalJob<TJob>,
         now: Instant,
+        expireAt: Instant,
         watchdogId: String,
         unitOfWork: UnitOfWork
     ) {
-        val expireAt = now + Duration.ofDays(7) // TODO get from job or other parameter
         unitOfWork.add(
             Queries.Updates.MarkJobAsSuccessful(
                 id = job.job.jobId.value,
@@ -90,8 +90,13 @@ public class JobRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun <TJob : Job> markAsFailed(job: InternalJob<TJob>, now: Instant, watchdogId: String, unitOfWork: UnitOfWork) {
-        val expireAt = now + Duration.ofDays(7) // TODO get from job or other parameter
+    override suspend fun <TJob : Job> markAsFailed(
+        job: InternalJob<TJob>,
+        now: Instant,
+        expireAt: Instant,
+        watchdogId: String,
+        unitOfWork: UnitOfWork
+    ) {
         unitOfWork.add(
             Queries.Updates.MarkJobAsFailed(
                 id = job.job.jobId.value,
@@ -133,7 +138,11 @@ public class JobRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun <TJob : Job> updateWatchdog(job: InternalJob<TJob>, now: Instant, watchdogId: String): Boolean {
+    override suspend fun <TJob : Job> updateWatchdog(
+        job: InternalJob<TJob>,
+        now: Instant,
+        watchdogId: String
+    ): Boolean {
         val affectedRows = database.update(
             Queries.Updates.UpdateWatchdog(
                 jobUid = job.uid!!,
@@ -144,6 +153,10 @@ public class JobRepositoryImpl @Inject constructor(
         )
 
         return affectedRows > 0
+    }
+
+    override suspend fun deleteExpiredJobs(now: Instant): Int {
+        return database.update(Queries.Updates.DeleteExpiredJobs(now))
     }
 
     override suspend fun debugGetAllJobs(): List<InternalJob<*>> {
@@ -182,6 +195,7 @@ public class JobRepositoryImpl @Inject constructor(
                     JobOwnershipLostException(exception)
                 } else exception
             }
+
             else -> exception
         }
     }
@@ -357,6 +371,13 @@ public class JobRepositoryImpl @Inject constructor(
                 WHERE uid = :jobUid
                   AND watchdog_owner = :expectedWatchdogOwner
                 """.trimIndent(),
+                minimumAffectedRows = 0
+            )
+
+            data class DeleteExpiredJobs(
+                val now: Instant,
+            ) : TypedUpdate(
+                "DELETE FROM $TableName WHERE expire_at < :now",
                 minimumAffectedRows = 0
             )
 

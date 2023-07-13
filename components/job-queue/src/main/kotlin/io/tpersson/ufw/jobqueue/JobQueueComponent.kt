@@ -62,8 +62,15 @@ public class JobQueueComponent @Inject constructor(
                 config = config,
             )
 
+            val expiredJobReaper = ExpiredJobReaper(
+                jobRepository = jobRepository,
+                clock = coreComponent.clock,
+                config = config
+            )
+
             managedComponent.register(jobQueueRunner)
             managedComponent.register(staleJobRescheduler)
+            managedComponent.register(expiredJobReaper)
 
             return JobQueueComponent(
                 jobQueue = jobQueue,

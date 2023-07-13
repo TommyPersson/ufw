@@ -33,13 +33,17 @@ public interface JobRepository {
     public suspend fun <TJob : Job> markAsSuccessful(
         job: InternalJob<TJob>,
         now: Instant,
+        expireAt: Instant,
         watchdogId: String,
         unitOfWork: UnitOfWork
     )
 
     public suspend fun <TJob : Job> markAsFailed(
-        job: InternalJob<TJob>, now: Instant,
-        watchdogId: String, unitOfWork: UnitOfWork
+        job: InternalJob<TJob>,
+        now: Instant,
+        expireAt: Instant,
+        watchdogId: String,
+        unitOfWork: UnitOfWork
     )
 
     public suspend fun <TJob : Job> markAsScheduled(
@@ -60,6 +64,8 @@ public interface JobRepository {
         now: Instant,
         watchdogId: String,
     ): Boolean
+
+    public suspend fun deleteExpiredJobs(now: Instant): Int
 
     public suspend fun debugGetAllJobs(): List<InternalJob<*>>
 

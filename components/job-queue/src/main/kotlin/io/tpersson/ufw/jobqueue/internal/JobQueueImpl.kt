@@ -25,8 +25,6 @@ public class JobQueueImpl @Inject constructor(
     private val logger = createLogger()
 
     private val pollWaitTime = config.pollWaitTime
-    private val defaultJobTimeout = config.defaultJobTimeout
-    private val defaultJobRetention = config.defaultJobRetention
 
     private val signals = ConcurrentHashMap<JobQueueId<*>, ConsumerSignal>()
 
@@ -86,7 +84,9 @@ public class JobQueueImpl @Inject constructor(
         watchdogId: String,
         unitOfWork: UnitOfWork
     ) {
-        jobRepository.markAsSuccessful(job, clock.instant(), watchdogId, unitOfWork)
+        val now = clock.instant()
+        val expireAt = now + config.successfulJobRetention
+        jobRepository.markAsSuccessful(job, now, expireAt, watchdogId, unitOfWork)
     }
 
     override suspend fun <TJob : Job> rescheduleAt(
@@ -104,7 +104,9 @@ public class JobQueueImpl @Inject constructor(
         watchdogId: String,
         unitOfWork: UnitOfWork
     ) {
-        jobRepository.markAsFailed(job, clock.instant(), watchdogId, unitOfWork)
+        val now = clock.instant()
+        val expireAt = now + config.failedJobRetention
+        jobRepository.markAsFailed(job, now, expireAt, watchdogId, unitOfWork)
     }
 
     override suspend fun <TJob : Job> recordFailure(job: InternalJob<TJob>, error: Exception, uow: UnitOfWork) {

@@ -8,8 +8,11 @@ public data class JobQueueConfig(
     val watchdogRefreshInterval: Duration = Duration.ofSeconds(5),
     val pollWaitTime: Duration = Duration.ofSeconds(5),
     val defaultJobTimeout: Duration = Duration.ofMinutes(10),
-    val defaultJobRetention: Duration =  Duration.ofDays(14),
+    val successfulJobRetention: Duration =  Duration.ofDays(1),
+    val failedJobRetention: Duration = Duration.ofDays(14),
+    val expiredJobReapingInterval: Duration = Duration.ofMinutes(1)
 ) {
+
     public companion object {
         public val Default: JobQueueConfig = JobQueueConfig()
     }

@@ -43,7 +43,9 @@ public class JobQueueConfigBuilder {
     public var watchdogRefreshInterval: Duration = JobQueueConfig.Default.watchdogRefreshInterval
     public var pollWaitTime: Duration  = JobQueueConfig.Default.pollWaitTime
     public var defaultJobTimeout: Duration  = JobQueueConfig.Default.defaultJobTimeout
-    public var defaultJobRetention: Duration  = JobQueueConfig.Default.defaultJobRetention
+    public var successfulJobRetention: Duration  = JobQueueConfig.Default.successfulJobRetention
+    public var failedJobRetention: Duration  = JobQueueConfig.Default.failedJobRetention
+    public var expiredJobReapingInterval: Duration  = JobQueueConfig.Default.expiredJobReapingInterval
 
     internal fun build(): JobQueueConfig {
         return JobQueueConfig(
@@ -51,7 +53,9 @@ public class JobQueueConfigBuilder {
             stalenessAge = stalenessAge,
             pollWaitTime = pollWaitTime,
             defaultJobTimeout = defaultJobTimeout,
-            defaultJobRetention = defaultJobRetention
+            successfulJobRetention = successfulJobRetention,
+            failedJobRetention = failedJobRetention,
+            expiredJobReapingInterval = expiredJobReapingInterval,
         )
     }
 }
