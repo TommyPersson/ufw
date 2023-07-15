@@ -45,6 +45,7 @@
         <micrometer.version>1.11.2</micrometer.version>
         <guice.version>7.0.0</guice.version>
         <classgraph.version>4.8.161</classgraph.version>
+        <resilience4j.version>2.1.0</resilience4j.version>
 
         <hikaricp.version>5.0.1</hikaricp.version>
         <postgresql.version>42.6.0</postgresql.version>
@@ -207,6 +208,14 @@
                 <groupId>io.micrometer</groupId>
                 <artifactId>micrometer-bom</artifactId>
                 <version>${micrometer.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-bom</artifactId>
+                <version>${resilience4j.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

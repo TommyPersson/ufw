@@ -6,6 +6,7 @@ import io.tpersson.ufw.mediator.Command
 import io.tpersson.ufw.mediator.Context
 import io.tpersson.ufw.mediator.ContextKey
 import io.tpersson.ufw.mediator.Middleware
+import io.tpersson.ufw.mediator.middleware.StandardMiddlewarePriorities
 import jakarta.inject.Inject
 
 @Suppress("unused")
@@ -14,7 +15,7 @@ public class TransactionalMiddleware @Inject constructor(
 ) : Middleware<Command<Any>, Any> {
 
     override val priority: Int
-        get() = 100
+        get() = StandardMiddlewarePriorities.Transactional
 
     public object ContextKeys {
         public val UnitOfWork: ContextKey<UnitOfWork> = ContextKey("UnitOfWork")

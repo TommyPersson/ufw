@@ -70,7 +70,7 @@ internal class IntegrationTest {
         mediator.send(TestQuery1("Hello, World!"))
 
         assertThat(invokedMiddleware).isEqualTo(
-            listOf(AnyQueryMiddleware::class, AnyRequestMiddleware::class)
+            listOf(AnyRequestMiddleware::class, AnyQueryMiddleware::class)
         )
     }
 
@@ -79,7 +79,7 @@ internal class IntegrationTest {
         mediator.send(TestCommandWithLogging("Hello, World!"))
 
         assertThat(invokedMiddleware).isEqualTo(
-            listOf(AnyCommandMiddleware::class, AnyRequestMiddleware::class, LoggingRequestMiddleware::class)
+            listOf(LoggingRequestMiddleware::class, AnyRequestMiddleware::class, AnyCommandMiddleware::class)
         )
     }
 

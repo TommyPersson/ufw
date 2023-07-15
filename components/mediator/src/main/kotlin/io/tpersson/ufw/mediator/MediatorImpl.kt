@@ -17,16 +17,17 @@ public class MediatorImpl(
         val handler = handlersByRequest[request::class] as? RequestHandler<TRequest, TResult>
             ?: error("No handler found for ${request::class.simpleName}")
 
-        val selectedMiddlewares = getMiddlewaresFor(request)
+        val selectedMiddlewares = getMiddlewaresFor(request).reversed()
 
         val context = ContextImpl()
 
         val initial: suspend (TRequest, Context) -> TResult = handler::handle
 
-        val pipeline = selectedMiddlewares.foldRight(
-            initial,
-            { middleware, acc -> { request, context -> middleware.handle(request, context, acc) } },
-        )
+        val pipeline = selectedMiddlewares.foldRight(initial) { middleware, acc ->
+            { request, context ->
+                middleware.handle(request, context, acc)
+            }
+        }
 
         return pipeline.invoke(request, context)
     }
@@ -34,10 +35,10 @@ public class MediatorImpl(
     private fun <TRequest : Request<TResult>, TResult> getMiddlewaresFor(request: TRequest): List<Middleware<TRequest, TResult>> {
         @Suppress("UNCHECKED_CAST")
         return middlewaresByRequest.getOrPut(request::class) {
-                middlewares
-                    .filter { it.appliesTo(request::class) }
-                    .sortedBy { it.priority }
-            } as List<Middleware<TRequest, TResult>>
+            middlewares
+                .filter { it.appliesTo(request::class) }
+                .sortedBy { it.priority }
+        } as List<Middleware<TRequest, TResult>>
     }
 
     private fun <TRequest : Request<TResult>, TResult> Middleware<*, *>.appliesTo(requestClass: KClass<TRequest>): Boolean {
