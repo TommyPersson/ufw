@@ -6,6 +6,7 @@ import io.tpersson.ufw.core.dsl.UfwDslMarker
 import io.tpersson.ufw.mediator.MediatorComponent
 import io.tpersson.ufw.mediator.Middleware
 import io.tpersson.ufw.mediator.RequestHandler
+import io.tpersson.ufw.mediator.middleware.cacheable.CacheableMiddleware
 import io.tpersson.ufw.mediator.middleware.retryable.RetryableMiddleware
 import io.tpersson.ufw.mediator.middleware.timelimited.TimeLimitedMiddleware
 
@@ -22,7 +23,8 @@ public class MediatorComponentBuilder(public val components: UFWRegistry) {
     public fun build(): MediatorComponent {
         val middlewares = middlewares + setOf(
             RetryableMiddleware(),
-            TimeLimitedMiddleware()
+            TimeLimitedMiddleware(),
+            CacheableMiddleware()
         )
         return MediatorComponent.create(handlers, middlewares)
     }
