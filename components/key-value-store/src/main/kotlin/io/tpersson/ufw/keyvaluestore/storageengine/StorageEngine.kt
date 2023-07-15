@@ -17,8 +17,7 @@ public interface StorageEngine {
     )
 
     public suspend fun deleteExpiredEntries(
-        now: Instant,
-        unitOfWork: UnitOfWork
-    )
+        now: Instant
+    ): Int
 }
 

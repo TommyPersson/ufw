@@ -49,8 +49,8 @@ public class PostgresStorageEngine @Inject constructor(
         )
     }
 
-    override suspend fun deleteExpiredEntries(now: Instant, unitOfWork: UnitOfWork) {
-        unitOfWork.add(Queries.Updates.DeleteAllExpired(now))
+    override suspend fun deleteExpiredEntries(now: Instant): Int {
+        return database.update(Queries.Updates.DeleteAllExpired(now))
     }
 
     public suspend fun debugTruncate(): Unit {

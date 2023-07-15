@@ -5,6 +5,7 @@ import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.keyvaluestore.storageengine.PostgresStorageEngine
+import io.tpersson.ufw.managed.ManagedComponent
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -38,7 +39,8 @@ internal class IntegrationTests {
         val coreComponent = CoreComponent.create(testClock)
         val databaseComponent = DatabaseComponent.create(dataSource)
         val unitOfWorkFactory = databaseComponent.unitOfWorkFactory
-        val keyValueStoreComponent = KeyValueStoreComponent.create(coreComponent, databaseComponent)
+        val managedComponent = ManagedComponent.create(emptySet())
+        val keyValueStoreComponent = KeyValueStoreComponent.create(coreComponent, databaseComponent, managedComponent)
         val storageEngine = keyValueStoreComponent.storageEngine as PostgresStorageEngine
         val keyValueStore = keyValueStoreComponent.keyValueStore
 
@@ -173,9 +175,7 @@ internal class IntegrationTests {
 
         assertThat(storageEngine.debugDumpTable()).isNotEmpty()
 
-        val uow = unitOfWorkFactory.create()
-        storageEngine.deleteExpiredEntries(testClock.instant(), uow)
-        uow.commit()
+        storageEngine.deleteExpiredEntries(testClock.instant())
 
         assertThat(storageEngine.debugDumpTable()).isEmpty()
     }

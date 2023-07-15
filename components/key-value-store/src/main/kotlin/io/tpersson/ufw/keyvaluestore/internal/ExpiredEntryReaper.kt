@@ -1,0 +1,31 @@
+package io.tpersson.ufw.keyvaluestore.internal
+
+import io.tpersson.ufw.core.forever
+import io.tpersson.ufw.core.logging.createLogger
+import io.tpersson.ufw.keyvaluestore.storageengine.StorageEngine
+import io.tpersson.ufw.managed.ManagedJob
+import jakarta.inject.Inject
+import kotlinx.coroutines.delay
+import java.time.Duration
+import java.time.InstantSource
+
+public class ExpiredEntryReaper @Inject constructor(
+    private val storageEngine: StorageEngine,
+    private val clock: InstantSource,
+) : ManagedJob() {
+
+    private val logger = createLogger()
+
+    private val interval = Duration.ofSeconds(30)
+
+    override suspend fun launch() {
+        forever(logger) {
+            delay(interval.toMillis())
+
+            val numDeleted = storageEngine.deleteExpiredEntries(clock.instant())
+            if (numDeleted > 0) {
+                logger.info("Deleted $numDeleted expired entries.")
+            }
+        }
+    }
+}
