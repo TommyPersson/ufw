@@ -20,6 +20,7 @@ import io.tpersson.ufw.examples.common.jobs.PrintJob
 import io.tpersson.ufw.jobqueue.JobQueue
 import io.tpersson.ufw.jobqueue.JobQueueConfig
 import io.tpersson.ufw.jobqueue.guice.JobQueueGuiceModule
+import io.tpersson.ufw.keyvaluestore.KeyValueStoreConfig
 import io.tpersson.ufw.keyvaluestore.guice.KeyValueStoreGuiceModule
 import io.tpersson.ufw.managed.ManagedRunner
 import io.tpersson.ufw.managed.guice.ManagedGuiceModule
@@ -57,7 +58,11 @@ public fun main(): Unit = runBlocking(MDCContext()) {
             }
         ),
         DatabaseGuiceModule(),
-        KeyValueStoreGuiceModule(),
+        KeyValueStoreGuiceModule(
+            config = KeyValueStoreConfig(
+                expiredEntryReapingInterval = Duration.ofMinutes(1)
+            )
+        ),
         MediatorGuiceModule(),
         JobQueueGuiceModule(
             config = JobQueueConfig(

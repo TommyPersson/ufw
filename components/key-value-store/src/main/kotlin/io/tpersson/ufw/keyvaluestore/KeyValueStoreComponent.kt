@@ -1,7 +1,5 @@
 package io.tpersson.ufw.keyvaluestore
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
@@ -27,6 +25,7 @@ public class KeyValueStoreComponent @Inject constructor(
             coreComponent: CoreComponent,
             databaseComponent: DatabaseComponent,
             managedComponent: ManagedComponent,
+            config: KeyValueStoreConfig = KeyValueStoreConfig(),
         ): KeyValueStoreComponent {
             val storageEngine = PostgresStorageEngine(
                 unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
@@ -41,7 +40,8 @@ public class KeyValueStoreComponent @Inject constructor(
 
             val expiredEntryReaper = ExpiredEntryReaper(
                 storageEngine = storageEngine,
-                clock = coreComponent.clock
+                clock = coreComponent.clock,
+                config = config,
             )
 
             managedComponent.register(expiredEntryReaper)

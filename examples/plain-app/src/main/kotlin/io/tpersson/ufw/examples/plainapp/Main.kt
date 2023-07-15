@@ -54,6 +54,9 @@ public fun main(): Unit = runBlocking(MDCContext()) {
             dataSource = Globals.dataSource
         }
         keyValueStore {
+            configure {
+                expiredEntryReapingInterval = Duration.ofMinutes(1)
+            }
         }
         mediator {
             handlers = setOf(

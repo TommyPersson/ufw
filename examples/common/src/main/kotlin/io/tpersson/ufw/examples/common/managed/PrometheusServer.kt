@@ -32,7 +32,7 @@ public class PrometheusServer @Inject constructor(
                 }
             }
 
-            thread {
+            thread(isDaemon = true) {
                 it.start()
             }
         }
