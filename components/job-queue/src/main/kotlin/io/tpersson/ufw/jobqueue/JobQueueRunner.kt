@@ -17,6 +17,7 @@ import org.slf4j.MDC
 import java.time.Duration
 import java.time.InstantSource
 import java.util.*
+import kotlin.time.DurationUnit
 import kotlin.time.measureTime
 import kotlin.time.toJavaDuration
 
@@ -121,7 +122,7 @@ public class SingleJobHandlerRunner<TJob : Job>(
 
         timer.record(duration.toJavaDuration())
 
-        logger.info("Finished work on job: '${job.job.jobId}'")
+        logger.info("Finished work on job: '${job.job.jobId}'. [Duration = ${duration.toString(DurationUnit.MILLISECONDS)}]")
     }
 
     private fun createJobContext(uow: UnitOfWork): JobContextImpl {
