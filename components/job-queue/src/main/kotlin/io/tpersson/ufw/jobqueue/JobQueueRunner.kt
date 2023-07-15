@@ -9,7 +9,7 @@ import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.database.unitofwork.use
 import io.tpersson.ufw.jobqueue.internal.*
 import io.tpersson.ufw.jobqueue.internal.exceptions.JobOwnershipLostException
-import io.tpersson.ufw.managed.Managed
+import io.tpersson.ufw.managed.ManagedJob
 import jakarta.inject.Inject
 import kotlinx.coroutines.*
 import java.time.Duration
@@ -26,7 +26,7 @@ public class JobQueueRunner @Inject constructor(
     private val config: JobQueueConfig,
     private val clock: InstantSource,
     private val meterRegistry: MeterRegistry,
-) : Managed() {
+) : ManagedJob() {
     override suspend fun launch(): Unit = coroutineScope {
         val handlers = jobHandlersProvider.get()
         for (handler in handlers) {

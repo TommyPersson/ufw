@@ -7,7 +7,7 @@ import io.tpersson.ufw.jobqueue.JobQueueId
 import io.tpersson.ufw.jobqueue.JobState
 import io.tpersson.ufw.jobqueue.internal.JobHandlersProvider
 import io.tpersson.ufw.jobqueue.internal.JobsDAO
-import io.tpersson.ufw.managed.Managed
+import io.tpersson.ufw.managed.ManagedJob
 import jakarta.inject.Inject
 import kotlinx.coroutines.delay
 import java.util.concurrent.ConcurrentHashMap
@@ -18,7 +18,7 @@ public class JobStateMetric @Inject constructor(
     private val jobHandlersProvider: JobHandlersProvider,
     private val jobsDAO: JobsDAO,
     private val config: JobQueueConfig,
-) : Managed() {
+) : ManagedJob() {
 
     private val jobHandlers = jobHandlersProvider.get()
 

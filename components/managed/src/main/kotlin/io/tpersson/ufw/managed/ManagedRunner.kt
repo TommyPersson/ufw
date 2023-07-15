@@ -2,7 +2,6 @@ package io.tpersson.ufw.managed
 
 import jakarta.inject.Inject
 import kotlinx.coroutines.*
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 
 public class ManagedRunner @Inject constructor(
@@ -15,8 +14,10 @@ public class ManagedRunner @Inject constructor(
     }
 
     public fun startAll(addShutdownHook: Boolean = true) {
-        instances.forEach {
-            it.start()
+        runBlocking {
+            instances.forEach {
+                it.start()
+            }
         }
 
         if (addShutdownHook) {

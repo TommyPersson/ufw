@@ -6,7 +6,6 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.managed.Managed
 import jakarta.inject.Inject
-import kotlinx.coroutines.delay
 import java.net.InetSocketAddress
 import kotlin.concurrent.thread
 
@@ -16,13 +15,15 @@ public class PrometheusServer @Inject constructor(
 
     private val logger = createLogger()
 
-    override suspend fun launch() {
+    private var server: HttpServer? = null
+
+    override suspend fun onStarted() {
         if (meterRegistry !is PrometheusMeterRegistry) {
             logger.info("Not a PrometheusMeterRegistry, ignoring.")
             return
         }
 
-        val server = HttpServer.create(InetSocketAddress(8082), 0).also {
+        server = HttpServer.create(InetSocketAddress(8082), 0).also {
             it.createContext("/prometheus") { exchange ->
                 val response = meterRegistry.scrape().toByteArray(Charsets.UTF_8)
                 exchange.sendResponseHeaders(200, response.size.toLong())
@@ -35,11 +36,9 @@ public class PrometheusServer @Inject constructor(
                 it.start()
             }
         }
+    }
 
-        while (isActive) {
-            delay(500)
-        }
-
-        server.stop(0)
+    override suspend fun onStopped() {
+        server?.stop(0)
     }
 }

@@ -3,7 +3,7 @@ package io.tpersson.ufw.jobqueue.internal
 import io.tpersson.ufw.core.forever
 import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.jobqueue.JobQueueConfig
-import io.tpersson.ufw.managed.Managed
+import io.tpersson.ufw.managed.ManagedJob
 import jakarta.inject.Inject
 import kotlinx.coroutines.delay
 import java.time.InstantSource
@@ -12,7 +12,7 @@ public class ExpiredJobReaper @Inject constructor(
     private val jobsDAO: JobsDAO,
     private val clock: InstantSource,
     private val config: JobQueueConfig,
-) : Managed() {
+) : ManagedJob() {
 
     private val logger = createLogger()
 

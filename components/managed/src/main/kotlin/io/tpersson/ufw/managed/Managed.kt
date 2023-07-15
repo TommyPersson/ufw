@@ -1,26 +1,46 @@
 package io.tpersson.ufw.managed
 
-import kotlinx.coroutines.*
-import kotlin.coroutines.CoroutineContext
+import io.tpersson.ufw.core.logging.createLogger
+import java.util.concurrent.atomic.AtomicBoolean
 
-public abstract class Managed(
-    context: CoroutineContext = Dispatchers.Default
-) {
-    private val scope = CoroutineScope(context + SupervisorJob())
-    private var job: Job? = null
+public abstract class Managed {
 
-    protected val isActive: Boolean get() = job?.isActive == true
+    private val logger = createLogger()
 
-    public fun start() {
-        job = scope.launch {
-            launch()
+    private val _isRunning: AtomicBoolean = AtomicBoolean(false)
+    public val isRunning: Boolean get() = _isRunning.get()
+
+    private val name = this::class.simpleName
+
+    public suspend fun start() {
+        logger.info("Starting Managed instance: $name")
+
+        try {
+            onStarted()
+        } catch (e: Exception) {
+            logger.error("Error while starting Managed instance: $name", e)
+            throw e
         }
+
+        logger.info("Started Managed instance: $name")
+        _isRunning.set(true)
     }
 
     public suspend fun stop() {
-        job?.cancelAndJoin()
+        logger.info("Stopping Managed instance: $name")
+
+        try {
+            onStopped()
+        } catch (e: Exception) {
+            logger.error("Error while stopping Managed instance: $name", e)
+            throw e
+        }
+
+        logger.info("Stopped Managed instance: $name")
+        _isRunning.set(false)
     }
 
-    protected abstract suspend fun launch(): Unit
+    protected abstract suspend fun onStarted()
 
+    protected abstract suspend fun onStopped()
 }

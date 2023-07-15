@@ -1,6 +1,5 @@
 package io.tpersson.ufw.jobqueue.internal
 
-import io.tpersson.ufw.managed.Managed
 import jakarta.inject.Inject
 import kotlinx.coroutines.*
 
