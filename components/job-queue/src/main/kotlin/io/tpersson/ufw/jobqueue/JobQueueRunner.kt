@@ -12,6 +12,8 @@ import io.tpersson.ufw.jobqueue.internal.exceptions.JobOwnershipLostException
 import io.tpersson.ufw.managed.ManagedJob
 import jakarta.inject.Inject
 import kotlinx.coroutines.*
+import kotlinx.coroutines.slf4j.MDCContext
+import org.slf4j.MDC
 import java.time.Duration
 import java.time.InstantSource
 import java.util.*
@@ -67,10 +69,13 @@ public class SingleJobHandlerRunner<TJob : Job>(
         .register(meterRegistry)
 
     public suspend fun run() {
+        logger.info("Starting work on queue: '${jobQueueId.typeName}'")
+
         forever(logger) {
             val job = jobQueue.pollOne(jobQueueId, timeout = pollWaitTime)
             if (job != null) {
-                withContext(NonCancellable) {
+
+                withJobContext(job.job) {
                     unitOfWorkFactory.use { uow ->
                         jobQueue.markAsInProgress(job, watchdogId, uow)
                     }
@@ -85,7 +90,16 @@ public class SingleJobHandlerRunner<TJob : Job>(
         }
     }
 
+    private suspend fun withJobContext(job: TJob, block: suspend CoroutineScope.() -> Unit) {
+        MDC.put("queueId", jobQueueId.typeName)
+        MDC.put("jobId", job.jobId.value)
+
+        return withContext(NonCancellable + MDCContext(), block)
+    }
+
     private suspend fun handleJob(job: InternalJob<TJob>) = coroutineScope {
+        logger.info("Starting work on job: '${job.job.jobId}'")
+
         val watchdogJob = launch {
             forever(logger) {
                 delay(config.watchdogRefreshInterval.toMillis())
@@ -106,6 +120,8 @@ public class SingleJobHandlerRunner<TJob : Job>(
         }
 
         timer.record(duration.toJavaDuration())
+
+        logger.info("Finished work on job: '${job.job.jobId}'")
     }
 
     private fun createJobContext(uow: UnitOfWork): JobContextImpl {
@@ -128,14 +144,17 @@ public class SingleJobHandlerRunner<TJob : Job>(
             val failureAction = jobHandler.onFailure(job.job, error, failureContext)
             when (failureAction) {
                 is FailureAction.Reschedule -> {
+                    logger.error("Failure during job: '${job.job.jobId}'. Rescheduling at ${failureAction.at}", error)
                     jobQueue.rescheduleAt(job, failureAction.at, watchdogId, uow)
                 }
 
                 is FailureAction.RescheduleNow -> {
+                    logger.error("Failure during job: '${job.job.jobId}'. Rescheduling now.", error)
                     jobQueue.rescheduleAt(job, clock.instant(), watchdogId, uow)
                 }
 
                 FailureAction.GiveUp -> {
+                    logger.error("Failure during job: '${job.job.jobId}'. Giving up.", error)
                     jobQueue.markAsFailed(job, error, watchdogId, uow)
                 }
             }
