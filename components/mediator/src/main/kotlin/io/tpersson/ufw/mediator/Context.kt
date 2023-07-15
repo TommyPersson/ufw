@@ -6,5 +6,4 @@ public interface Context {
     public fun toMap(): Map<ContextKey<*>, Any>
 }
 
-@Suppress("unused")
 public data class ContextKey<T>(val key: String)

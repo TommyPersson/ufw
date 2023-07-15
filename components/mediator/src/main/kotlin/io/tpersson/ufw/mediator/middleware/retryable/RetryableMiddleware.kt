@@ -1,19 +1,12 @@
-package io.tpersson.ufw.mediator.middleware
+package io.tpersson.ufw.mediator.middleware.retryable
 
 import io.github.resilience4j.kotlin.retry.executeSuspendFunction
-import io.github.resilience4j.retry.RetryConfig
 import io.github.resilience4j.retry.RetryRegistry
 import io.tpersson.ufw.mediator.Context
 import io.tpersson.ufw.mediator.ContextKey
 import io.tpersson.ufw.mediator.Middleware
+import io.tpersson.ufw.mediator.middleware.StandardMiddlewarePriorities
 import jakarta.inject.Inject
-
-/**
- * Marker interface for the [RetryableMiddleware].
- */
-public interface Retryable {
-    public val retryConfig: RetryConfig
-}
 
 public class RetryableMiddleware @Inject constructor(
 ) : Middleware<Retryable, Any> {

@@ -1,5 +1,6 @@
 package io.tpersson.ufw.mediator
 
+import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.mediator.internal.ContextImpl
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
@@ -7,8 +8,20 @@ import kotlin.reflect.full.isSubclassOf
 
 public class MediatorImpl(
     handlers: Set<RequestHandler<*, *>>,
-    private val middlewares: Set<Middleware<*, *>>
+    middlewares: Set<Middleware<*, *>>
 ) : Mediator {
+
+    private val logger = createLogger()
+
+    private val orderedMiddleware = middlewares.sortedBy { it.priority }
+
+    init {
+        val middlewareList = orderedMiddleware.joinToString("\n") {
+            "    ${it::class.qualifiedName}; priority = ${it.priority},"
+        }
+
+        logger.info("Mediator initialized with middleware: \n[\n$middlewareList\n]")
+    }
 
     private val middlewaresByRequest = ConcurrentHashMap<KClass<*>, List<Middleware<*, *>>>()
     private val handlersByRequest = handlers.associateBy { it.javaClass.kotlin.getRequestClass() }
@@ -35,9 +48,7 @@ public class MediatorImpl(
     private fun <TRequest : Request<TResult>, TResult> getMiddlewaresFor(request: TRequest): List<Middleware<TRequest, TResult>> {
         @Suppress("UNCHECKED_CAST")
         return middlewaresByRequest.getOrPut(request::class) {
-            middlewares
-                .filter { it.appliesTo(request::class) }
-                .sortedBy { it.priority }
+            orderedMiddleware.filter { it.appliesTo(request::class) }
         } as List<Middleware<TRequest, TResult>>
     }
 

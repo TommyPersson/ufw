@@ -1,24 +1,25 @@
-package io.tpersson.ufw.mediator.middleware
+package io.tpersson.ufw.mediator.middleware.timelimited
 
-import io.github.resilience4j.kotlin.retry.RetryConfig
 import io.tpersson.ufw.mediator.Command
 import io.tpersson.ufw.mediator.CommandHandler
 import io.tpersson.ufw.mediator.Context
 import io.tpersson.ufw.mediator.internal.ContextImpl
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import java.time.Duration
 import kotlin.test.fail
 
-internal class RetryableMiddlewareTest {
+internal class TimeLimitedMiddlewareTest {
 
     @Test
-    fun `handle - Command that doesn't exceed retries`(): Unit = runBlocking {
-        val command = TestCommand(3)
+    fun `handle - Command that doesn't exceed time limit`(): Unit = runBlocking {
+        val command = TestCommand(delayTime = Duration.ofMillis(10))
 
         val context = ContextImpl()
         val handler = TestCommandHandler()
-        val middleware = RetryableMiddleware()
+        val middleware = TimeLimitedMiddleware()
 
         middleware.handle(command, context) { request, ctx ->
             handler.handle(request as TestCommand, ctx)
@@ -26,41 +27,34 @@ internal class RetryableMiddlewareTest {
     }
 
     @Test
-    fun `handle - Command that does exceed retries`(): Unit = runBlocking {
-        val command = TestCommand(6)
+    fun `handle - Command that does exceed time limit`(): Unit = runBlocking {
+        val command = TestCommand(delayTime = Duration.ofMillis(100))
 
         val context = ContextImpl()
         val handler = TestCommandHandler()
-        val middleware = RetryableMiddleware()
+        val middleware = TimeLimitedMiddleware()
 
         try {
             middleware.handle(command, context) { request, ctx ->
                 handler.handle(request as TestCommand, ctx)
             }
-            fail("Did not rethrow TestException")
-        } catch (e: TestException) {
+            fail("Did not rethrow TimeoutCancellationException")
+        } catch (e: TimeoutCancellationException) {
         }
     }
 
     data class TestCommand(
-        val numTimesToFail: Int
+        val delayTime: Duration
     ) : Command<Unit>,
-        Retryable {
+        TimeLimited {
 
-        override val retryConfig = RetryConfig {
-            waitDuration(Duration.ofMillis(1))
-            maxAttempts(5)
-        }
+        override val timeout: Duration = Duration.ofMillis(50)
+
     }
 
     class TestCommandHandler : CommandHandler<TestCommand, Unit> {
         override suspend fun handle(command: TestCommand, context: Context) {
-            val attempt = context[RetryableMiddleware.ContextKeys.numAttempts] ?: 0
-            if (attempt < command.numTimesToFail) {
-                throw TestException()
-            }
+            delay(command.delayTime.toMillis())
         }
     }
-
-    class TestException() : Exception()
 }

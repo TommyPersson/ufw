@@ -6,7 +6,7 @@ import io.tpersson.ufw.keyvaluestore.KeyValueStore
 import io.tpersson.ufw.mediator.Command
 import io.tpersson.ufw.mediator.CommandHandler
 import io.tpersson.ufw.mediator.Context
-import io.tpersson.ufw.mediator.middleware.Retryable
+import io.tpersson.ufw.mediator.middleware.retryable.Retryable
 import io.tpersson.ufw.mediator.middleware.transactional.Transactional
 import io.tpersson.ufw.mediator.middleware.transactional.unitOfWork
 import jakarta.inject.Inject
