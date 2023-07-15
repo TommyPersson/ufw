@@ -4,8 +4,8 @@ import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.jobqueue.Job
 import io.tpersson.ufw.jobqueue.JobId
 import io.tpersson.ufw.jobqueue.JobQueueId
+import io.tpersson.ufw.jobqueue.internal.metrics.JobQueueStatistics
 import java.time.Instant
-import java.time.InstantSource
 
 public interface JobRepository {
     public suspend fun insert(
@@ -66,6 +66,8 @@ public interface JobRepository {
     ): Boolean
 
     public suspend fun deleteExpiredJobs(now: Instant): Int
+
+    public suspend fun <TJob : Job> getQueueStatistics(queueId: JobQueueId<TJob>): JobQueueStatistics<TJob>
 
     public suspend fun debugGetAllJobs(): List<InternalJob<*>>
 

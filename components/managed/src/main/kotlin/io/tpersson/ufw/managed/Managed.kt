@@ -9,6 +9,8 @@ public abstract class Managed(
     private val scope = CoroutineScope(context + SupervisorJob())
     private var job: Job? = null
 
+    protected val isActive: Boolean get() = job?.isActive == true
+
     public fun start() {
         job = scope.launch {
             launch()

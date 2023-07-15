@@ -304,7 +304,7 @@ internal class IntegrationTests {
         override val jobId: JobId = JobId.new()
     ) : Job
 
-    class TestJobHandler : JobHandler<TestJob> {
+    class TestJobHandler : JobHandler<TestJob>() {
         override suspend fun handle(job: TestJob, context: JobContext) {
             if (job.shouldFail) {
                 error("Job programmed to fail")

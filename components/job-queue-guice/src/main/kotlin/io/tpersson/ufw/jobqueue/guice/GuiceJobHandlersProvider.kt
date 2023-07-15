@@ -14,7 +14,7 @@ public class GuiceJobHandlersProvider @Inject constructor(
 ) : JobHandlersProvider {
 
     private val handlers = scanResult.allClasses
-        .filter { it.implementsInterface(JobHandler::class.java) }
+        .filter { it.extendsSuperclass(JobHandler::class.java) }
         .filter { !it.isAbstract }
         .loadClasses()
         .map { injector.getInstance(it) as JobHandler<*> }

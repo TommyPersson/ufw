@@ -4,6 +4,7 @@ import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.jobqueue.internal.*
+import io.tpersson.ufw.jobqueue.internal.metrics.JobStateMetric
 import io.tpersson.ufw.managed.ManagedComponent
 import jakarta.inject.Inject
 
@@ -68,9 +69,17 @@ public class JobQueueComponent @Inject constructor(
                 config = config
             )
 
+            val jobStateMetric = JobStateMetric(
+                meter = coreComponent.meter,
+                jobHandlersProvider = jobHandlersProvider,
+                jobRepository = jobRepository,
+                config = config,
+            )
+
             managedComponent.register(jobQueueRunner)
             managedComponent.register(staleJobRescheduler)
             managedComponent.register(expiredJobReaper)
+            managedComponent.register(jobStateMetric)
 
             return JobQueueComponent(
                 jobQueue = jobQueue,

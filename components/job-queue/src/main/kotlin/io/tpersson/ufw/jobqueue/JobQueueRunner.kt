@@ -51,7 +51,7 @@ public class SingleJobHandlerRunner<TJob : Job>(
     private val logger = createLogger()
 
     private val pollWaitTime = Duration.ofSeconds(30)
-    private val jobQueueId = JobQueueId(jobHandler.jobType)
+    private val jobQueueId = jobHandler.queueId
 
     private val watchdogId = UUID.randomUUID().toString()
 
@@ -126,11 +126,4 @@ public class SingleJobHandlerRunner<TJob : Job>(
             }
         }
     }
-
-    private val JobHandler<TJob>.jobType: KClass<TJob>
-        get() = javaClass.kotlin
-            .supertypes[0]
-            .arguments[0]
-            .type!!
-            .classifier as KClass<TJob>
 }

@@ -9,7 +9,7 @@ public data class PrintJob(
     override val jobId: JobId = JobId.new()
 ) : Job
 
-public class PrintJobHandler @Inject constructor() : JobHandler<PrintJob> {
+public class PrintJobHandler @Inject constructor() : JobHandler<PrintJob>() {
 
     private val logger = createLogger()
 

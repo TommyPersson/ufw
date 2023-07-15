@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.opentelemetry.api.OpenTelemetry
+import io.opentelemetry.api.metrics.Meter
 import jakarta.inject.Inject
 import jakarta.inject.Named
 import jakarta.inject.Singleton
@@ -17,6 +18,7 @@ public class CoreComponent @Inject private constructor(
     public val clock: InstantSource,
     public val openTelemetry: Optional<OpenTelemetry>,
     @Named(NamedBindings.ObjectMapper) public val objectMapper: ObjectMapper,
+    @Named(NamedBindings.Meter) public val meter: Optional<Meter>,
 ) {
     public companion object {
         public fun create(
@@ -24,7 +26,8 @@ public class CoreComponent @Inject private constructor(
             openTelemetry: OpenTelemetry? = null,
             objectMapper: ObjectMapper = defaultObjectMapper,
         ): CoreComponent {
-            return CoreComponent(clock, Optional.ofNullable(openTelemetry), objectMapper)
+            val meter = Optional.ofNullable(openTelemetry?.meterBuilder("ufw")?.build())
+            return CoreComponent(clock, Optional.ofNullable(openTelemetry), objectMapper, meter)
         }
 
         public val defaultObjectMapper: ObjectMapper =

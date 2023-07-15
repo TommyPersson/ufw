@@ -21,12 +21,15 @@ import io.tpersson.ufw.keyvaluestore.dsl.keyValueStore
 import io.tpersson.ufw.managed.dsl.managed
 import io.tpersson.ufw.mediator.dsl.mediator
 import io.tpersson.ufw.mediator.middleware.transactional.TransactionalMiddleware
+import org.slf4j.bridge.SLF4JBridgeHandler
 import java.time.Clock
 import java.time.Duration
 import java.util.*
 
 
 public suspend fun main() {
+    SLF4JBridgeHandler.removeHandlersForRootLogger();
+    SLF4JBridgeHandler.install()
 
     val ufw = UFW.build {
         core {
@@ -85,6 +88,7 @@ public suspend fun main() {
 
     println("Exiting")
 
+    Globals.prometheusServer.close()
 }
 
 private suspend fun testMediator(ufw: UFWRegistry) {

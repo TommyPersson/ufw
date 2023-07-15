@@ -12,10 +12,10 @@ import io.tpersson.ufw.jobqueue.JobId
 import io.tpersson.ufw.jobqueue.JobQueueId
 import io.tpersson.ufw.jobqueue.JobState
 import io.tpersson.ufw.jobqueue.internal.exceptions.JobOwnershipLostException
+import io.tpersson.ufw.jobqueue.internal.metrics.JobQueueStatistics
 import jakarta.inject.Inject
 import jakarta.inject.Named
 import jakarta.inject.Singleton
-import java.time.Duration
 import java.time.Instant
 import java.util.*
 
@@ -159,6 +159,20 @@ public class JobRepositoryImpl @Inject constructor(
         return database.update(Queries.Updates.DeleteExpiredJobs(now))
     }
 
+    override suspend fun <TJob : Job> getQueueStatistics(queueId: JobQueueId<TJob>): JobQueueStatistics<TJob> {
+        val data = database.selectList(Queries.Selects.GetStatistics(queueId.typeName))
+
+        val map = data.associateBy { JobState.fromId(it.stateId) }
+
+        return JobQueueStatistics(
+            queueId = queueId,
+            numScheduled = map[JobState.Scheduled]?.count ?: 0,
+            numInProgress = map[JobState.InProgress]?.count ?: 0,
+            numSuccessful = map[JobState.Successful]?.count ?: 0,
+            numFailed = map[JobState.Failed]?.count ?: 0,
+        )
+    }
+
     override suspend fun debugGetAllJobs(): List<InternalJob<*>> {
         val jobData = database.selectList(Queries.Selects.DebugGetAll)
 
@@ -223,6 +237,17 @@ public class JobRepositoryImpl @Inject constructor(
                 val id: String,
             ) : TypedSelect<JobData>(
                 "SELECT * FROM $TableName WHERE id = :id"
+            )
+
+            data class GetStatistics(
+                val queueId: String
+            ) : TypedSelect<StatisticsData>(
+                """
+                SELECT count(*) as count, state as state_id
+                FROM ufw__job_queue__jobs
+                WHERE type = :queueId
+                GROUP BY state
+                """.trimIndent()
             )
 
             object DebugGetAll : TypedSelect<JobData>("SELECT * FROM $TableName")
@@ -397,5 +422,10 @@ public class JobRepositoryImpl @Inject constructor(
         val expireAt: Instant?,
         val watchdogTimestamp: Instant?,
         val watchdogOwner: String?,
+    )
+
+    internal class StatisticsData(
+        val count: Int,
+        val stateId: Int
     )
 }

@@ -10,7 +10,8 @@ public data class JobQueueConfig(
     val defaultJobTimeout: Duration = Duration.ofMinutes(10),
     val successfulJobRetention: Duration =  Duration.ofDays(1),
     val failedJobRetention: Duration = Duration.ofDays(14),
-    val expiredJobReapingInterval: Duration = Duration.ofMinutes(1)
+    val expiredJobReapingInterval: Duration = Duration.ofMinutes(1),
+    val metricMeasurementInterval: Duration = Duration.ofSeconds(30),
 ) {
 
     public companion object {

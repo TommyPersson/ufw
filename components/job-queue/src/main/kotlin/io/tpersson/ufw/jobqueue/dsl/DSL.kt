@@ -46,6 +46,7 @@ public class JobQueueConfigBuilder {
     public var successfulJobRetention: Duration  = JobQueueConfig.Default.successfulJobRetention
     public var failedJobRetention: Duration  = JobQueueConfig.Default.failedJobRetention
     public var expiredJobReapingInterval: Duration  = JobQueueConfig.Default.expiredJobReapingInterval
+    public var metricMeasurementInterval: Duration  = JobQueueConfig.Default.metricMeasurementInterval
 
     internal fun build(): JobQueueConfig {
         return JobQueueConfig(
@@ -56,6 +57,7 @@ public class JobQueueConfigBuilder {
             successfulJobRetention = successfulJobRetention,
             failedJobRetention = failedJobRetention,
             expiredJobReapingInterval = expiredJobReapingInterval,
+            metricMeasurementInterval = metricMeasurementInterval,
         )
     }
 }

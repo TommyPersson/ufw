@@ -24,6 +24,7 @@ import io.tpersson.ufw.managed.ManagedRunner
 import io.tpersson.ufw.managed.guice.ManagedGuiceModule
 import io.tpersson.ufw.mediator.Mediator
 import io.tpersson.ufw.mediator.guice.MediatorGuiceModule
+import org.slf4j.bridge.SLF4JBridgeHandler
 import java.time.Clock
 import java.time.Duration
 import java.time.InstantSource
@@ -31,6 +32,8 @@ import java.util.*
 import javax.sql.DataSource
 
 public suspend fun main() {
+    SLF4JBridgeHandler.removeHandlersForRootLogger();
+    SLF4JBridgeHandler.install()
 
     val myAppPackages = setOf("io.tpersson.ufw.examples.guiceapp")
 
@@ -77,6 +80,8 @@ public suspend fun main() {
     scanner.nextLine()
 
     println("Exiting")
+
+    Globals.prometheusServer.close()
 }
 
 private suspend fun testMediator(injector: Injector) {
