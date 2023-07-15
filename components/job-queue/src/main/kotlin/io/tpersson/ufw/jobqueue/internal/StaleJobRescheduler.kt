@@ -9,7 +9,7 @@ import kotlinx.coroutines.delay
 import java.time.InstantSource
 
 public class StaleJobRescheduler @Inject constructor(
-    private val jobRepository: JobRepository,
+    private val jobsDAO: JobsDAO,
     private val clock: InstantSource,
     private val config: JobQueueConfig,
 ) : Managed() {
@@ -35,7 +35,7 @@ public class StaleJobRescheduler @Inject constructor(
     public suspend fun runOnce() {
         val now = clock.instant()
         val staleIfWatchdogOlderThan = now - staleAfter
-        val numRescheduled = jobRepository.markStaleJobsAsScheduled(now, staleIfWatchdogOlderThan)
+        val numRescheduled = jobsDAO.markStaleJobsAsScheduled(now, staleIfWatchdogOlderThan)
         if (numRescheduled > 0) {
             hasFoundStaleJobs = true
             logger.info("Rescheduled $numRescheduled stale jobs")

@@ -8,7 +8,7 @@ import io.tpersson.ufw.core.NamedBindings
 import io.tpersson.ufw.jobqueue.JobQueueConfig
 import io.tpersson.ufw.jobqueue.JobQueueId
 import io.tpersson.ufw.jobqueue.internal.JobHandlersProvider
-import io.tpersson.ufw.jobqueue.internal.JobRepository
+import io.tpersson.ufw.jobqueue.internal.JobsDAO
 import io.tpersson.ufw.managed.Managed
 import jakarta.inject.Inject
 import jakarta.inject.Named
@@ -20,7 +20,7 @@ import kotlin.jvm.optionals.getOrNull
 public class JobStateMetric @Inject constructor(
     @Named(NamedBindings.Meter) private val meter: Optional<Meter>,
     private val jobHandlersProvider: JobHandlersProvider,
-    private val jobRepository: JobRepository,
+    private val jobsDAO: JobsDAO,
     private val config: JobQueueConfig,
 ) : Managed() {
 
@@ -49,7 +49,7 @@ public class JobStateMetric @Inject constructor(
         for (handler in jobHandlers) {
             val queueId = handler.queueId
 
-            val queueStatistics = jobRepository.getQueueStatistics(queueId)
+            val queueStatistics = jobsDAO.getQueueStatistics(queueId)
 
             latestStatistics[queueId] = queueStatistics
         }

@@ -13,11 +13,10 @@ import kotlinx.coroutines.*
 import java.time.Duration
 import java.time.InstantSource
 import java.util.UUID
-import kotlin.reflect.KClass
 
 public class JobQueueRunner @Inject constructor(
     private val jobQueue: JobQueueInternal,
-    private val jobRepository: JobRepository,
+    private val jobsDAO: JobsDAO,
     private val unitOfWorkFactory: UnitOfWorkFactory,
     private val jobHandlersProvider: JobHandlersProvider,
     private val config: JobQueueConfig,
@@ -29,7 +28,7 @@ public class JobQueueRunner @Inject constructor(
             launch {
                 SingleJobHandlerRunner(
                     jobQueue,
-                    jobRepository,
+                    jobsDAO,
                     unitOfWorkFactory,
                     clock,
                     config,
@@ -42,7 +41,7 @@ public class JobQueueRunner @Inject constructor(
 
 public class SingleJobHandlerRunner<TJob : Job>(
     private val jobQueue: JobQueueInternal,
-    private val jobRepository: JobRepository,
+    private val jobsDAO: JobsDAO,
     private val unitOfWorkFactory: UnitOfWorkFactory,
     private val clock: InstantSource,
     private val config: JobQueueConfig,
@@ -78,7 +77,7 @@ public class SingleJobHandlerRunner<TJob : Job>(
         val watchdogJob = launch {
             forever(logger) {
                 delay(config.watchdogRefreshInterval.toMillis())
-                if (!jobRepository.updateWatchdog(job, clock.instant(), watchdogId)) {
+                if (!jobsDAO.updateWatchdog(job, clock.instant(), watchdogId)) {
                     this@coroutineScope.cancel()
                 }
             }

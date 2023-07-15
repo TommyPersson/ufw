@@ -20,10 +20,10 @@ import java.time.Instant
 import java.util.*
 
 @Singleton
-public class JobRepositoryImpl @Inject constructor(
+public class JobsDAOImpl @Inject constructor(
     private val database: Database,
     @Named(NamedBindings.ObjectMapper) private val objectMapper: ObjectMapper,
-) : JobRepository {
+) : JobsDAO {
 
     override suspend fun insert(job: InternalJob<*>, unitOfWork: UnitOfWork) {
         val jobData = JobData(

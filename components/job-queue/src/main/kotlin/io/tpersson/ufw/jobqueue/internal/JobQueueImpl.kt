@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap
 public class JobQueueImpl @Inject constructor(
     private val config: JobQueueConfig,
     private val clock: InstantSource,
-    private val jobRepository: JobRepository,
+    private val jobsDAO: JobsDAO,
     private val jobFailureRepository: JobFailureRepository,
 ) : JobQueueInternal {
 
@@ -47,7 +47,7 @@ public class JobQueueImpl @Inject constructor(
             expireAt = null,
         )
 
-        jobRepository.insert(internalJob, unitOfWork)
+        jobsDAO.insert(internalJob, unitOfWork)
 
         unitOfWork.addPostCommitHook {
             getSignal(queueId).signal()
@@ -61,10 +61,10 @@ public class JobQueueImpl @Inject constructor(
 
     override suspend fun <TJob : Job> pollOne(queueId: JobQueueId<TJob>, timeout: Duration): InternalJob<TJob>? {
         return withTimeoutOrNull(timeout) {
-            var next = jobRepository.getNext(queueId, clock.instant())
+            var next = jobsDAO.getNext(queueId, clock.instant())
             while (next == null) {
                 getSignal(queueId).wait(pollWaitTime)
-                next = jobRepository.getNext(queueId, clock.instant())
+                next = jobsDAO.getNext(queueId, clock.instant())
             }
 
             next
@@ -76,7 +76,7 @@ public class JobQueueImpl @Inject constructor(
         watchdogId: String,
         unitOfWork: UnitOfWork
     ) {
-        jobRepository.markAsInProgress(job, clock.instant(), watchdogId, unitOfWork)
+        jobsDAO.markAsInProgress(job, clock.instant(), watchdogId, unitOfWork)
     }
 
     override suspend fun <TJob : Job> markAsSuccessful(
@@ -86,7 +86,7 @@ public class JobQueueImpl @Inject constructor(
     ) {
         val now = clock.instant()
         val expireAt = now + config.successfulJobRetention
-        jobRepository.markAsSuccessful(job, now, expireAt, watchdogId, unitOfWork)
+        jobsDAO.markAsSuccessful(job, now, expireAt, watchdogId, unitOfWork)
     }
 
     override suspend fun <TJob : Job> rescheduleAt(
@@ -95,7 +95,7 @@ public class JobQueueImpl @Inject constructor(
         watchdogId: String,
         unitOfWork: UnitOfWork
     ) {
-        jobRepository.markAsScheduled(job, clock.instant(), at, watchdogId, unitOfWork)
+        jobsDAO.markAsScheduled(job, clock.instant(), at, watchdogId, unitOfWork)
     }
 
     override suspend fun <TJob : Job> markAsFailed(
@@ -106,7 +106,7 @@ public class JobQueueImpl @Inject constructor(
     ) {
         val now = clock.instant()
         val expireAt = now + config.failedJobRetention
-        jobRepository.markAsFailed(job, now, expireAt, watchdogId, unitOfWork)
+        jobsDAO.markAsFailed(job, now, expireAt, watchdogId, unitOfWork)
     }
 
     override suspend fun <TJob : Job> recordFailure(job: InternalJob<TJob>, error: Exception, uow: UnitOfWork) {

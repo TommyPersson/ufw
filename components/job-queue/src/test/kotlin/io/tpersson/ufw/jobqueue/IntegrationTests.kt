@@ -9,7 +9,7 @@ import io.tpersson.ufw.database.typedqueries.TypedUpdate
 import io.tpersson.ufw.database.unitofwork.use
 import io.tpersson.ufw.jobqueue.dsl.jobQueue
 import io.tpersson.ufw.jobqueue.internal.JobQueueImpl
-import io.tpersson.ufw.jobqueue.internal.JobRepositoryImpl
+import io.tpersson.ufw.jobqueue.internal.JobsDAOImpl
 import io.tpersson.ufw.managed.dsl.managed
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -74,7 +74,7 @@ internal class IntegrationTests {
         val database = ufw.database.database
         val unitOfWorkFactory = ufw.database.unitOfWorkFactory
         val jobQueue = ufw.jobQueue.jobQueue as JobQueueImpl
-        val jobRepository = ufw.jobQueue.jobRepository
+        val jobRepository = ufw.jobQueue.jobsDAO
         val jobFailureRepository = ufw.jobQueue.jobFailureRepository
         val staleJobRescheduler = ufw.jobQueue.staleJobRescheduler
 
@@ -159,8 +159,8 @@ internal class IntegrationTests {
         val queueId = JobQueueId(TestJob::class)
 
         database.update(
-            JobRepositoryImpl.Queries.Updates.InsertJob(
-                JobRepositoryImpl.JobData(
+            JobsDAOImpl.Queries.Updates.InsertJob(
+                JobsDAOImpl.JobData(
                     uid = 0,
                     id = jobId.value,
                     type = queueId.typeName,

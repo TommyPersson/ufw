@@ -10,7 +10,7 @@ import jakarta.inject.Inject
 
 public class JobQueueComponent @Inject constructor(
     public val jobQueue: JobQueue,
-    internal val jobRepository: JobRepository,
+    internal val jobsDAO: JobsDAO,
     internal val jobFailureRepository: JobFailureRepository,
     internal val staleJobRescheduler: StaleJobRescheduler,
 ) {
@@ -30,7 +30,7 @@ public class JobQueueComponent @Inject constructor(
             jobHandlers: Set<JobHandler<*>>,
         ): JobQueueComponent {
 
-            val jobRepository = JobRepositoryImpl(
+            val jobRepository = JobsDAOImpl(
                 database = databaseComponent.database,
                 objectMapper = coreComponent.objectMapper
             )
@@ -42,7 +42,7 @@ public class JobQueueComponent @Inject constructor(
             val jobQueue = JobQueueImpl(
                 config = config,
                 clock = coreComponent.clock,
-                jobRepository = jobRepository,
+                jobsDAO = jobRepository,
                 jobFailureRepository = jobFailureRepository
             )
 
@@ -50,7 +50,7 @@ public class JobQueueComponent @Inject constructor(
 
             val jobQueueRunner = JobQueueRunner(
                 jobQueue = jobQueue,
-                jobRepository = jobRepository,
+                jobsDAO = jobRepository,
                 unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
                 jobHandlersProvider = jobHandlersProvider,
                 clock = coreComponent.clock,
@@ -58,13 +58,13 @@ public class JobQueueComponent @Inject constructor(
             )
 
             val staleJobRescheduler = StaleJobRescheduler(
-                jobRepository = jobRepository,
+                jobsDAO = jobRepository,
                 clock = coreComponent.clock,
                 config = config,
             )
 
             val expiredJobReaper = ExpiredJobReaper(
-                jobRepository = jobRepository,
+                jobsDAO = jobRepository,
                 clock = coreComponent.clock,
                 config = config
             )
@@ -72,7 +72,7 @@ public class JobQueueComponent @Inject constructor(
             val jobStateMetric = JobStateMetric(
                 meter = coreComponent.meter,
                 jobHandlersProvider = jobHandlersProvider,
-                jobRepository = jobRepository,
+                jobsDAO = jobRepository,
                 config = config,
             )
 
@@ -83,7 +83,7 @@ public class JobQueueComponent @Inject constructor(
 
             return JobQueueComponent(
                 jobQueue = jobQueue,
-                jobRepository = jobRepository,
+                jobsDAO = jobRepository,
                 jobFailureRepository = jobFailureRepository,
                 staleJobRescheduler = staleJobRescheduler
             )

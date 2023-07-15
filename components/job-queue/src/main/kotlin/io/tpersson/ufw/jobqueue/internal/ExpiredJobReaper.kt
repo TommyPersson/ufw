@@ -9,7 +9,7 @@ import kotlinx.coroutines.delay
 import java.time.InstantSource
 
 public class ExpiredJobReaper @Inject constructor(
-    private val jobRepository: JobRepository,
+    private val jobsDAO: JobsDAO,
     private val clock: InstantSource,
     private val config: JobQueueConfig,
 ) : Managed() {
@@ -23,7 +23,7 @@ public class ExpiredJobReaper @Inject constructor(
             delay(interval.toMillis())
 
             val now = clock.instant()
-            val numDeleted = jobRepository.deleteExpiredJobs(now)
+            val numDeleted = jobsDAO.deleteExpiredJobs(now)
             if (numDeleted > 0) {
                 logger.info("Deleted $numDeleted expired jobs.")
             }

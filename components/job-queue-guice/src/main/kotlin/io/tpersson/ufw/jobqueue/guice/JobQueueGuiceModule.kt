@@ -14,7 +14,7 @@ public class JobQueueGuiceModule(private val config: JobQueueConfig = JobQueueCo
             bind(JobQueue::class.java).to(JobQueueImpl::class.java)
             bind(JobQueueInternal::class.java).to(JobQueueImpl::class.java)
             bind(JobHandlersProvider::class.java).to(GuiceJobHandlersProvider::class.java).asEagerSingleton()
-            bind(JobRepository::class.java).to(JobRepositoryImpl::class.java)
+            bind(JobsDAO::class.java).to(JobsDAOImpl::class.java)
             bind(JobFailureRepository::class.java).to(JobFailureRepositoryImpl::class.java)
             bind(JobQueueComponent::class.java).asEagerSingleton()
         }

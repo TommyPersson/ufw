@@ -7,7 +7,7 @@ import io.tpersson.ufw.jobqueue.JobQueueId
 import io.tpersson.ufw.jobqueue.internal.metrics.JobQueueStatistics
 import java.time.Instant
 
-public interface JobRepository {
+public interface JobsDAO {
     public suspend fun insert(
         job: InternalJob<*>,
         unitOfWork: UnitOfWork
