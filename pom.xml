@@ -42,7 +42,7 @@
         <kotlinx-coroutines.version>1.7.2</kotlinx-coroutines.version>
 
         <jackson.version>2.15.2</jackson.version>
-        <opentelemetry.version>1.28.0</opentelemetry.version>
+        <micrometer.version>1.11.2</micrometer.version>
         <guice.version>7.0.0</guice.version>
         <classgraph.version>4.8.160</classgraph.version>
 
@@ -204,12 +204,13 @@
             </dependency>
 
             <dependency>
-                <groupId>io.opentelemetry</groupId>
-                <artifactId>opentelemetry-bom</artifactId>
-                <version>${opentelemetry.version}</version>
+                <groupId>io.micrometer</groupId>
+                <artifactId>micrometer-bom</artifactId>
+                <version>${micrometer.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+
 
             <dependency>
                 <groupId>org.mockito</groupId>

@@ -1,7 +1,8 @@
 package io.tpersson.ufw.core.dsl
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.opentelemetry.api.OpenTelemetry
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.tpersson.ufw.core.CoreComponent
 import java.time.Clock
 import java.time.InstantSource
@@ -15,12 +16,12 @@ public fun UFWBuilder.RootBuilder.core(builder: CoreComponentBuilder.() -> Unit)
 @UfwDslMarker
 public class CoreComponentBuilder {
     public var clock: InstantSource = Clock.systemUTC()
-    public var openTelemetry: OpenTelemetry? = null
+    public var meterRegistry: MeterRegistry = SimpleMeterRegistry()
 
     internal var protoObjectMapper = CoreComponent.defaultObjectMapper
 
     public fun build(): CoreComponent {
-        return CoreComponent.create(clock, openTelemetry, protoObjectMapper)
+        return CoreComponent.create(clock, meterRegistry, protoObjectMapper)
     }
 }
 

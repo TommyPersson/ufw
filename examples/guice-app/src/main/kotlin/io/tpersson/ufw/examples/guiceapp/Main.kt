@@ -4,7 +4,8 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.google.inject.Guice
 import com.google.inject.Injector
 import com.google.inject.Module
-import io.opentelemetry.api.OpenTelemetry
+import com.google.inject.multibindings.OptionalBinder
+import io.micrometer.core.instrument.MeterRegistry
 import io.tpersson.ufw.aggregates.guice.AggregatesGuiceModule
 import io.tpersson.ufw.core.CoreGuiceModule
 import io.tpersson.ufw.database.DatabaseComponent
@@ -41,7 +42,10 @@ public suspend fun main() {
         Module {
             it.bind(DataSource::class.java).toInstance(Globals.dataSource)
             it.bind(InstantSource::class.java).toInstance(Clock.systemUTC())
-            it.bind(OpenTelemetry::class.java).toInstance(Globals.openTelemetry)
+
+            OptionalBinder.newOptionalBinder(it, MeterRegistry::class.java)
+                .setBinding().toInstance(Globals.meterRegistry)
+
             it.bind(CounterAggregateRepository::class.java)
         },
         CoreGuiceModule(
@@ -80,8 +84,6 @@ public suspend fun main() {
     scanner.nextLine()
 
     println("Exiting")
-
-    Globals.prometheusServer.close()
 }
 
 private suspend fun testMediator(injector: Injector) {

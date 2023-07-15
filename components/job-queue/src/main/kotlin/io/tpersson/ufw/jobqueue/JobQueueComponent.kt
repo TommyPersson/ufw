@@ -54,7 +54,8 @@ public class JobQueueComponent @Inject constructor(
                 unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
                 jobHandlersProvider = jobHandlersProvider,
                 clock = coreComponent.clock,
-                config = config
+                config = config,
+                meterRegistry = coreComponent.meterRegistry
             )
 
             val staleJobRescheduler = StaleJobRescheduler(
@@ -70,7 +71,7 @@ public class JobQueueComponent @Inject constructor(
             )
 
             val jobStateMetric = JobStateMetric(
-                meter = coreComponent.meter,
+                meterRegistry = coreComponent.meterRegistry,
                 jobHandlersProvider = jobHandlersProvider,
                 jobsDAO = jobRepository,
                 config = config,

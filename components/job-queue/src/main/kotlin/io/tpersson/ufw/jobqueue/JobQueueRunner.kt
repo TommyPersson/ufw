@@ -1,5 +1,7 @@
 package io.tpersson.ufw.jobqueue
 
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Timer
 import io.tpersson.ufw.core.forever
 import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
@@ -12,7 +14,9 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.*
 import java.time.Duration
 import java.time.InstantSource
-import java.util.UUID
+import java.util.*
+import kotlin.time.measureTime
+import kotlin.time.toJavaDuration
 
 public class JobQueueRunner @Inject constructor(
     private val jobQueue: JobQueueInternal,
@@ -20,7 +24,8 @@ public class JobQueueRunner @Inject constructor(
     private val unitOfWorkFactory: UnitOfWorkFactory,
     private val jobHandlersProvider: JobHandlersProvider,
     private val config: JobQueueConfig,
-    private val clock: InstantSource
+    private val clock: InstantSource,
+    private val meterRegistry: MeterRegistry,
 ) : Managed() {
     override suspend fun launch(): Unit = coroutineScope {
         val handlers = jobHandlersProvider.get()
@@ -32,6 +37,7 @@ public class JobQueueRunner @Inject constructor(
                     unitOfWorkFactory,
                     clock,
                     config,
+                    meterRegistry,
                     handler
                 ).run()
             }
@@ -45,6 +51,7 @@ public class SingleJobHandlerRunner<TJob : Job>(
     private val unitOfWorkFactory: UnitOfWorkFactory,
     private val clock: InstantSource,
     private val config: JobQueueConfig,
+    private val meterRegistry: MeterRegistry,
     private val jobHandler: JobHandler<TJob>,
 ) {
     private val logger = createLogger()
@@ -53,6 +60,11 @@ public class SingleJobHandlerRunner<TJob : Job>(
     private val jobQueueId = jobHandler.queueId
 
     private val watchdogId = UUID.randomUUID().toString()
+
+    private val timer = Timer.builder("ufw.job_queue.duration.seconds")
+        .tag("queueId", jobQueueId.typeName)
+        .publishPercentiles(0.5, 0.75, 0.90, 0.99, 0.999)
+        .register(meterRegistry)
 
     public suspend fun run() {
         forever(logger) {
@@ -83,13 +95,17 @@ public class SingleJobHandlerRunner<TJob : Job>(
             }
         }
 
-        unitOfWorkFactory.use { uow ->
-            val context = createJobContext(uow)
+        val duration = measureTime {
+            unitOfWorkFactory.use { uow ->
+                val context = createJobContext(uow)
 
-            jobHandler.handle(job.job, context)
-            jobQueue.markAsSuccessful(job, watchdogId, uow)
-            watchdogJob.cancel()
+                jobHandler.handle(job.job, context)
+                jobQueue.markAsSuccessful(job, watchdogId, uow)
+                watchdogJob.cancel()
+            }
         }
+
+        timer.record(duration.toJavaDuration())
     }
 
     private fun createJobContext(uow: UnitOfWork): JobContextImpl {

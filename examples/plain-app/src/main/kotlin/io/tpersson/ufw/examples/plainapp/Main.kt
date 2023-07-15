@@ -16,6 +16,7 @@ import io.tpersson.ufw.examples.common.commands.PerformGreetingCommandHandler
 import io.tpersson.ufw.examples.common.jobs.PrintJob
 import io.tpersson.ufw.examples.common.jobs.PrintJobHandler
 import io.tpersson.ufw.examples.common.managed.PeriodicLogger
+import io.tpersson.ufw.examples.common.managed.PrometheusServer
 import io.tpersson.ufw.jobqueue.dsl.jobQueue
 import io.tpersson.ufw.keyvaluestore.dsl.keyValueStore
 import io.tpersson.ufw.managed.dsl.managed
@@ -34,7 +35,7 @@ public suspend fun main() {
     val ufw = UFW.build {
         core {
             clock = Clock.systemUTC()
-            openTelemetry = Globals.openTelemetry
+            meterRegistry = Globals.meterRegistry
 
             objectMapper {
                 enable(SerializationFeature.INDENT_OUTPUT)
@@ -42,7 +43,8 @@ public suspend fun main() {
         }
         managed {
             instances = setOf(
-                PeriodicLogger()
+                PeriodicLogger(),
+                PrometheusServer(Globals.meterRegistry),
             )
         }
         database {
@@ -87,8 +89,6 @@ public suspend fun main() {
     scanner.nextLine()
 
     println("Exiting")
-
-    Globals.prometheusServer.close()
 }
 
 private suspend fun testMediator(ufw: UFWRegistry) {
@@ -100,7 +100,9 @@ private suspend fun testJobQueue(ufw: UFWRegistry) {
     val jobQueue = ufw.jobQueue.jobQueue
 
     ufw.database.unitOfWorkFactory.use { uow ->
-        jobQueue.enqueue(PrintJob("Hello, World!"), uow)
+        (1..100).forEach {
+            jobQueue.enqueue(PrintJob("$it: Hello, World!"), uow)
+        }
     }
 }
 
