@@ -46,6 +46,7 @@
         <guice.version>7.0.0</guice.version>
         <classgraph.version>4.8.161</classgraph.version>
         <resilience4j.version>2.1.0</resilience4j.version>
+        <caffeine.version>3.1.6</caffeine.version>
 
         <hikaricp.version>5.0.1</hikaricp.version>
         <postgresql.version>42.6.0</postgresql.version>
@@ -220,7 +221,6 @@
                 <scope>import</scope>
             </dependency>
 
-
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-bom</artifactId>
@@ -238,6 +238,12 @@
                 <groupId>io.github.classgraph</groupId>
                 <artifactId>classgraph</artifactId>
                 <version>${classgraph.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.ben-manes.caffeine</groupId>
+                <artifactId>caffeine</artifactId>
+                <version>${caffeine.version}</version>
             </dependency>
 
             <dependency>
