@@ -7,6 +7,7 @@ import io.tpersson.ufw.mediator.MediatorComponent
 import io.tpersson.ufw.mediator.Middleware
 import io.tpersson.ufw.mediator.RequestHandler
 import io.tpersson.ufw.mediator.middleware.cacheable.CacheableMiddleware
+import io.tpersson.ufw.mediator.middleware.loggable.LoggableMiddleware
 import io.tpersson.ufw.mediator.middleware.retryable.RetryableMiddleware
 import io.tpersson.ufw.mediator.middleware.timelimited.TimeLimitedMiddleware
 
@@ -24,7 +25,8 @@ public class MediatorComponentBuilder(public val components: UFWRegistry) {
         val middlewares = middlewares + setOf(
             RetryableMiddleware(),
             TimeLimitedMiddleware(),
-            CacheableMiddleware()
+            CacheableMiddleware(),
+            LoggableMiddleware(),
         )
         return MediatorComponent.create(handlers, middlewares)
     }

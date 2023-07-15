@@ -6,6 +6,7 @@ import io.tpersson.ufw.keyvaluestore.KeyValueStore
 import io.tpersson.ufw.mediator.Command
 import io.tpersson.ufw.mediator.CommandHandler
 import io.tpersson.ufw.mediator.Context
+import io.tpersson.ufw.mediator.middleware.loggable.Loggable
 import io.tpersson.ufw.mediator.middleware.retryable.Retryable
 import io.tpersson.ufw.mediator.middleware.transactional.Transactional
 import io.tpersson.ufw.mediator.middleware.transactional.unitOfWork
@@ -15,11 +16,14 @@ public data class PerformGreetingCommand(
     val target: String
 ) : Command<Unit>,
     Transactional,
-    Retryable {
+    Retryable,
+    Loggable {
 
     override val retryConfig: RetryConfig = RetryConfig {
         maxAttempts(5)
     }
+
+    override val logText: String by lazy { "Saying hello to $target" }
 }
 
 public class PerformGreetingCommandHandler @Inject constructor(

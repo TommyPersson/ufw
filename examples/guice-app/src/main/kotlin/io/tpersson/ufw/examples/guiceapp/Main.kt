@@ -25,6 +25,8 @@ import io.tpersson.ufw.managed.ManagedRunner
 import io.tpersson.ufw.managed.guice.ManagedGuiceModule
 import io.tpersson.ufw.mediator.Mediator
 import io.tpersson.ufw.mediator.guice.MediatorGuiceModule
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.slf4j.MDCContext
 import org.slf4j.bridge.SLF4JBridgeHandler
 import java.time.Clock
 import java.time.Duration
@@ -32,7 +34,7 @@ import java.time.InstantSource
 import java.util.*
 import javax.sql.DataSource
 
-public suspend fun main() {
+public fun main(): Unit = runBlocking(MDCContext()) {
     SLF4JBridgeHandler.removeHandlersForRootLogger();
     SLF4JBridgeHandler.install()
 
