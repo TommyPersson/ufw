@@ -30,9 +30,14 @@ public class JobQueueRunner @Inject constructor(
     private val clock: InstantSource,
     private val meterRegistry: MeterRegistry,
 ) : ManagedJob() {
+
+    private val logger = createLogger()
+
     override suspend fun launch(): Unit = coroutineScope {
         val handlers = jobHandlersProvider.get()
         for (handler in handlers) {
+            logger.info("Starting work on queue: '${handler.queueId.typeName}'")
+
             launch {
                 SingleJobHandlerRunner(
                     jobQueue,
@@ -43,6 +48,8 @@ public class JobQueueRunner @Inject constructor(
                     meterRegistry,
                     handler
                 ).run()
+            }.invokeOnCompletion {
+                logger.info("Stopping work on queue: '${handler.queueId.typeName}'")
             }
         }
     }
@@ -70,8 +77,6 @@ public class SingleJobHandlerRunner<TJob : Job>(
         .register(meterRegistry)
 
     public suspend fun run() {
-        logger.info("Starting work on queue: '${jobQueueId.typeName}'")
-
         forever(logger) {
             val job = jobQueue.pollOne(jobQueueId, timeout = pollWaitTime)
             if (job != null) {
