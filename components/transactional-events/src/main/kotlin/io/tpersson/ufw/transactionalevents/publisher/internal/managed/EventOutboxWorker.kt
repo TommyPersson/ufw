@@ -10,6 +10,7 @@ import io.tpersson.ufw.managed.ManagedJob
 import io.tpersson.ufw.transactionalevents.EventId
 import io.tpersson.ufw.transactionalevents.publisher.OutgoingEvent
 import io.tpersson.ufw.transactionalevents.publisher.OutgoingEventTransport
+import io.tpersson.ufw.transactionalevents.publisher.internal.dao.EventEntityData
 import io.tpersson.ufw.transactionalevents.publisher.internal.dao.EventOutboxDAO
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
@@ -43,28 +44,38 @@ public class EventOutboxWorker @Inject constructor(
         val lockHandle = lock.tryAcquire() ?: return
 
         try {
-            val batch = outboxDAO.getNextBatch(limit = batchSize)
-            if (batch.isEmpty()) {
-                return
-            }
+            while (true) {
+                val batch = pollBatch()
+                if (batch.isEmpty()) {
+                    return
+                }
 
-            val outgoingEvents = batch.map {
-                OutgoingEvent(
-                    id = EventId(UUID.fromString(it.id)), // TODO use UUID in dao
-                    type = it.type,
-                    topic = it.topic,
-                    dataJson = it.dataJson,
-                    timestamp = it.timestamp
-                )
-            }
-
-            unitOfWorkFactory.use { uow ->
-                outgoingEventTransport.send(outgoingEvents, unitOfWork = uow)
-
-                outboxDAO.deleteBatch(batch.map { it.uid }, uow)
+                sendBatch(batch)
             }
         } finally {
             lockHandle.release()
+        }
+    }
+
+    private suspend fun pollBatch(): List<EventEntityData> {
+        return outboxDAO.getNextBatch(limit = batchSize)
+    }
+
+    private suspend fun sendBatch(batch: List<EventEntityData>) {
+        val outgoingEvents = batch.map {
+            OutgoingEvent(
+                id = EventId(UUID.fromString(it.id)), // TODO use UUID in dao
+                type = it.type,
+                topic = it.topic,
+                dataJson = it.dataJson,
+                timestamp = it.timestamp
+            )
+        }
+
+        unitOfWorkFactory.use { uow ->
+            outgoingEventTransport.send(outgoingEvents, unitOfWork = uow)
+
+            outboxDAO.deleteBatch(batch.map { it.uid }, uow)
         }
     }
 }

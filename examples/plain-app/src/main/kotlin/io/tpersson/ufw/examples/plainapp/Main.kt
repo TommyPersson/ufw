@@ -13,9 +13,11 @@ import io.tpersson.ufw.examples.common.aggregate.CounterAggregate
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregateRepository
 import io.tpersson.ufw.examples.common.commands.PerformGreetingCommand
 import io.tpersson.ufw.examples.common.commands.PerformGreetingCommandHandler
+import io.tpersson.ufw.examples.common.events.LoggingOutgoingEventTransport
 import io.tpersson.ufw.examples.common.events.TestEvent
 import io.tpersson.ufw.examples.common.jobs.PrintJob
 import io.tpersson.ufw.examples.common.jobs.PrintJobHandler
+import io.tpersson.ufw.examples.common.managed.PeriodicEventPublisher
 import io.tpersson.ufw.examples.common.managed.PeriodicLogger
 import io.tpersson.ufw.examples.common.managed.PrometheusServer
 import io.tpersson.ufw.jobqueue.dsl.jobQueue
@@ -78,13 +80,21 @@ public fun main(): Unit = runBlocking(MDCContext()) {
             )
         }
         transactionalEvents {
-            outgoingEventTransport = NoOpOutgoingEventTransport()
+            outgoingEventTransport = LoggingOutgoingEventTransport()
         }
         aggregates {
         }
     }
 
     ufw.database.runMigrations()
+
+    ufw.managed.register(
+        PeriodicEventPublisher(
+            unitOfWorkFactory = ufw.database.unitOfWorkFactory,
+            transactionalEventPublisher = ufw.transactionalEvents.transactionalEventPublisher,
+            clock = ufw.core.clock
+        )
+    )
 
     ufw.managed.startAll(addShutdownHook = true)
 
