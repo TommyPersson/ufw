@@ -37,7 +37,7 @@ internal class IntegrationTests {
         val dataSource = HikariDataSource(config)
         val testClock = TestInstantSource()
         val coreComponent = CoreComponent.create(testClock)
-        val databaseComponent = DatabaseComponent.create(dataSource)
+        val databaseComponent = DatabaseComponent.create(coreComponent, dataSource)
         val unitOfWorkFactory = databaseComponent.unitOfWorkFactory
         val managedComponent = ManagedComponent.create(emptySet())
         val keyValueStoreComponent = KeyValueStoreComponent.create(coreComponent, databaseComponent, managedComponent)
