@@ -1,6 +1,7 @@
 package io.tpersson.ufw.managed
 
 import io.tpersson.ufw.core.logging.createLogger
+import io.tpersson.ufw.core.utils.shortQualifiedName
 import java.util.concurrent.atomic.AtomicBoolean
 
 public abstract class Managed {
@@ -10,7 +11,7 @@ public abstract class Managed {
     private val _isRunning: AtomicBoolean = AtomicBoolean(false)
     public val isRunning: Boolean get() = _isRunning.get()
 
-    private val name = this::class.simpleName
+    private val name = this::class.shortQualifiedName
 
     public suspend fun start() {
         logger.info("Starting Managed instance: $name")
@@ -22,7 +23,7 @@ public abstract class Managed {
             throw e
         }
 
-        logger.info("Started Managed instance: $name")
+        logger.info(" Started Managed instance: $name")
         _isRunning.set(true)
     }
 
@@ -43,4 +44,5 @@ public abstract class Managed {
     protected abstract suspend fun onStarted()
 
     protected abstract suspend fun onStopped()
+
 }

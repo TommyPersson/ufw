@@ -1,8 +1,7 @@
 package io.tpersson.ufw.transactionalevents.publisher.internal.managed
 
-import io.tpersson.ufw.core.forever
+import io.tpersson.ufw.core.utils.forever
 import io.tpersson.ufw.core.logging.createLogger
-import io.tpersson.ufw.database.locks.DatabaseLock
 import io.tpersson.ufw.database.locks.DatabaseLocks
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.database.unitofwork.use

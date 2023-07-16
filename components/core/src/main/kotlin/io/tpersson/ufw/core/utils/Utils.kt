@@ -1,9 +1,10 @@
-package io.tpersson.ufw.core
+package io.tpersson.ufw.core.utils
 
 import kotlinx.coroutines.*
 import org.slf4j.Logger
 import java.lang.Exception
 import java.time.Duration
+import kotlin.reflect.KClass
 
 
 public suspend fun forever(
@@ -27,3 +28,20 @@ public suspend fun forever(
         }
     }
 }
+
+/**
+ * Returns the [KClass.qualifiedName], but the package names are reduced to their first letters.
+ *
+ * E.g.: "i.t.u.c.CoreComponent"
+ */
+public val KClass<*>.shortQualifiedName: String?
+    get() {
+        if (qualifiedName == null || simpleName == null) {
+            return null
+        }
+
+        val parts = qualifiedName!!.split(".")
+        val packages = parts.take(parts.size - 1)
+        val firstLetters = packages.map { it.first() }
+        return firstLetters.joinToString(".") + "." + simpleName
+    }

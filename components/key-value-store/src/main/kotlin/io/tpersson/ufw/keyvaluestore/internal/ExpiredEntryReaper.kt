@@ -1,6 +1,6 @@
 package io.tpersson.ufw.keyvaluestore.internal
 
-import io.tpersson.ufw.core.forever
+import io.tpersson.ufw.core.utils.forever
 import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.keyvaluestore.KeyValueStoreConfig
 import io.tpersson.ufw.keyvaluestore.storageengine.StorageEngine

@@ -2,7 +2,7 @@ package io.tpersson.ufw.jobqueue
 
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
-import io.tpersson.ufw.core.forever
+import io.tpersson.ufw.core.utils.forever
 import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory

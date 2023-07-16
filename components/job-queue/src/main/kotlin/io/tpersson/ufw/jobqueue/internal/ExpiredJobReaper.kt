@@ -1,6 +1,6 @@
 package io.tpersson.ufw.jobqueue.internal
 
-import io.tpersson.ufw.core.forever
+import io.tpersson.ufw.core.utils.forever
 import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.jobqueue.JobQueueConfig
 import io.tpersson.ufw.managed.ManagedJob

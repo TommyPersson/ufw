@@ -1,6 +1,6 @@
 package io.tpersson.ufw.examples.common.managed
 
-import io.tpersson.ufw.core.forever
+import io.tpersson.ufw.core.utils.forever
 import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.database.unitofwork.use
