@@ -48,6 +48,7 @@ public class TransactionalEventsComponent @Inject constructor(
                 outboxDAO = eventOutboxDAO,
                 unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
                 outgoingEventTransport = outgoingEventTransport,
+                databaseLocks = databaseComponent.locks
             )
 
             managedComponent.register(eventOutboxWorker)
