@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset ufw:key-value-store-1
+--changeset ufw:key-value-store-1 labels:ufw__key_value_store
 
 CREATE TABLE ufw__key_value_store
 (

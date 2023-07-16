@@ -33,7 +33,7 @@ public class Migrator @Inject constructor(
 
             val resourceAccessor = ClassLoaderResourceAccessor()
             val liquibase = Liquibase(script.scriptLocation, resourceAccessor, database)
-            liquibase.update(Contexts(), LabelExpression())
+            liquibase.update(Contexts(), LabelExpression("ufw__${script.componentName}"))
         }
 
         jdbcConnection.close()

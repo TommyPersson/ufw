@@ -13,6 +13,7 @@ import io.tpersson.ufw.examples.common.aggregate.CounterAggregate
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregateRepository
 import io.tpersson.ufw.examples.common.commands.PerformGreetingCommand
 import io.tpersson.ufw.examples.common.commands.PerformGreetingCommandHandler
+import io.tpersson.ufw.examples.common.events.TestEvent
 import io.tpersson.ufw.examples.common.jobs.PrintJob
 import io.tpersson.ufw.examples.common.jobs.PrintJobHandler
 import io.tpersson.ufw.examples.common.managed.PeriodicLogger
@@ -22,9 +23,10 @@ import io.tpersson.ufw.keyvaluestore.dsl.keyValueStore
 import io.tpersson.ufw.managed.dsl.managed
 import io.tpersson.ufw.mediator.dsl.mediator
 import io.tpersson.ufw.mediator.middleware.transactional.TransactionalMiddleware
+import io.tpersson.ufw.transactionalevents.dsl.transactionalEvents
+import io.tpersson.ufw.transactionalevents.publisher.NoOpOutgoingEventTransport
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.slf4j.MDCContext
-import org.slf4j.MDC
 import org.slf4j.bridge.SLF4JBridgeHandler
 import java.time.Clock
 import java.time.Duration
@@ -75,6 +77,9 @@ public fun main(): Unit = runBlocking(MDCContext()) {
                 PrintJobHandler()
             )
         }
+        transactionalEvents {
+            outgoingEventTransport = NoOpOutgoingEventTransport()
+        }
         aggregates {
         }
     }
@@ -89,12 +94,25 @@ public fun main(): Unit = runBlocking(MDCContext()) {
 
     testAggregates(ufw)
 
+    testTransactionalEvents(ufw)
+
     println("Press Enter to exit")
 
     val scanner = Scanner(System.`in`)
     scanner.nextLine()
 
     println("Exiting")
+}
+
+private suspend fun testTransactionalEvents(ufw: UFWRegistry) {
+    val transactionalEventPublisher = ufw.transactionalEvents.transactionalEventPublisher
+    val unitOfWorkFactory = ufw.database.unitOfWorkFactory
+
+    val event = TestEvent(myContent = "Hello, World!")
+
+    unitOfWorkFactory.use { uow ->
+        transactionalEventPublisher.publish("dont-care", event, uow)
+    }
 }
 
 private suspend fun testMediator(ufw: UFWRegistry) {
@@ -106,7 +124,7 @@ private suspend fun testJobQueue(ufw: UFWRegistry) {
     val jobQueue = ufw.jobQueue.jobQueue
 
     ufw.database.unitOfWorkFactory.use { uow ->
-        (1..100).forEach {
+        (1..1).forEach {
             jobQueue.enqueue(PrintJob("$it: Hello, World!"), uow)
         }
     }

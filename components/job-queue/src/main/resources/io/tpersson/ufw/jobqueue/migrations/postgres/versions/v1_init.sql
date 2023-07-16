@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset ufw:job-queue-1
+--changeset ufw:job-queue-1 labels:ufw__job_queue
 
 CREATE TABLE ufw__job_queue__jobs
 (

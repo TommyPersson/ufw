@@ -72,12 +72,18 @@ public fun PreparedStatement.setParameters(
                 String::class -> Types.VARCHAR
                 Instant::class -> Types.TIMESTAMP_WITH_TIMEZONE
                 LocalDate::class -> Types.DATE
+                List::class -> Types.ARRAY
 
                 // TODO more
                 else -> Types.BIT
             }
 
             setNull(index + 1, sqlType)
+        } else if (value is List<*>) {
+            // TODO support any array type
+            val arr = this.connection.createArrayOf("BIGINT", value.toTypedArray())
+
+            setArray(index + 1, arr)
         } else {
             val nativeValue = when (value) {
                 is Instant -> Timestamp.from(value)
@@ -90,5 +96,3 @@ public fun PreparedStatement.setParameters(
         }
     }
 }
-
-private val utcCalendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
