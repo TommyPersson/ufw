@@ -16,6 +16,7 @@ import io.tpersson.ufw.transactionalevents.dsl.transactionalEvents
 import io.tpersson.ufw.transactionalevents.publisher.OutgoingEvent
 import io.tpersson.ufw.transactionalevents.publisher.OutgoingEventTransport
 import io.tpersson.ufw.transactionalevents.type
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
@@ -79,6 +80,7 @@ internal class IntegrationTestsPublisher {
     @AfterEach
     fun afterEach(): Unit = runBlocking {
         ufw.managed.managedRunner.stopAll()
+        testOutgoingEventTransport.sentBatches.clear()
     }
 
     @Test
@@ -98,6 +100,27 @@ internal class IntegrationTestsPublisher {
                 it.id == event.id
             }
         }
+    }
+
+    @Test
+    fun `Basic - Uncommitted events are not forwarded to the OutgoingEventTransport`(): Unit = runBlocking {
+        val event = TestEvent(
+            id = EventId(),
+            timestamp = testClock.instant(),
+            content = "Hello, World"
+        )
+
+        try {
+            unitOfWorkFactory.use { uow ->
+                publisher.publish("test-topic", event, uow)
+                error("error")
+            }
+        } catch (_: Exception) {
+        }
+
+        delay(100)
+
+        assertThat(testOutgoingEventTransport.sentBatches).isEmpty()
     }
 
     @JsonTypeName("TEST_EVENT")

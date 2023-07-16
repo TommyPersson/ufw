@@ -2,6 +2,7 @@ package io.tpersson.ufw.database.typedqueries
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.jdbc.useInTransaction
 import kotlinx.coroutines.runBlocking
@@ -31,8 +32,9 @@ internal class IntegrationTestsTypedQueries {
             it.isAutoCommit = false
         }
 
+        val coreComponent = CoreComponent.create()
         val dataSource = HikariDataSource(config)
-        val databaseComponent = DatabaseComponent.create(dataSource)
+        val databaseComponent = DatabaseComponent.create(coreComponent, dataSource)
         val connectionProvider = databaseComponent.connectionProvider
         val database = databaseComponent.database
 
