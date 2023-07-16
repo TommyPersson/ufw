@@ -11,7 +11,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>ufw-all-guice</artifactId>
+    <artifactId>ufw-transactional-events-guice</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -22,39 +22,17 @@
     <dependencies>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-all</artifactId>
+            <artifactId>ufw-transactional-events</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
             <artifactId>ufw-core-guice</artifactId>
         </dependency>
+
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-database-guice</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-managed-guice</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-mediator-guice</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-key-value-store-guice</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-job-queue-guice</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-aggregates-guice</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-transactional-events-guice</artifactId>
+            <artifactId>ufw-test</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

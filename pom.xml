@@ -28,6 +28,7 @@
         <module>components/aggregates</module>
         <module>components/aggregates-guice</module>
         <module>components/transactional-events</module>
+        <module>components/transactional-events-guice</module>
         <module>components/test</module>
         <module>examples/common</module>
         <module>examples/guice-app</module>
@@ -160,6 +161,11 @@
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>ufw-transactional-events</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>io.tpersson.ufw</groupId>
+                <artifactId>ufw-transactional-events-guice</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>

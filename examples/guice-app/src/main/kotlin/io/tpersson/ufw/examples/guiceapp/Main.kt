@@ -16,6 +16,7 @@ import io.tpersson.ufw.examples.common.Globals
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregate
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregateRepository
 import io.tpersson.ufw.examples.common.commands.PerformGreetingCommand
+import io.tpersson.ufw.examples.common.events.LoggingOutgoingEventTransport
 import io.tpersson.ufw.examples.common.jobs.PrintJob
 import io.tpersson.ufw.jobqueue.JobQueue
 import io.tpersson.ufw.jobqueue.JobQueueConfig
@@ -26,6 +27,8 @@ import io.tpersson.ufw.managed.ManagedRunner
 import io.tpersson.ufw.managed.guice.ManagedGuiceModule
 import io.tpersson.ufw.mediator.Mediator
 import io.tpersson.ufw.mediator.guice.MediatorGuiceModule
+import io.tpersson.ufw.transactionalevents.guice.TransactionalEventsGuiceModule
+import io.tpersson.ufw.transactionalevents.publisher.OutgoingEventTransport
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.slf4j.MDCContext
 import org.slf4j.bridge.SLF4JBridgeHandler
@@ -49,6 +52,9 @@ public fun main(): Unit = runBlocking(MDCContext()) {
             OptionalBinder.newOptionalBinder(it, MeterRegistry::class.java)
                 .setBinding().toInstance(Globals.meterRegistry)
 
+            OptionalBinder.newOptionalBinder(it, OutgoingEventTransport::class.java)
+                .setBinding().to(LoggingOutgoingEventTransport::class.java)
+
             it.bind(CounterAggregateRepository::class.java)
         },
         CoreGuiceModule(
@@ -70,6 +76,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
             )
         ),
         AggregatesGuiceModule(),
+        TransactionalEventsGuiceModule(),
         ManagedGuiceModule(),
     )
 
