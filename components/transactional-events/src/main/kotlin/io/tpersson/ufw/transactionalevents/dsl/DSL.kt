@@ -8,6 +8,7 @@ import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.managed.dsl.managed
 import io.tpersson.ufw.transactionalevents.TransactionalEventsComponent
 import io.tpersson.ufw.transactionalevents.TransactionalEventsConfig
+import io.tpersson.ufw.transactionalevents.handler.TransactionalEventHandler
 import io.tpersson.ufw.transactionalevents.publisher.OutgoingEventTransport
 
 @UfwDslMarker
@@ -17,10 +18,11 @@ public fun UFWBuilder.RootBuilder.transactionalEvents(builder: TransactionalEven
 
 @UfwDslMarker
 public class TransactionalEventsComponentBuilder(
-    private val components: UFWRegistry
+    public val components: UFWRegistry
 ) {
     public var config: TransactionalEventsConfig = TransactionalEventsConfig()
     public var outgoingEventTransport: OutgoingEventTransport? = null
+    public var handlers: Set<TransactionalEventHandler> = emptySet()
 
     public fun configure(builder: TransactionalEventsConfigBuilder.() -> Unit) {
         config = TransactionalEventsConfigBuilder().also(builder).build()
@@ -32,6 +34,7 @@ public class TransactionalEventsComponentBuilder(
             databaseComponent = components.database,
             managedComponent = components.managed,
             outgoingEventTransport = outgoingEventTransport,
+            handlers = handlers,
             config = config,
         )
     }

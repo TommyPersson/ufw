@@ -13,8 +13,8 @@ import io.tpersson.ufw.examples.common.aggregate.CounterAggregate
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregateRepository
 import io.tpersson.ufw.examples.common.commands.PerformGreetingCommand
 import io.tpersson.ufw.examples.common.commands.PerformGreetingCommandHandler
-import io.tpersson.ufw.examples.common.events.LoggingOutgoingEventTransport
-import io.tpersson.ufw.examples.common.events.TestEvent
+import io.tpersson.ufw.examples.common.events.ExampleEventHandler
+import io.tpersson.ufw.examples.common.events.ExampleEventV1
 import io.tpersson.ufw.examples.common.jobs.PrintJob
 import io.tpersson.ufw.examples.common.jobs.PrintJobHandler
 import io.tpersson.ufw.examples.common.managed.PeriodicEventPublisher
@@ -80,6 +80,9 @@ public fun main(): Unit = runBlocking(MDCContext()) {
         }
         transactionalEvents {
             //outgoingEventTransport = LoggingOutgoingEventTransport()
+            handlers = setOf(
+                ExampleEventHandler(components.keyValueStore.keyValueStore)
+            )
         }
         aggregates {
         }
@@ -117,10 +120,10 @@ private suspend fun testTransactionalEvents(ufw: UFWRegistry) {
     val transactionalEventPublisher = ufw.transactionalEvents.transactionalEventPublisher
     val unitOfWorkFactory = ufw.database.unitOfWorkFactory
 
-    val event = TestEvent(myContent = "Hello, World!")
+    val event = ExampleEventV1(myContent = "Hello, World!")
 
     unitOfWorkFactory.use { uow ->
-        transactionalEventPublisher.publish("dont-care", event, uow)
+        transactionalEventPublisher.publish("example-topic", event, uow)
     }
 }
 

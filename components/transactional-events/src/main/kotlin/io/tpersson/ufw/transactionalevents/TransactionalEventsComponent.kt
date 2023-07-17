@@ -5,6 +5,7 @@ import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.managed.ManagedComponent
 import io.tpersson.ufw.transactionalevents.handler.IncomingEventIngester
+import io.tpersson.ufw.transactionalevents.handler.TransactionalEventHandler
 import io.tpersson.ufw.transactionalevents.handler.internal.IncomingEventIngesterImpl
 import io.tpersson.ufw.transactionalevents.handler.internal.SimpleEventHandlersProvider
 import io.tpersson.ufw.transactionalevents.handler.internal.dao.EventQueueDAO
@@ -34,6 +35,7 @@ public class TransactionalEventsComponent @Inject constructor(
             databaseComponent: DatabaseComponent,
             managedComponent: ManagedComponent,
             outgoingEventTransport: OutgoingEventTransport?,
+            handlers: Set<TransactionalEventHandler>,
             config: TransactionalEventsConfig = TransactionalEventsConfig(),
         ): TransactionalEventsComponent {
 
@@ -51,8 +53,10 @@ public class TransactionalEventsComponent @Inject constructor(
 
             val eventQueueDAO = EventQueueDAO()
 
+            val eventHandlersProvider = SimpleEventHandlersProvider(handlers)
+
             val ingester = IncomingEventIngesterImpl(
-                eventHandlersProvider = SimpleEventHandlersProvider(emptySet()),
+                eventHandlersProvider = eventHandlersProvider,
                 eventQueueDAO = eventQueueDAO,
                 clock = coreComponent.clock,
             )

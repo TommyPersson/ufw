@@ -5,8 +5,8 @@ import io.tpersson.ufw.transactionalevents.Event
 import io.tpersson.ufw.transactionalevents.EventId
 import java.time.Instant
 
-@JsonTypeName("TEST_EVENT")
-public data class TestEvent(
+@JsonTypeName("ExampleEventV1")
+public data class ExampleEventV1(
     override val id: EventId = EventId(),
     override val timestamp: Instant = Instant.now(),
     val myContent: String,
