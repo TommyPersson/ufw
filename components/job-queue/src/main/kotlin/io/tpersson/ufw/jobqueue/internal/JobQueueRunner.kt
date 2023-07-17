@@ -1,4 +1,4 @@
-package io.tpersson.ufw.jobqueue
+package io.tpersson.ufw.jobqueue.internal
 
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
@@ -7,7 +7,10 @@ import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.database.unitofwork.use
-import io.tpersson.ufw.jobqueue.internal.*
+import io.tpersson.ufw.jobqueue.FailureAction
+import io.tpersson.ufw.jobqueue.Job
+import io.tpersson.ufw.jobqueue.JobHandler
+import io.tpersson.ufw.jobqueue.JobQueueConfig
 import io.tpersson.ufw.jobqueue.internal.exceptions.JobOwnershipLostException
 import io.tpersson.ufw.managed.ManagedJob
 import jakarta.inject.Inject

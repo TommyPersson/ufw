@@ -8,7 +8,6 @@ import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.managed.dsl.managed
 import io.tpersson.ufw.transactionalevents.TransactionalEventsComponent
 import io.tpersson.ufw.transactionalevents.TransactionalEventsConfig
-import io.tpersson.ufw.transactionalevents.publisher.NoOpOutgoingEventTransport
 import io.tpersson.ufw.transactionalevents.publisher.OutgoingEventTransport
 
 @UfwDslMarker
@@ -32,7 +31,7 @@ public class TransactionalEventsComponentBuilder(
             coreComponent = components.core,
             databaseComponent = components.database,
             managedComponent = components.managed,
-            outgoingEventTransport = outgoingEventTransport ?: error("No 'outgoingEventTransport' specified!"),
+            outgoingEventTransport = outgoingEventTransport,
             config = config,
         )
     }

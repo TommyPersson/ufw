@@ -9,7 +9,7 @@ public enum class JobState(public val id: Int) {
 
     public companion object {
         public fun fromId(id: Int): JobState {
-            return values().first { it.id == id }
+            return entries.first { it.id == id }
         }
     }
 }

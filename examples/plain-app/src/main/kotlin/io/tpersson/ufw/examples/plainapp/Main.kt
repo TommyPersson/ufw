@@ -26,7 +26,6 @@ import io.tpersson.ufw.managed.dsl.managed
 import io.tpersson.ufw.mediator.dsl.mediator
 import io.tpersson.ufw.mediator.middleware.transactional.TransactionalMiddleware
 import io.tpersson.ufw.transactionalevents.dsl.transactionalEvents
-import io.tpersson.ufw.transactionalevents.publisher.NoOpOutgoingEventTransport
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.slf4j.MDCContext
 import org.slf4j.bridge.SLF4JBridgeHandler
@@ -80,7 +79,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
             )
         }
         transactionalEvents {
-            outgoingEventTransport = LoggingOutgoingEventTransport()
+            //outgoingEventTransport = LoggingOutgoingEventTransport()
         }
         aggregates {
         }

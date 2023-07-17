@@ -64,7 +64,7 @@ public class EventOutboxDAO @Inject constructor(
             ) : TypedSelect<EventEntityData>(
                 """
                 SELECT * FROM ufw__transactional_events__outbox 
-                ORDER BY uid 
+                ORDER BY uid
                 LIMIT :limit
                 """.trimIndent()
             )

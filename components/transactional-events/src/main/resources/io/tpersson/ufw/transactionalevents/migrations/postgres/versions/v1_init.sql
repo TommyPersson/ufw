@@ -12,3 +12,41 @@ CREATE TABLE ufw__transactional_events__outbox
     ce_data_json JSONB       NOT NULL,
     timestamp    TIMESTAMPTZ NOT NULL
 );
+
+CREATE TABLE ufw__transactional_events__queue
+(
+    uid                SERIAL      NOT NULL PRIMARY KEY,
+    queue_id           TEXT        NOT NULL,
+    id                 TEXT        NOT NULL,
+    topic              TEXT        NOT NULL,
+    type               TEXT        NOT NULL,
+    data_json          JSONB       NOT NULL,
+    ce_data_json       JSONB       NOT NULL,
+    timestamp          TIMESTAMPTZ NOT NULL,
+    state              INT         NOT NULL,
+    created_at         TIMESTAMPTZ NOT NULL,
+    scheduled_for      TIMESTAMPTZ NOT NULL,
+    state_changed_at   TIMESTAMPTZ NOT NULL,
+    watchdog_timestamp TIMESTAMPTZ NULL,
+    watchdog_owner     TEXT        NULL,
+    expire_at          TIMESTAMPTZ NULL
+);
+
+CREATE UNIQUE INDEX UX_ufw__job_queue__jobs__id_queue_id
+    ON ufw__transactional_events__queue (queue_id, id);
+
+-- TODO more indexes
+
+CREATE TABLE ufw__transactional_events__queue_failures
+(
+    id                TEXT        NOT NULL PRIMARY KEY,
+    event_uid         BIGINT      NOT NULL,
+    timestamp         TIMESTAMPTZ NOT NULL,
+    error_type        TEXT        NOT NULL,
+    error_message     TEXT        NOT NULL,
+    error_stack_trace TEXT        NOT NULL,
+
+    CONSTRAINT fk_job FOREIGN KEY (event_uid)
+        REFERENCES ufw__transactional_events__queue (uid)
+        ON DELETE CASCADE
+);

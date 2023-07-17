@@ -47,7 +47,9 @@ CREATE TABLE ufw__job_queue__failures
     error_message     TEXT        NOT NULL,
     error_stack_trace TEXT        NOT NULL,
 
-    CONSTRAINT fk_job FOREIGN KEY (job_uid) REFERENCES ufw__job_queue__jobs (uid) ON DELETE CASCADE
+    CONSTRAINT fk_job FOREIGN KEY (job_uid)
+        REFERENCES ufw__job_queue__jobs (uid)
+        ON DELETE CASCADE
 );
 
 -- Primarily for getting failure for jobs

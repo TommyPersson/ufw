@@ -1,6 +1,5 @@
 package io.tpersson.ufw.jobqueue
 
-import java.time.Instant
 import kotlin.reflect.KClass
 
 public abstract class JobHandler<TJob : Job> {
@@ -17,8 +16,3 @@ public abstract class JobHandler<TJob : Job> {
     public val queueId: JobQueueId<TJob> = JobQueueId(jobType)
 }
 
-public sealed class FailureAction {
-    public class Reschedule(public val at: Instant) : FailureAction()
-    public object RescheduleNow : FailureAction()
-    public object GiveUp : FailureAction()
-}
