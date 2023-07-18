@@ -12,7 +12,7 @@ import io.tpersson.ufw.transactionalevents.handler.TransactionalEventHandler
 import io.tpersson.ufw.transactionalevents.publisher.OutgoingEventTransport
 
 @UfwDslMarker
-public fun UFWBuilder.RootBuilder.transactionalEvents(builder: TransactionalEventsComponentBuilder.() -> Unit) {
+public fun UFWBuilder.RootBuilder.transactionalEvents(builder: TransactionalEventsComponentBuilder.() -> Unit = {}) {
     components["TransactionalEvents"] = TransactionalEventsComponentBuilder(UFWRegistry(components)).also(builder).build()
 }
 

@@ -10,9 +10,18 @@ import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.database.unitofwork.use
+import io.tpersson.ufw.managed.dsl.managed
+import io.tpersson.ufw.test.TestInstantSource
+import io.tpersson.ufw.transactionalevents.Event
+import io.tpersson.ufw.transactionalevents.EventId
+import io.tpersson.ufw.transactionalevents.dsl.transactionalEvents
+import io.tpersson.ufw.transactionalevents.jsonTypeName
+import io.tpersson.ufw.transactionalevents.publisher.OutgoingEvent
+import io.tpersson.ufw.transactionalevents.publisher.OutgoingEventTransport
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.awaitility.kotlin.await
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -42,12 +51,18 @@ internal class IntegrationTests {
 
         val testClock = TestInstantSource()
 
+        val testOutgoingEventTransport = TestOutgoingEventTransport()
+
         val ufw = UFW.build {
             core {
                 clock = testClock
             }
             database {
                 dataSource = HikariDataSource(config)
+            }
+            managed()
+            transactionalEvents {
+                outgoingEventTransport = testOutgoingEventTransport
             }
             aggregates {
             }
@@ -64,13 +79,16 @@ internal class IntegrationTests {
 
     @BeforeEach
     fun setUp(): Unit = runBlocking {
+        ufw.managed.startAll()
     }
 
     @AfterEach
     fun afterEach(): Unit = runBlocking {
+        ufw.managed.stopAll()
         unitOfWorkFactory.use { uow ->
             factRepository.debugTruncate(uow)
         }
+        testOutgoingEventTransport.sentEvents.clear()
     }
 
     @Test
@@ -193,6 +211,29 @@ internal class IntegrationTests {
         }
     }
 
+    @Test
+    fun `Events - Are mapped from Facts and then published on save`(): Unit = runBlocking {
+        val now = testClock.instant()
+
+        val new = TestAggregate.new()
+
+        new.increment(now)
+        new.increment(now)
+        new.decrement(now)
+
+        unitOfWorkFactory.use { uow ->
+            repository.save(new, uow)
+        }
+
+        await.untilAsserted {
+            val sentEvents = testOutgoingEventTransport.sentEvents
+            assertThat(sentEvents).hasSize(3)
+            assertThat(sentEvents[0].type).isEqualTo(IncrementedEvent::class.jsonTypeName)
+            assertThat(sentEvents[1].type).isEqualTo(IncrementedEvent::class.jsonTypeName)
+            assertThat(sentEvents[2].type).isEqualTo(DecrementedEvent::class.jsonTypeName)
+        }
+    }
+
     class TestAggregate(
         id: AggregateId,
         version: Long,
@@ -232,7 +273,28 @@ internal class IntegrationTests {
                 is Facts.Decremented -> counter--
             }
         }
+
+        override fun mapFactToEvent(fact: Facts): List<PendingEvent> {
+            val event = when (fact) {
+                is Facts.Incremented -> IncrementedEvent(EventId(), fact.timestamp)
+                is Facts.Decremented -> DecrementedEvent(EventId(), fact.timestamp)
+            }
+
+            return listOf(PendingEvent(topic = "test-topic", event))
+        }
     }
+
+    @JsonTypeName("IncrementedV1")
+    data class IncrementedEvent(
+        override val id: EventId = EventId(),
+        override val timestamp: Instant
+    ) : Event
+
+    @JsonTypeName("DecrementedV1")
+    data class DecrementedEvent(
+        override val id: EventId = EventId(),
+        override val timestamp: Instant
+    ) : Event
 
     class TestAggregateRepository(
         component: AggregatesComponent
@@ -246,15 +308,11 @@ internal class IntegrationTests {
         }
     }
 
-    class TestInstantSource : InstantSource {
-        private var now = Instant.now()
+    class TestOutgoingEventTransport : OutgoingEventTransport {
+        val sentEvents = mutableListOf<OutgoingEvent>()
 
-        override fun instant(): Instant {
-            return now
-        }
-
-        fun advance(duration: Duration) {
-            now += duration
+        override suspend fun send(events: List<OutgoingEvent>, unitOfWork: UnitOfWork) {
+            sentEvents.addAll(events)
         }
     }
 }

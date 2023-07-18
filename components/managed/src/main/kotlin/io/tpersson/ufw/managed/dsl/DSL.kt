@@ -7,7 +7,7 @@ import io.tpersson.ufw.managed.Managed
 import io.tpersson.ufw.managed.ManagedComponent
 
 @UfwDslMarker
-public fun UFWBuilder.RootBuilder.managed(builder: ManagedComponentBuilder.() -> Unit) {
+public fun UFWBuilder.RootBuilder.managed(builder: ManagedComponentBuilder.() -> Unit = {}) {
     components["Managed"] = ManagedComponentBuilder(UFWRegistry(components)).also(builder).build()
 }
 

@@ -8,6 +8,7 @@ public abstract class AbstractAggregateRepository<TAggregate : AbstractAggregate
 ) : AggregateRepository<TAggregate, TFact> {
 
     private val factRepository = component.factRepository
+    private val eventPublisher = component.eventPublisher
 
     public override suspend fun save(aggregate: TAggregate, unitOfWork: UnitOfWork) {
         val newFacts = aggregate.pendingFacts.toList()
@@ -23,7 +24,12 @@ public abstract class AbstractAggregateRepository<TAggregate : AbstractAggregate
 
         doSave(aggregate, version, unitOfWork)
 
+        for (event in aggregate.pendingEvents) {
+            eventPublisher.publish(event.topic, event.event, unitOfWork)
+        }
+
         aggregate.pendingFacts.clear()
+        aggregate.pendingEvents.clear()
     }
 
     public override suspend fun getById(id: AggregateId): TAggregate? {

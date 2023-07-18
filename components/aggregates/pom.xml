@@ -28,6 +28,10 @@
             <groupId>io.tpersson.ufw</groupId>
             <artifactId>ufw-database</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.tpersson.ufw</groupId>
+            <artifactId>ufw-transactional-events</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
