@@ -34,5 +34,10 @@
             <artifactId>ufw-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.tpersson.ufw</groupId>
+            <artifactId>ufw-key-value-store</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

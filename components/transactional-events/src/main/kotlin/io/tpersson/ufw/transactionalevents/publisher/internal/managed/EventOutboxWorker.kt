@@ -63,7 +63,7 @@ public class EventOutboxWorker @Inject constructor(
     private suspend fun sendBatch(batch: List<EventEntityData>) {
         val outgoingEvents = batch.map {
             OutgoingEvent(
-                id = EventId(UUID.fromString(it.id)), // TODO use UUID in dao
+                id = EventId(it.id),
                 type = it.type,
                 topic = it.topic,
                 dataJson = it.dataJson,

@@ -1,52 +1,76 @@
 package io.tpersson.ufw.transactionalevents.handler.internal.dao
 
-import io.tpersson.ufw.database.typedqueries.TypedUpdate
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
+import io.tpersson.ufw.transactionalevents.EventId
+import io.tpersson.ufw.transactionalevents.handler.EventQueueId
+import java.time.Instant
 
-public class EventQueueDAO {
-    public fun insert(event: EventEntityData, unitOfWork: UnitOfWork) {
-        unitOfWork.add(Queries.Updates.Insert(event))
-    }
+public interface EventQueueDAO {
+    public suspend fun insert(event: EventEntityData, unitOfWork: UnitOfWork)
 
-    internal object Queries {
-        object Updates {
-            class Insert(val data: EventEntityData) : TypedUpdate(
-                """
-                INSERT INTO ufw__transactional_events__queue (
-                    queue_id, 
-                    id, 
-                    topic, 
-                    type, 
-                    data_json, 
-                    ce_data_json, 
-                    timestamp,
-                    state,
-                    created_at, 
-                    scheduled_for, 
-                    state_changed_at, 
-                    watchdog_timestamp, 
-                    watchdog_owner, 
-                    expire_at
-                ) VALUES (
-                    :data.queueId, 
-                    :data.id, 
-                    :data.topic, 
-                    :data.type, 
-                    :data.dataJson::jsonb, 
-                    :data.ceDataJson::jsonb, 
-                    :data.timestamp, 
-                    :data.state,
-                    :data.createdAt, 
-                    :data.scheduledFor, 
-                    :data.stateChangedAt, 
-                    :data.watchdogTimestamp, 
-                    :data.watchdogOwner, 
-                    :data.expireAt
-                ) ON CONFLICT (queue_id, id) DO NOTHING 
-                """.trimIndent(),
-                minimumAffectedRows = 0
-            )
-        }
-    }
+    public suspend fun getNext(
+        eventQueueId: EventQueueId,
+        now: Instant
+    ): EventEntityData?
+
+    public suspend fun getById(
+        eventQueueId: EventQueueId,
+        eventId: EventId
+    ): EventEntityData?
+
+    public suspend fun markAsInProgress(
+        eventQueueId: EventQueueId,
+        eventId: EventId,
+        now: Instant,
+        watchdogId: String,
+        unitOfWork: UnitOfWork
+    )
+
+    public suspend fun markAsSuccessful(
+        eventQueueId: EventQueueId,
+        eventId: EventId,
+        now: Instant,
+        expireAt: Instant,
+        watchdogId: String,
+        unitOfWork: UnitOfWork
+    )
+
+    public suspend fun markAsFailed(
+        eventQueueId: EventQueueId,
+        eventId: EventId,
+        now: Instant,
+        expireAt: Instant,
+        watchdogId: String,
+        unitOfWork: UnitOfWork
+    )
+
+    public suspend fun markAsScheduled(
+        eventQueueId: EventQueueId,
+        eventId: EventId,
+        now: Instant,
+        scheduleFor: Instant,
+        watchdogId: String,
+        unitOfWork: UnitOfWork
+    )
+
+    public suspend fun markStaleEventsAsScheduled(
+        now: Instant,
+        staleIfWatchdogOlderThan: Instant
+    ): Int
+
+    public suspend fun updateWatchdog(
+        eventQueueId: EventQueueId,
+        eventId: EventId,
+        now: Instant,
+        watchdogId: String,
+    ): Boolean
+
+    public suspend fun deleteExpiredEvents(now: Instant): Int
+
+    //public suspend fun getQueueStatistics(queueId: EventQueueId<TEvent>): EventQueueStatistics<TEvent>
+
+    public suspend fun debugGetAllEvents(): List<EventEntityData>
+
+    public suspend fun debugTruncate(unitOfWork: UnitOfWork)
+    
 }
-

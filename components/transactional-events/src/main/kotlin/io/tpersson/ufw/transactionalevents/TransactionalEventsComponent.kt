@@ -6,9 +6,11 @@ import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.managed.ManagedComponent
 import io.tpersson.ufw.transactionalevents.handler.IncomingEventIngester
 import io.tpersson.ufw.transactionalevents.handler.TransactionalEventHandler
+import io.tpersson.ufw.transactionalevents.handler.internal.EventQueueProcessor
+import io.tpersson.ufw.transactionalevents.handler.internal.EventQueueProviderImpl
 import io.tpersson.ufw.transactionalevents.handler.internal.IncomingEventIngesterImpl
 import io.tpersson.ufw.transactionalevents.handler.internal.SimpleEventHandlersProvider
-import io.tpersson.ufw.transactionalevents.handler.internal.dao.EventQueueDAO
+import io.tpersson.ufw.transactionalevents.handler.internal.dao.EventQueueDAOImpl
 import io.tpersson.ufw.transactionalevents.publisher.OutgoingEventTransport
 import io.tpersson.ufw.transactionalevents.publisher.internal.dao.EventOutboxDAO
 import io.tpersson.ufw.transactionalevents.publisher.internal.TransactionalEventPublisherImpl
@@ -19,7 +21,7 @@ import io.tpersson.ufw.transactionalevents.publisher.transports.DirectOutgoingEv
 import jakarta.inject.Inject
 
 public class TransactionalEventsComponent @Inject constructor(
-    public val transactionalEventPublisher: TransactionalEventPublisher,
+    public val eventPublisher: TransactionalEventPublisher,
     public val eventIngester: IncomingEventIngester
 ) {
     init {
@@ -51,14 +53,20 @@ public class TransactionalEventsComponent @Inject constructor(
                 outboxDAO = eventOutboxDAO,
             )
 
-            val eventQueueDAO = EventQueueDAO()
+            val eventQueueDAO = EventQueueDAOImpl(
+                database = databaseComponent.database
+            )
 
             val eventHandlersProvider = SimpleEventHandlersProvider(handlers)
 
+            val eventQueueProvider = EventQueueProviderImpl(
+                eventQueueDAO = eventQueueDAO,
+                clock = coreComponent.clock
+            )
+
             val ingester = IncomingEventIngesterImpl(
                 eventHandlersProvider = eventHandlersProvider,
-                eventQueueDAO = eventQueueDAO,
-                clock = coreComponent.clock,
+                eventQueueProvider = eventQueueProvider,
             )
 
             val directTransport = DirectOutgoingEventTransport(
@@ -73,10 +81,19 @@ public class TransactionalEventsComponent @Inject constructor(
                 databaseLocks = databaseComponent.locks
             )
 
+            val eventQueueProcessor = EventQueueProcessor(
+                eventHandlersProvider = eventHandlersProvider,
+                eventQueueProvider = eventQueueProvider,
+                unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
+                objectMapper = coreComponent.objectMapper,
+                config = config,
+            )
+
             managedComponent.register(eventOutboxWorker)
+            managedComponent.register(eventQueueProcessor)
 
             return TransactionalEventsComponent(
-                transactionalEventPublisher = publisher,
+                eventPublisher = publisher,
                 eventIngester = ingester
             )
         }

@@ -93,7 +93,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
     ufw.managed.register(
         PeriodicEventPublisher(
             unitOfWorkFactory = ufw.database.unitOfWorkFactory,
-            transactionalEventPublisher = ufw.transactionalEvents.transactionalEventPublisher,
+            transactionalEventPublisher = ufw.transactionalEvents.eventPublisher,
             clock = ufw.core.clock
         )
     )
@@ -117,7 +117,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
 }
 
 private suspend fun testTransactionalEvents(ufw: UFWRegistry) {
-    val transactionalEventPublisher = ufw.transactionalEvents.transactionalEventPublisher
+    val transactionalEventPublisher = ufw.transactionalEvents.eventPublisher
     val unitOfWorkFactory = ufw.database.unitOfWorkFactory
 
     val event = ExampleEventV1(myContent = "Hello, World!")

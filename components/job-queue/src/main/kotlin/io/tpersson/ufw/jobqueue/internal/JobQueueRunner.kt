@@ -81,6 +81,7 @@ public class SingleJobHandlerRunner<TJob : Job>(
 
     public suspend fun run() {
         forever(logger) {
+            // TODO what if poll fails due to not being able to deserialize?
             val job = jobQueue.pollOne(jobQueueId, timeout = pollWaitTime)
             if (job != null) {
 

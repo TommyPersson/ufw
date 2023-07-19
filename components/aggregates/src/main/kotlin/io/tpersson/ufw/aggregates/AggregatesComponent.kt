@@ -30,8 +30,8 @@ public class AggregatesComponent @Inject constructor(
                 objectMapper = coreComponent.objectMapper
             )
 
-            val eventPublisher = transactionalEventsComponent.transactionalEventPublisher
-            
+            val eventPublisher = transactionalEventsComponent.eventPublisher
+
             return AggregatesComponent(factRepository, eventPublisher)
         }
     }
