@@ -5,7 +5,9 @@
 CREATE TABLE ufw__key_value_store
 (
     key        TEXT  NOT NULL PRIMARY KEY,
-    value      JSONB NOT NULL,
+    type       INT NOT NULL,
+    json       JSONB NULL,
+    bytes      BYTEA NULL,
     expires_at TIMESTAMPTZ,
     updated_at TIMESTAMPTZ NOT NULL,
     version    INT

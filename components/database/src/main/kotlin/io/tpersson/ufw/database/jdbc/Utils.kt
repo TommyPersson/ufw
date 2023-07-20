@@ -73,6 +73,7 @@ public fun PreparedStatement.setParameters(
                 Instant::class -> Types.TIMESTAMP_WITH_TIMEZONE
                 LocalDate::class -> Types.DATE
                 List::class -> Types.ARRAY
+                ByteArray::class -> Types.BINARY
 
                 // TODO more
                 else -> Types.BIT

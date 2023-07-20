@@ -22,7 +22,21 @@ public class PostgresStorageEngine @Inject constructor(
     }
 
     override suspend fun get(key: String): EntryDataFromRead? {
-        return database.select(Queries.Selects.GetEntryByKey(key))
+        val data = database.select(Queries.Selects.GetEntryByKey(key))
+            ?: return null
+
+        val value = when (data.type) {
+            EntryType.Json.int -> EntryValue.Json(data.json!!)
+            EntryType.Bytes.int -> EntryValue.Bytes(data.bytes!!)
+            else -> TODO()
+        }
+
+        return EntryDataFromRead(
+            value = value,
+            expiresAt = data.expiresAt,
+            updatedAt = data.updatedAt,
+            version = data.version
+        )
     }
 
     override suspend fun put(
@@ -38,12 +52,19 @@ public class PostgresStorageEngine @Inject constructor(
             return
         }
 
+        val data = EntryData(
+            key = key,
+            type = entry.value.type.int,
+            json = if (entry.value is EntryValue.Json) entry.value.json else null,
+            bytes = if (entry.value is EntryValue.Bytes) entry.value.bytes else null,
+            expiresAt = entry.expiresAt,
+            updatedAt = entry.updatedAt,
+            version = 0 // Doesn't matter
+        )
+
         unitOfWork.add(
             Queries.Updates.Put(
-                key = key,
-                value = entry.json,
-                expiresAt = entry.expiresAt,
-                updatedAt = entry.updatedAt,
+                data = data,
                 expectedVersion = expectedVersion
             )
         )
@@ -61,11 +82,21 @@ public class PostgresStorageEngine @Inject constructor(
         return database.selectList(Queries.Selects.DebugDumpTable)
     }
 
+    internal data class EntryData(
+        val key: String,
+        val type: Int,
+        val json: String?,
+        val bytes: ByteArray?,
+        val expiresAt: Instant?,
+        val updatedAt: Instant,
+        val version: Int
+    )
+
     @Suppress("unused")
     private object Queries {
         object Selects {
-            class GetEntryByKey(val key: String) : TypedSelect<EntryDataFromRead>(
-                "SELECT *, value as json FROM $TableName WHERE key = :key"
+            class GetEntryByKey(val key: String) : TypedSelect<EntryData>(
+                "SELECT * FROM $TableName WHERE key = :key"
             )
 
             object DebugDumpTable : TypedSelect<Map<String, Any?>>("SELECT * FROM $TableName")
@@ -73,20 +104,32 @@ public class PostgresStorageEngine @Inject constructor(
 
         object Updates {
             class Put(
-                val key: String,
-                val value: String,
-                val expiresAt: Instant?,
-                val updatedAt: Instant,
+                val data: EntryData,
                 val expectedVersion: Int?,
             ) : TypedUpdate(
                 """
-                INSERT INTO $TableName AS t (key, value, expires_at, updated_at, version)
-                VALUES (:key, :value::jsonb, :expiresAt, :updatedAt, 1)
-                ON CONFLICT (key) DO UPDATE
-                    SET value      = :value::jsonb,
-                        expires_at = :expiresAt,
-                        updated_at = :updatedAt,
-                        version    = t.version + 1
+                INSERT INTO $TableName AS t (
+                    key, 
+                    type, 
+                    json, 
+                    bytes, 
+                    expires_at, 
+                    updated_at, 
+                    version
+                ) VALUES (
+                    :data.key, 
+                    :data.type, 
+                    :data.json::jsonb, 
+                    :data.bytes::bytea, 
+                    :data.expiresAt, 
+                    :data.updatedAt, 
+                    1
+                ) ON CONFLICT (key) DO UPDATE
+                    SET json       = :data.json::jsonb,
+                        bytes      = :data.bytes::bytea,
+                        expires_at = :data.expiresAt,
+                        updated_at = :data.updatedAt,
+                        VERSION    = t.version + 1
                     WHERE t.version = :expectedVersion OR :expectedVersion IS NULL
                 """.trimIndent(),
             )

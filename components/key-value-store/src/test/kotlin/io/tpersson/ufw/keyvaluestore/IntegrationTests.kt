@@ -95,6 +95,24 @@ internal class IntegrationTests {
     }
 
     @Test
+    fun `Basic - Store and read ByteArray value`(): Unit = runBlocking {
+        val key = KeyValueStore.Key.of<ByteArray>("my-type")
+
+        val value = byteArrayOf(1, 2, 3, 4, 5)
+
+        keyValueStore.put(key, value)
+
+        val entry = keyValueStore.get(key)
+
+        assertThat(entry).isNotNull()
+        assertThat(entry!!.value).isEqualTo(value)
+
+        // Make sure it's stored properly
+        val row = storageEngine.debugDumpTable().single()
+        assertThat(row["bytes"]).isEqualTo(value)
+    }
+
+    @Test
     fun `Transactions - Participates in 'UnitOfWork'`(): Unit = runBlocking {
         val uow = unitOfWorkFactory.create()
 

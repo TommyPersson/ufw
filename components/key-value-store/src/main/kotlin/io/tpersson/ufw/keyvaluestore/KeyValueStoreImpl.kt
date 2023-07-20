@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.tpersson.ufw.core.NamedBindings
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.keyvaluestore.storageengine.EntryDataForWrite
+import io.tpersson.ufw.keyvaluestore.storageengine.EntryValue
 import io.tpersson.ufw.keyvaluestore.storageengine.StorageEngine
 import jakarta.inject.Inject
 import jakarta.inject.Named
@@ -26,19 +27,24 @@ public class KeyValueStoreImpl @Inject constructor(
             return null
         }
 
-        @Suppress("UNCHECKED_CAST")
-        val parsedValue = objectMapper.readValue(data.json, key.type.java) as T
+        val parsedValue = when (data.value) {
+            is EntryValue.Bytes -> data.value.bytes
+            is EntryValue.Json -> objectMapper.readValue(data.value.json, key.type.java)
+        } as T
 
         return KeyValueStore.Entry(key, parsedValue, data.version, data.expiresAt)
     }
 
     override suspend fun <T> put(key: KeyValueStore.Key<T>, value: T, expectedVersion: Int?, ttl: Duration?, unitOfWork: UnitOfWork?) {
-        val json = objectMapper.writeValueAsString(value)
-
         val expiresAt = ttl?.let { clock.instant() + ttl }
 
+        val value = when (key.type) {
+            ByteArray::class -> EntryValue.Bytes(value as ByteArray)
+            else -> EntryValue.Json(objectMapper.writeValueAsString(value))
+        }
+
         val data = EntryDataForWrite(
-            json = json,
+            value = value,
             expiresAt = expiresAt,
             updatedAt = clock.instant()
         )
