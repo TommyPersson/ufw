@@ -7,15 +7,18 @@ import io.tpersson.ufw.transactionalevents.handler.EventQueueId
 import io.tpersson.ufw.transactionalevents.handler.EventState
 import io.tpersson.ufw.transactionalevents.handler.IncomingEvent
 import io.tpersson.ufw.transactionalevents.handler.internal.dao.EventEntityData
+import io.tpersson.ufw.transactionalevents.handler.internal.dao.EventFailuresDAO
 import io.tpersson.ufw.transactionalevents.handler.internal.dao.EventQueueDAO
 import kotlinx.coroutines.time.withTimeoutOrNull
 import java.time.Duration
 import java.time.Instant
 import java.time.InstantSource
+import java.util.*
 
 public class EventQueueImpl(
     private val queueId: EventQueueId,
-    private val dao: EventQueueDAO,
+    private val queueDAO: EventQueueDAO,
+    private val failuresDAO: EventFailuresDAO,
     private val clock: InstantSource,
 ) : EventQueue {
 
@@ -25,7 +28,7 @@ public class EventQueueImpl(
     override suspend fun enqueue(event: IncomingEvent, unitOfWork: UnitOfWork) {
         val eventEntity = createEventEntity(event, clock.instant())
 
-        dao.insert(eventEntity, unitOfWork)
+        queueDAO.insert(eventEntity, unitOfWork)
 
         unitOfWork.addPostCommitHook {
             signal.signal()
@@ -34,41 +37,68 @@ public class EventQueueImpl(
 
     override suspend fun pollOne(timeout: Duration): EventEntityData? {
         return withTimeoutOrNull(timeout) {
-            var next = dao.getNext(queueId, clock.instant())
+            var next = queueDAO.getNext(queueId, clock.instant())
             while (next == null) {
                 signal.wait(pollWaitTime)
-                next = dao.getNext(queueId, clock.instant())
+                next = queueDAO.getNext(queueId, clock.instant())
             }
 
             next
         }
     }
 
-    override suspend fun markAsInProgress(id: EventId, watchdogId: String, uow: UnitOfWork) {
-        dao.markAsInProgress(
-            eventQueueId = queueId,
-            eventId = id,
+    override suspend fun markAsInProgress(eventId: EventId, watchdogId: String, unitOfWork: UnitOfWork) {
+        queueDAO.markAsInProgress(
+            queueId = queueId,
+            eventId = eventId,
             now = clock.instant(),
             watchdogId = watchdogId,
-            unitOfWork = uow
+            unitOfWork = unitOfWork
         )
     }
 
-    override suspend fun updateWatchdog(id: EventId, watchdogId: String): Boolean {
+    override suspend fun updateWatchdog(eventId: EventId, watchdogId: String): Boolean {
         return true
         //TODO("Not yet implemented")
     }
 
-    override suspend fun markAsSuccessful(id: EventId, watchdogId: String, uow: UnitOfWork) {
+    override suspend fun recordFailure(eventUid: Long, error: Exception, unitOfWork: UnitOfWork) {
+        val failure = EventFailure(
+            id = UUID.randomUUID(),
+            eventUid = eventUid,
+            timestamp = clock.instant(),
+            errorType = error::class.simpleName!!,
+            errorMessage = error.message ?: "<no message>",
+            errorStackTrace = error.stackTraceToString()
+        )
+
+        failuresDAO.insert(failure, unitOfWork)
+    }
+
+    override suspend fun rescheduleAt(eventId: EventId, at: Instant, watchdogId: String, unitOfWork: UnitOfWork) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getNumberOfFailuresFor(eventUid: Long): Int {
+        return failuresDAO.getNumberOfFailuresFor(eventUid)
+    }
+
+    override suspend fun markAsSuccessful(eventId: EventId, watchdogId: String, unitOfWork: UnitOfWork) {
         val expireAt = Instant.now().plus(Duration.ofDays(1)) // TODO config
 
-        dao.markAsSuccessful(
-            eventQueueId = queueId,
-            eventId = id,
+        queueDAO.markAsSuccessful(
+            queueId = queueId,
+            eventId = eventId,
             now = clock.instant(), expireAt = expireAt,
             watchdogId = watchdogId,
-            unitOfWork = uow
+            unitOfWork = unitOfWork
         )
+    }
+
+    override suspend fun markAsFailed(eventId: EventId, error: Exception, watchdogId: String, unitOfWork: UnitOfWork) {
+        val expireAt = Instant.now().plus(Duration.ofDays(1)) // TODO config
+
+        queueDAO.markAsFailed(queueId, eventId, clock.instant(), expireAt, watchdogId, unitOfWork)
     }
 
     private fun createEventEntity(

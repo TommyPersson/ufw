@@ -12,10 +12,18 @@ public interface EventQueue {
 
     public suspend fun pollOne(timeout: Duration): EventEntityData?
 
-    public suspend fun markAsInProgress(id: EventId, watchdogId: String, uow: UnitOfWork)
+    public suspend fun markAsInProgress(eventId: EventId, watchdogId: String, unitOfWork: UnitOfWork)
 
-    public suspend fun updateWatchdog(id: EventId, watchdogId: String): Boolean
+    public suspend fun markAsSuccessful(eventId: EventId, watchdogId: String, unitOfWork: UnitOfWork)
 
-    public suspend fun markAsSuccessful(id: EventId, watchdogId: String, uow: UnitOfWork)
+    public suspend fun markAsFailed(eventId: EventId, error: Exception, watchdogId: String, unitOfWork: UnitOfWork)
+
+    public suspend fun updateWatchdog(eventId: EventId, watchdogId: String): Boolean
+
+    public suspend fun recordFailure(eventUid: Long, error: Exception, unitOfWork: UnitOfWork)
+
+    public suspend fun rescheduleAt(eventId: EventId, at: Instant, watchdogId: String, unitOfWork: UnitOfWork)
+
+    public suspend fun getNumberOfFailuresFor(eventUid: Long): Int
 }
 

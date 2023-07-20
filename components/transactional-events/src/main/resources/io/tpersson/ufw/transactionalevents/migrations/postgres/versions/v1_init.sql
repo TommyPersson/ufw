@@ -40,7 +40,7 @@ CREATE UNIQUE INDEX UX_ufw__transactional_events__queue__id_queue_id
 
 -- TODO more indexes
 
-CREATE TABLE ufw__transactional_events__queue_failures
+CREATE TABLE ufw__transactional_events__failures
 (
     id                TEXT        NOT NULL PRIMARY KEY,
     event_uid         BIGINT      NOT NULL,

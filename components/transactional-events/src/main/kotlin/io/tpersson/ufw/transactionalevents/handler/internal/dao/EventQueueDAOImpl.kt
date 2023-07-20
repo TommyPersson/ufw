@@ -9,7 +9,6 @@ import io.tpersson.ufw.transactionalevents.handler.EventQueueId
 import io.tpersson.ufw.transactionalevents.handler.EventState
 import jakarta.inject.Inject
 import java.time.Instant
-import kotlin.reflect.KProperty1
 
 public class EventQueueDAOImpl @Inject constructor(
     private val database: Database
@@ -18,16 +17,16 @@ public class EventQueueDAOImpl @Inject constructor(
         unitOfWork.add(Queries.Updates.Insert(event))
     }
 
-    override suspend fun getNext(eventQueueId: EventQueueId, now: Instant): EventEntityData? {
-        return database.select(Queries.Selects.SelectNextEvent(eventQueueId, now))
+    override suspend fun getNext(queueId: EventQueueId, now: Instant): EventEntityData? {
+        return database.select(Queries.Selects.SelectNextEvent(queueId, now))
     }
 
-    override suspend fun getById(eventQueueId: EventQueueId, eventId: EventId): EventEntityData? {
-        TODO("Not yet implemented")
+    override suspend fun getById(queueId: EventQueueId, eventId: EventId): EventEntityData? {
+        return database.select(Queries.Selects.GetById(queueId, eventId))
     }
 
     override suspend fun markAsInProgress(
-        eventQueueId: EventQueueId,
+        queueId: EventQueueId,
         eventId: EventId,
         now: Instant,
         watchdogId: String,
@@ -35,7 +34,7 @@ public class EventQueueDAOImpl @Inject constructor(
     ) {
         unitOfWork.add(
             Queries.Updates.MarkEventAsInProgress(
-                queueId = eventQueueId,
+                queueId = queueId,
                 eventId = eventId,
                 timestamp = now,
                 watchdogOwner = watchdogId,
@@ -44,7 +43,7 @@ public class EventQueueDAOImpl @Inject constructor(
     }
 
     override suspend fun markAsSuccessful(
-        eventQueueId: EventQueueId,
+        queueId: EventQueueId,
         eventId: EventId,
         now: Instant,
         expireAt: Instant,
@@ -53,7 +52,7 @@ public class EventQueueDAOImpl @Inject constructor(
     ) {
         unitOfWork.add(
             Queries.Updates.MarkEventAsSuccessful(
-                queueId = eventQueueId,
+                queueId = queueId,
                 eventId = eventId,
                 timestamp = now,
                 expireAt = expireAt,
@@ -63,18 +62,26 @@ public class EventQueueDAOImpl @Inject constructor(
     }
 
     override suspend fun markAsFailed(
-        eventQueueId: EventQueueId,
+        queueId: EventQueueId,
         eventId: EventId,
         now: Instant,
         expireAt: Instant,
         watchdogId: String,
         unitOfWork: UnitOfWork
     ) {
-        TODO("Not yet implemented")
+        unitOfWork.add(
+            Queries.Updates.MarkEventAsFailed(
+                queueId = queueId,
+                eventId = eventId,
+                timestamp = now,
+                expireAt = expireAt,
+                expectedWatchdogOwner = watchdogId
+            )
+        )
     }
 
     override suspend fun markAsScheduled(
-        eventQueueId: EventQueueId,
+        queueId: EventQueueId,
         eventId: EventId,
         now: Instant,
         scheduleFor: Instant,
@@ -92,7 +99,7 @@ public class EventQueueDAOImpl @Inject constructor(
     }
 
     override suspend fun updateWatchdog(
-        eventQueueId: EventQueueId,
+        queueId: EventQueueId,
         eventId: EventId,
         now: Instant,
         watchdogId: String
@@ -128,6 +135,18 @@ public class EventQueueDAOImpl @Inject constructor(
                   AND scheduled_for <= :now
                 ORDER BY scheduled_for ASC
                 LIMIT 1
+                """.trimIndent()
+            )
+
+            data class GetById(
+                val queueId: EventQueueId,
+                val eventId: EventId,
+            ) : TypedSelect<EventEntityData>(
+                """
+                SELECT * 
+                FROM $TableName
+                WHERE queue_id = :queueId.id
+                  AND id = :eventId.value
                 """.trimIndent()
             )
 
@@ -215,6 +234,28 @@ public class EventQueueDAOImpl @Inject constructor(
                 WHERE state = ${EventState.InProgress.id}
                   AND id = :eventId.value
                   AND queue_id = :queueId.id
+                  AND watchdog_owner = :expectedWatchdogOwner
+                """.trimIndent()
+            )
+
+            data class MarkEventAsFailed(
+                val eventId: EventId,
+                val queueId: EventQueueId,
+                val timestamp: Instant,
+                val expireAt: Instant,
+                val toState: Int = EventState.Failed.id,
+                val expectedWatchdogOwner: String,
+            ) : TypedUpdate(
+                """
+                UPDATE $TableName
+                SET state = :toState,
+                    state_changed_at = :timestamp,
+                    expire_at = :expireAt,
+                    watchdog_timestamp = NULL,
+                    watchdog_owner = NULL
+                WHERE state = ${EventState.InProgress.id}
+                  AND queue_id = :queueId.id
+                  AND id = :eventId.value
                   AND watchdog_owner = :expectedWatchdogOwner
                 """.trimIndent()
             )

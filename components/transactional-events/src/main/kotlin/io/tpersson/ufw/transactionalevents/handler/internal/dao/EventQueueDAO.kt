@@ -4,23 +4,22 @@ import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.transactionalevents.EventId
 import io.tpersson.ufw.transactionalevents.handler.EventQueueId
 import java.time.Instant
-import kotlin.reflect.KProperty1
 
 public interface EventQueueDAO {
     public suspend fun insert(event: EventEntityData, unitOfWork: UnitOfWork)
 
     public suspend fun getNext(
-        eventQueueId: EventQueueId,
+        queueId: EventQueueId,
         now: Instant
     ): EventEntityData?
 
     public suspend fun getById(
-        eventQueueId: EventQueueId,
+        queueId: EventQueueId,
         eventId: EventId
     ): EventEntityData?
 
     public suspend fun markAsInProgress(
-        eventQueueId: EventQueueId,
+        queueId: EventQueueId,
         eventId: EventId,
         now: Instant,
         watchdogId: String,
@@ -28,7 +27,7 @@ public interface EventQueueDAO {
     )
 
     public suspend fun markAsSuccessful(
-        eventQueueId: EventQueueId,
+        queueId: EventQueueId,
         eventId: EventId,
         now: Instant,
         expireAt: Instant,
@@ -37,7 +36,7 @@ public interface EventQueueDAO {
     )
 
     public suspend fun markAsFailed(
-        eventQueueId: EventQueueId,
+        queueId: EventQueueId,
         eventId: EventId,
         now: Instant,
         expireAt: Instant,
@@ -46,7 +45,7 @@ public interface EventQueueDAO {
     )
 
     public suspend fun markAsScheduled(
-        eventQueueId: EventQueueId,
+        queueId: EventQueueId,
         eventId: EventId,
         now: Instant,
         scheduleFor: Instant,
@@ -60,7 +59,7 @@ public interface EventQueueDAO {
     ): Int
 
     public suspend fun updateWatchdog(
-        eventQueueId: EventQueueId,
+        queueId: EventQueueId,
         eventId: EventId,
         now: Instant,
         watchdogId: String,
@@ -73,5 +72,5 @@ public interface EventQueueDAO {
     public suspend fun debugGetAllEvents(queueId: EventQueueId? = null): List<EventEntityData>
 
     public suspend fun debugTruncate(unitOfWork: UnitOfWork)
-    
+
 }

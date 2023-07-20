@@ -1,6 +1,7 @@
 package io.tpersson.ufw.transactionalevents.handler.internal
 
 import io.tpersson.ufw.transactionalevents.handler.EventQueueId
+import io.tpersson.ufw.transactionalevents.handler.internal.dao.EventFailuresDAO
 import io.tpersson.ufw.transactionalevents.handler.internal.dao.EventQueueDAO
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
@@ -12,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap
 @Singleton
 public class EventQueueProviderImpl @Inject constructor(
     private val eventQueueDAO: EventQueueDAO,
+    private val eventFailuresDAO: EventFailuresDAO,
     private val clock: InstantSource
 ) : EventQueueProvider {
 
@@ -23,7 +25,8 @@ public class EventQueueProviderImpl @Inject constructor(
             queues.getOrPut(queueId) {
                 EventQueueImpl(
                     queueId = queueId,
-                    dao = eventQueueDAO,
+                    queueDAO = eventQueueDAO,
+                    failuresDAO = eventFailuresDAO,
                     clock = clock
                 )
             }

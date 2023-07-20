@@ -27,11 +27,13 @@ import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Timeout
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.lifecycle.Startables
 import org.testcontainers.utility.DockerImageName
 import java.time.Instant
 
+@Timeout(5)
 internal class HandlerIntegrationTests {
 
     private companion object {
@@ -94,17 +96,9 @@ internal class HandlerIntegrationTests {
 
         publish("test-topic", event)
 
-        await.untilAsserted {
-            runBlocking {
-                assertThat(keyValueStore.get(event.resultKey)?.value).isEqualTo(event.text)
-            }
-        }
-    }
+        waitUntilQueueIsCompleted()
 
-    private suspend fun publish(topic: String, event: Event) {
-        unitOfWorkFactory.use { uow ->
-            publisher.publish(topic, event, uow)
-        }
+        assertThat(keyValueStore.get(event.resultKey)?.value).isEqualTo(event.text)
     }
 
     @Test
@@ -122,6 +116,18 @@ internal class HandlerIntegrationTests {
         assertThat(allEvents).hasSize(1)
     }
 
+    @Test
+    fun `Failures - Event state is set to 'Failed' on failure`(): Unit = runBlocking {
+        val testEvent = TestEvent1("Hello, World!", shouldFail = true)
+
+        publish("test-topic", testEvent)
+
+        waitUntilQueueIsCompleted()
+
+        val event = eventQueueDAO.getById(testEventHandler1.eventQueueId, testEvent.id)!!
+        assertThat(event.state).isEqualTo(EventState.Failed.id)
+    }
+
     private suspend fun waitUntilQueueIsCompleted() {
         await.untilCallTo {
             runBlocking { eventQueueDAO.debugGetAllEvents() }
@@ -130,10 +136,16 @@ internal class HandlerIntegrationTests {
         }
     }
 
+    private suspend fun publish(topic: String, event: Event) {
+        unitOfWorkFactory.use { uow ->
+            publisher.publish(topic, event, uow)
+        }
+    }
 
     @JsonTypeName("TestEvent1")
     data class TestEvent1(
         val text: String,
+        val shouldFail: Boolean = false,
         override val id: EventId = EventId(),
         override val timestamp: Instant = Instant.now()
     ) : Event {
@@ -147,6 +159,10 @@ internal class HandlerIntegrationTests {
 
         @EventHandler(topic = "test-topic")
         suspend fun handle(event: TestEvent1, context: EventContext) {
+            if (event.shouldFail) {
+                error("Failed")
+            }
+
             keyValueStore.put(event.resultKey, event.text, unitOfWork = context.unitOfWork)
         }
     }

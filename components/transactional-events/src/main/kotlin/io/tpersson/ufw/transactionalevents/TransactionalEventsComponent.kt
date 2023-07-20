@@ -7,6 +7,7 @@ import io.tpersson.ufw.managed.ManagedComponent
 import io.tpersson.ufw.transactionalevents.handler.IncomingEventIngester
 import io.tpersson.ufw.transactionalevents.handler.TransactionalEventHandler
 import io.tpersson.ufw.transactionalevents.handler.internal.*
+import io.tpersson.ufw.transactionalevents.handler.internal.dao.EventFailuresDAO
 import io.tpersson.ufw.transactionalevents.handler.internal.dao.EventQueueDAO
 import io.tpersson.ufw.transactionalevents.handler.internal.dao.EventQueueDAOImpl
 import io.tpersson.ufw.transactionalevents.publisher.OutgoingEventTransport
@@ -61,10 +62,15 @@ public class TransactionalEventsComponent @Inject constructor(
                 database = databaseComponent.database
             )
 
+            val eventFailuresDAO = EventFailuresDAO(
+                database = databaseComponent.database
+            )
+
             val eventHandlersProvider = SimpleEventHandlersProvider(handlers)
 
             val eventQueueProvider = EventQueueProviderImpl(
                 eventQueueDAO = eventQueueDAO,
+                eventFailuresDAO = eventFailuresDAO,
                 clock = coreComponent.clock
             )
 
@@ -91,6 +97,7 @@ public class TransactionalEventsComponent @Inject constructor(
                 unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
                 objectMapper = coreComponent.objectMapper,
                 config = config,
+                clock = coreComponent.clock
             )
 
             managedComponent.register(eventOutboxWorker)
