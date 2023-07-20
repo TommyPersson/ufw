@@ -4,6 +4,7 @@ import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.transactionalevents.EventId
 import io.tpersson.ufw.transactionalevents.handler.EventQueueId
 import java.time.Instant
+import kotlin.reflect.KProperty1
 
 public interface EventQueueDAO {
     public suspend fun insert(event: EventEntityData, unitOfWork: UnitOfWork)
@@ -69,7 +70,7 @@ public interface EventQueueDAO {
 
     //public suspend fun getQueueStatistics(queueId: EventQueueId<TEvent>): EventQueueStatistics<TEvent>
 
-    public suspend fun debugGetAllEvents(): List<EventEntityData>
+    public suspend fun debugGetAllEvents(queueId: EventQueueId? = null): List<EventEntityData>
 
     public suspend fun debugTruncate(unitOfWork: UnitOfWork)
     

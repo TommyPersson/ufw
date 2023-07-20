@@ -45,8 +45,10 @@ public class EventOutboxDAO @Inject constructor(
                     :data.dataJson::jsonb,
                     :data.ceDataJson::jsonb,
                     :data.timestamp
-                )                
-                """.trimIndent())
+                ) ON CONFLICT (id) DO NOTHING              
+                """.trimIndent(),
+                minimumAffectedRows = 0
+            )
 
             class DeleteBatch(
                 val uids: List<Long>

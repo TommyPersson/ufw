@@ -9,6 +9,7 @@ import io.tpersson.ufw.transactionalevents.handler.EventQueueId
 import io.tpersson.ufw.transactionalevents.handler.EventState
 import jakarta.inject.Inject
 import java.time.Instant
+import kotlin.reflect.KProperty1
 
 public class EventQueueDAOImpl @Inject constructor(
     private val database: Database
@@ -103,8 +104,8 @@ public class EventQueueDAOImpl @Inject constructor(
         TODO("Not yet implemented")
     }
 
-    override suspend fun debugGetAllEvents(): List<EventEntityData> {
-        TODO("Not yet implemented")
+    override suspend fun debugGetAllEvents(queueId: EventQueueId?): List<EventEntityData> {
+        return database.selectList(Queries.Selects.DebugSelectAll(queueId))
     }
 
     override suspend fun debugTruncate(unitOfWork: UnitOfWork) {
@@ -129,6 +130,14 @@ public class EventQueueDAOImpl @Inject constructor(
                 LIMIT 1
                 """.trimIndent()
             )
+
+            data class DebugSelectAll(
+                val queueId: EventQueueId?
+            ) : TypedSelect<EventEntityData>("""
+                SELECT * FROM $TableName 
+                WHERE queue_id = :queueId.id::text
+                   OR :queueId.id::text IS NULL
+                """)
         }
 
         object Updates {

@@ -17,15 +17,16 @@ import io.tpersson.ufw.transactionalevents.EventId
 import io.tpersson.ufw.transactionalevents.dsl.transactionalEvents
 import io.tpersson.ufw.transactionalevents.handler.EventContext
 import io.tpersson.ufw.transactionalevents.handler.EventHandler
+import io.tpersson.ufw.transactionalevents.handler.EventState
 import io.tpersson.ufw.transactionalevents.handler.TransactionalEventHandler
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
-import org.awaitility.kotlin.untilAsserted
+import org.awaitility.kotlin.matches
+import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.engine.execution.ExtensionValuesStore
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.lifecycle.Startables
 import org.testcontainers.utility.DockerImageName
@@ -61,17 +62,18 @@ internal class HandlerIntegrationTests {
             keyValueStore {
             }
             transactionalEvents {
-                handlers = setOf(
-                    TestEventHandler1(components.keyValueStore.keyValueStore)
-                )
             }
         }
+
+        val testEventHandler1 = TestEventHandler1(ufw.keyValueStore.keyValueStore)
 
         val keyValueStore = ufw.keyValueStore.keyValueStore
         val unitOfWorkFactory = ufw.database.unitOfWorkFactory
         val publisher = ufw.transactionalEvents.eventPublisher
+        val eventQueueDAO = ufw.transactionalEvents.eventQueueDAO
 
         init {
+            ufw.transactionalEvents.registerHandler(testEventHandler1)
             ufw.database.migrator.run()
         }
     }
@@ -90,9 +92,7 @@ internal class HandlerIntegrationTests {
     fun `Basic - Can handle events`(): Unit = runBlocking {
         val event = TestEvent1("Hello, World!")
 
-        unitOfWorkFactory.use { uow ->
-            publisher.publish("test-topic", event, uow)
-        }
+        publish("test-topic", event)
 
         await.untilAsserted {
             runBlocking {
@@ -100,6 +100,36 @@ internal class HandlerIntegrationTests {
             }
         }
     }
+
+    private suspend fun publish(topic: String, event: Event) {
+        unitOfWorkFactory.use { uow ->
+            publisher.publish(topic, event, uow)
+        }
+    }
+
+    @Test
+    fun `Basic - Enqueueing the same event ID to the same queue is idempotent`(): Unit = runBlocking {
+        val event = TestEvent1("Hello, World!")
+        val eventDuplicate = event.copy()
+
+        publish("test-topic", event)
+        publish("test-topic", eventDuplicate)
+
+        waitUntilQueueIsCompleted()
+
+        val allEvents = eventQueueDAO.debugGetAllEvents(testEventHandler1.eventQueueId)
+
+        assertThat(allEvents).hasSize(1)
+    }
+
+    private suspend fun waitUntilQueueIsCompleted() {
+        await.untilCallTo {
+            runBlocking { eventQueueDAO.debugGetAllEvents() }
+        } matches {
+            it!!.size > 0 && it.all { job -> job.state in setOf(EventState.Successful.id, EventState.Failed.id) }
+        }
+    }
+
 
     @JsonTypeName("TestEvent1")
     data class TestEvent1(

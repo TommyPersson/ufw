@@ -13,6 +13,9 @@ CREATE TABLE ufw__transactional_events__outbox
     timestamp    TIMESTAMPTZ NOT NULL
 );
 
+CREATE UNIQUE INDEX UX_ufw__transactional_events__outbox__id
+    ON ufw__transactional_events__outbox (id);
+
 CREATE TABLE ufw__transactional_events__queue
 (
     uid                SERIAL      NOT NULL PRIMARY KEY,
@@ -32,7 +35,7 @@ CREATE TABLE ufw__transactional_events__queue
     expire_at          TIMESTAMPTZ NULL
 );
 
-CREATE UNIQUE INDEX UX_ufw__job_queue__jobs__id_queue_id
+CREATE UNIQUE INDEX UX_ufw__transactional_events__queue__id_queue_id
     ON ufw__transactional_events__queue (queue_id, id);
 
 -- TODO more indexes
@@ -46,7 +49,7 @@ CREATE TABLE ufw__transactional_events__queue_failures
     error_message     TEXT        NOT NULL,
     error_stack_trace TEXT        NOT NULL,
 
-    CONSTRAINT fk_job FOREIGN KEY (event_uid)
+    CONSTRAINT fk_event FOREIGN KEY (event_uid)
         REFERENCES ufw__transactional_events__queue (uid)
         ON DELETE CASCADE
 );

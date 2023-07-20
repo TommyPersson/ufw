@@ -6,10 +6,8 @@ import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.managed.ManagedComponent
 import io.tpersson.ufw.transactionalevents.handler.IncomingEventIngester
 import io.tpersson.ufw.transactionalevents.handler.TransactionalEventHandler
-import io.tpersson.ufw.transactionalevents.handler.internal.EventQueueProcessor
-import io.tpersson.ufw.transactionalevents.handler.internal.EventQueueProviderImpl
-import io.tpersson.ufw.transactionalevents.handler.internal.IncomingEventIngesterImpl
-import io.tpersson.ufw.transactionalevents.handler.internal.SimpleEventHandlersProvider
+import io.tpersson.ufw.transactionalevents.handler.internal.*
+import io.tpersson.ufw.transactionalevents.handler.internal.dao.EventQueueDAO
 import io.tpersson.ufw.transactionalevents.handler.internal.dao.EventQueueDAOImpl
 import io.tpersson.ufw.transactionalevents.publisher.OutgoingEventTransport
 import io.tpersson.ufw.transactionalevents.publisher.internal.dao.EventOutboxDAO
@@ -22,8 +20,14 @@ import jakarta.inject.Inject
 
 public class TransactionalEventsComponent @Inject constructor(
     public val eventPublisher: TransactionalEventPublisher,
-    public val eventIngester: IncomingEventIngester
+    public val eventIngester: IncomingEventIngester,
+    internal val eventQueueDAO: EventQueueDAO,
+    internal val eventHandlersProvider: EventHandlersProvider,
 ) {
+    public fun registerHandler(handler: TransactionalEventHandler) {
+        eventHandlersProvider.add(handler)
+    }
+
     init {
         Migrator.registerMigrationScript(
             componentName = "transactional_events",
@@ -94,7 +98,9 @@ public class TransactionalEventsComponent @Inject constructor(
 
             return TransactionalEventsComponent(
                 eventPublisher = publisher,
-                eventIngester = ingester
+                eventIngester = ingester,
+                eventQueueDAO = eventQueueDAO,
+                eventHandlersProvider = eventHandlersProvider
             )
         }
     }

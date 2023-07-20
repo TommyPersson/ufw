@@ -1,17 +1,10 @@
 package io.tpersson.ufw.transactionalevents.handler.internal
 
-import com.fasterxml.jackson.annotation.JsonTypeName
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
-import io.tpersson.ufw.transactionalevents.Event
-import io.tpersson.ufw.transactionalevents.handler.EventHandler
 import io.tpersson.ufw.transactionalevents.handler.IncomingEvent
 import io.tpersson.ufw.transactionalevents.handler.IncomingEventIngester
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
-import kotlin.reflect.KClass
-import kotlin.reflect.full.declaredMemberFunctions
-import kotlin.reflect.full.findAnnotation
-import kotlin.reflect.full.hasAnnotation
 
 @Singleton
 public class IncomingEventIngesterImpl @Inject constructor(
@@ -21,12 +14,9 @@ public class IncomingEventIngesterImpl @Inject constructor(
 
     private val handlers = eventHandlersProvider.get()
 
-    private val functionsByTopicAndType = mutableMapOf<Pair<String, String>, List<EventHandlerFunction>>()
-
-    init {
-        val functions = handlers.flatMap { it.functions.toList() }.groupBy({ it.first }, { it.second })
-
-        functionsByTopicAndType.putAll(functions)
+    // TODO reevaluate when new handlers are added to the provider
+    private val functionsByTopicAndType by lazy {
+        handlers.flatMap { it.functions.toList() }.groupBy({ it.first }, { it.second })
     }
 
     override suspend fun ingest(events: List<IncomingEvent>, unitOfWork: UnitOfWork) {

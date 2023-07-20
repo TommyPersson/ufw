@@ -122,6 +122,25 @@ internal class PublisherIntegrationTests {
         assertThat(testOutgoingEventTransport.sentBatches).isEmpty()
     }
 
+
+    @Test
+    fun `Idempotency - Events with the same ID are not duplicated`(): Unit = runBlocking {
+        val event = TestEvent(
+            id = EventId(),
+            timestamp = testClock.instant(),
+            content = "Hello, World"
+        )
+
+        unitOfWorkFactory.use { uow ->
+            publisher.publish("test-topic", event, uow)
+            publisher.publish("test-topic", event.copy(), uow)
+        }
+
+        await.untilAsserted {
+            assertThat(testOutgoingEventTransport.sentBatches.flatten()).hasSize(1)
+        }
+    }
+
     @JsonTypeName("TEST_EVENT")
     data class TestEvent(
         override val id: EventId,
