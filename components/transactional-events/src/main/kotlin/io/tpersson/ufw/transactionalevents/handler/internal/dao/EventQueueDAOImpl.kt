@@ -88,7 +88,15 @@ public class EventQueueDAOImpl @Inject constructor(
         watchdogId: String,
         unitOfWork: UnitOfWork
     ) {
-        TODO("Not yet implemented")
+        unitOfWork.add(
+            Queries.Updates.MarkJobAsScheduled(
+                queueId = queueId,
+                eventId = eventId,
+                timestamp = now,
+                scheduledFor = scheduleFor,
+                expectedWatchdogOwner = watchdogId
+            )
+        )
     }
 
     override suspend fun markStaleEventsAsScheduled(
@@ -115,8 +123,8 @@ public class EventQueueDAOImpl @Inject constructor(
         return database.selectList(Queries.Selects.DebugSelectAll(queueId))
     }
 
-    override suspend fun debugTruncate(unitOfWork: UnitOfWork) {
-        TODO("Not yet implemented")
+    override suspend fun debugTruncate() {
+        database.update(Queries.Updates.DebugTruncate)
     }
 
     internal object Queries {
@@ -259,6 +267,30 @@ public class EventQueueDAOImpl @Inject constructor(
                   AND watchdog_owner = :expectedWatchdogOwner
                 """.trimIndent()
             )
+
+            data class MarkJobAsScheduled(
+                val eventId: EventId,
+                val queueId: EventQueueId,
+                val timestamp: Instant,
+                val scheduledFor: Instant,
+                val toState: Int = EventState.Scheduled.id,
+                val expectedWatchdogOwner: String,
+            ) : TypedUpdate(
+                """
+                UPDATE $TableName
+                SET state = :toState,
+                    state_changed_at = :timestamp,
+                    scheduled_for = :scheduledFor,
+                    watchdog_timestamp = NULL,
+                    watchdog_owner = NULL
+                WHERE state = ${EventState.InProgress.id}
+                  AND queue_id = :queueId.id
+                  AND id = :eventId.value
+                  AND watchdog_owner = :expectedWatchdogOwner
+                """.trimIndent()
+            )
+
+            object DebugTruncate : TypedUpdate("DELETE FROM $TableName")
         }
     }
 }

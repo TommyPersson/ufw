@@ -21,6 +21,7 @@ import jakarta.inject.Singleton
 import kotlinx.coroutines.*
 import kotlinx.coroutines.slf4j.MDCContext
 import org.slf4j.MDC
+import java.lang.reflect.InvocationTargetException
 import java.time.Duration
 import java.time.InstantSource
 import java.util.UUID
@@ -136,7 +137,13 @@ public class SingleEventQueueProcessor(
 
             logger.info("Finished work on event: '${event.queueId}/${event.id}'. [Duration = ${duration.toString(DurationUnit.MILLISECONDS)}]")
         } catch (e: Exception) {
-            handleFailure(event, eventData, handlerFunction, e)
+            val realException = if (e is InvocationTargetException) {
+                e.targetException
+            } else {
+                e
+            }
+
+            handleFailure(event, eventData, handlerFunction, realException as Exception) // TODO switch to Throwable?
         }
 
         watchdogJob.cancel()

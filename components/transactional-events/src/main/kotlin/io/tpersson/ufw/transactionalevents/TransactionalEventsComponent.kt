@@ -23,6 +23,7 @@ public class TransactionalEventsComponent @Inject constructor(
     public val eventPublisher: TransactionalEventPublisher,
     public val eventIngester: IncomingEventIngester,
     internal val eventQueueDAO: EventQueueDAO,
+    internal val eventFailuresDAO: EventFailuresDAO,
     internal val eventHandlersProvider: EventHandlersProvider,
 ) {
     public fun registerHandler(handler: TransactionalEventHandler) {
@@ -107,6 +108,7 @@ public class TransactionalEventsComponent @Inject constructor(
                 eventPublisher = publisher,
                 eventIngester = ingester,
                 eventQueueDAO = eventQueueDAO,
+                eventFailuresDAO = eventFailuresDAO,
                 eventHandlersProvider = eventHandlersProvider
             )
         }

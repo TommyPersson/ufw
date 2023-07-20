@@ -18,6 +18,10 @@ public class EventFailuresDAO @Inject constructor(
         unitOfWork.add(Queries.Updates.Insert(failure))
     }
 
+    public suspend fun getLatestFor(eventUid: Long, limit: Int): List<EventFailure> {
+        return database.selectList(Queries.Selects.GetLatest(eventUid, limit))
+    }
+
     internal object Queries {
         const val TableName = "ufw__transactional_events__failures"
 
@@ -31,6 +35,18 @@ public class EventFailuresDAO @Inject constructor(
                 SELECT count(*) as count 
                 FROM $TableName
                 WHERE event_uid = :eventUid
+                """.trimIndent()
+            )
+
+            data class GetLatest(
+                val eventUid: Long,
+                val limit: Int
+            ) : TypedSelect<EventFailure>(
+                """
+                SELECT *
+                FROM $TableName
+                WHERE event_uid = :eventUid
+                LIMIT :limit
                 """.trimIndent()
             )
         }

@@ -76,7 +76,7 @@ public class EventQueueImpl(
     }
 
     override suspend fun rescheduleAt(eventId: EventId, at: Instant, watchdogId: String, unitOfWork: UnitOfWork) {
-        TODO("Not yet implemented")
+        queueDAO.markAsScheduled(queueId, eventId, clock.instant(), at, watchdogId, unitOfWork)
     }
 
     override suspend fun getNumberOfFailuresFor(eventUid: Long): Int {

@@ -15,10 +15,7 @@ import io.tpersson.ufw.test.TestInstantSource
 import io.tpersson.ufw.transactionalevents.Event
 import io.tpersson.ufw.transactionalevents.EventId
 import io.tpersson.ufw.transactionalevents.dsl.transactionalEvents
-import io.tpersson.ufw.transactionalevents.handler.EventContext
-import io.tpersson.ufw.transactionalevents.handler.EventHandler
-import io.tpersson.ufw.transactionalevents.handler.EventState
-import io.tpersson.ufw.transactionalevents.handler.TransactionalEventHandler
+import io.tpersson.ufw.transactionalevents.handler.*
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
@@ -73,6 +70,7 @@ internal class HandlerIntegrationTests {
         val unitOfWorkFactory = ufw.database.unitOfWorkFactory
         val publisher = ufw.transactionalEvents.eventPublisher
         val eventQueueDAO = ufw.transactionalEvents.eventQueueDAO
+        val eventFailuresDAO = ufw.transactionalEvents.eventFailuresDAO
 
         init {
             ufw.transactionalEvents.registerHandler(testEventHandler1)
@@ -88,6 +86,7 @@ internal class HandlerIntegrationTests {
     @AfterEach
     fun afterEach(): Unit = runBlocking {
         ufw.managed.managedRunner.stopAll()
+        eventQueueDAO.debugTruncate()
     }
 
     @Test
@@ -128,6 +127,22 @@ internal class HandlerIntegrationTests {
         assertThat(event.state).isEqualTo(EventState.Failed.id)
     }
 
+    @Test
+    fun `Failures - Am EventFailure is recorded for each failure`(): Unit = runBlocking {
+        val testEvent = TestEvent1("Hello, World!", shouldFail = true, numRetries = 3)
+
+        publish("test-topic", testEvent)
+
+        waitUntilQueueIsCompleted()
+
+        val event = eventQueueDAO.getById(testEventHandler1.eventQueueId, testEvent.id)!!
+        val numFailures = eventFailuresDAO.getNumberOfFailuresFor(event.uid!!)
+        val failures = eventFailuresDAO.getLatestFor(event.uid!!, limit = 10)
+
+        assertThat(numFailures).isEqualTo(4)
+        assertThat(failures).hasSize(4)
+    }
+
     private suspend fun waitUntilQueueIsCompleted() {
         await.untilCallTo {
             runBlocking { eventQueueDAO.debugGetAllEvents() }
@@ -146,8 +161,9 @@ internal class HandlerIntegrationTests {
     data class TestEvent1(
         val text: String,
         val shouldFail: Boolean = false,
+        val numRetries: Int = 0,
         override val id: EventId = EventId(),
-        override val timestamp: Instant = Instant.now()
+        override val timestamp: Instant = Instant.now(),
     ) : Event {
         @JsonIgnore
         val resultKey = KeyValueStore.Key.of<String>("test-results:TestEvent1:$id")
@@ -164,6 +180,19 @@ internal class HandlerIntegrationTests {
             }
 
             keyValueStore.put(event.resultKey, event.text, unitOfWork = context.unitOfWork)
+        }
+
+        override fun onFailure(event: Event, error: Exception, context: EventFailureContext): FailureAction {
+            val numRetries = when (event) {
+                is TestEvent1 -> event.numRetries
+                else -> 0
+            }
+
+            return if (context.numberOfFailures > numRetries) {
+                FailureAction.GiveUp
+            } else {
+                FailureAction.RescheduleNow
+            }
         }
     }
 }

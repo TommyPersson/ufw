@@ -71,6 +71,6 @@ public interface EventQueueDAO {
 
     public suspend fun debugGetAllEvents(queueId: EventQueueId? = null): List<EventEntityData>
 
-    public suspend fun debugTruncate(unitOfWork: UnitOfWork)
+    public suspend fun debugTruncate()
 
 }
