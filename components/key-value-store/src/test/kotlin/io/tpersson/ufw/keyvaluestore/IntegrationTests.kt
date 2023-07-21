@@ -198,6 +198,28 @@ internal class IntegrationTests {
         assertThat(storageEngine.debugDumpTable()).isEmpty()
     }
 
+    @Test
+    fun `Search - Can list entries by prefix`(): Unit = runBlocking {
+        keyValueStore.put(KeyValueStore.Key.of<Int>("counter:1"), 1)
+        keyValueStore.put(KeyValueStore.Key.of<Int>("counter:2"), 2)
+        keyValueStore.put(KeyValueStore.Key.of<Int>("counter:3"), 3)
+        keyValueStore.put(KeyValueStore.Key.of<Int>("counter:4"), 4)
+        keyValueStore.put(KeyValueStore.Key.of<Int>("counter:5"), 5)
+        keyValueStore.put(KeyValueStore.Key.of<Int>("counter:6"), 6)
+        keyValueStore.put(KeyValueStore.Key.of<Int>("not-counter:7"), 7)
+
+        val entries1 = keyValueStore.list("counter:", limit = 3, offset = 0)
+        assertThat(entries1).hasSize(3)
+        assertThat(entries1[0].parseAs(Int::class).value).isEqualTo(1)
+        assertThat(entries1[1].parseAs(Int::class).value).isEqualTo(2)
+        assertThat(entries1[2].parseAs(Int::class).value).isEqualTo(3)
+
+        val entries2 = keyValueStore.list("counter:", limit = 100, offset = 4)
+        assertThat(entries2).hasSize(2)
+        assertThat(entries2[0].parseAs(Int::class).value).isEqualTo(5)
+        assertThat(entries2[1].parseAs(Int::class).value).isEqualTo(6)
+    }
+
     class TestInstantSource : InstantSource {
         private var now = Instant.now()
 

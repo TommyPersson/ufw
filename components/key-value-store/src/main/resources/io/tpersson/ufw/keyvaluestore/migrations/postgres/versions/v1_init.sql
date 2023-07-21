@@ -12,3 +12,6 @@ CREATE TABLE ufw__key_value_store
     updated_at TIMESTAMPTZ NOT NULL,
     version    INT
 );
+
+CREATE UNIQUE INDEX ufw__key_value_store__key_prefix
+    ON ufw__key_value_store (key text_pattern_ops)

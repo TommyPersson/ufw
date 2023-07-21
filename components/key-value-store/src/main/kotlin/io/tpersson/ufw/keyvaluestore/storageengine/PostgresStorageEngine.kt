@@ -17,26 +17,11 @@ public class PostgresStorageEngine @Inject constructor(
 
     // TODO custom exception for expectedVersion mismatch?
 
-    public companion object {
-        private const val TableName: String = "ufw__key_value_store"
-    }
-
     override suspend fun get(key: String): EntryDataFromRead? {
         val data = database.select(Queries.Selects.GetEntryByKey(key))
             ?: return null
 
-        val value = when (data.type) {
-            EntryType.Json.int -> EntryValue.Json(data.json!!)
-            EntryType.Bytes.int -> EntryValue.Bytes(data.bytes!!)
-            else -> TODO()
-        }
-
-        return EntryDataFromRead(
-            value = value,
-            expiresAt = data.expiresAt,
-            updatedAt = data.updatedAt,
-            version = data.version
-        )
+        return data.asEntryDataFromRead()
     }
 
     override suspend fun put(
@@ -74,12 +59,33 @@ public class PostgresStorageEngine @Inject constructor(
         return database.update(Queries.Updates.DeleteAllExpired(now))
     }
 
+    override suspend fun list(prefix: String, limit: Int, offset: Int): List<EntryDataFromRead> {
+        return database.selectList(Queries.Selects.ListByPrefix(prefix, limit, offset))
+            .map { it.asEntryDataFromRead() }
+    }
+
     public suspend fun debugTruncate(): Unit {
         database.update(Queries.Updates.TruncateTable)
     }
 
     public suspend fun debugDumpTable(): List<Map<String, Any?>> {
         return database.selectList(Queries.Selects.DebugDumpTable)
+    }
+
+    private fun EntryData.asEntryDataFromRead(): EntryDataFromRead {
+        val value = when (type) {
+            EntryType.Json.int -> EntryValue.Json(json!!)
+            EntryType.Bytes.int -> EntryValue.Bytes(bytes!!)
+            else -> TODO()
+        }
+
+        return EntryDataFromRead(
+            key = key,
+            value = value,
+            expiresAt = expiresAt,
+            updatedAt = updatedAt,
+            version = version
+        )
     }
 
     internal data class EntryData(
@@ -94,9 +100,27 @@ public class PostgresStorageEngine @Inject constructor(
 
     @Suppress("unused")
     private object Queries {
+
+        private const val TableName: String = "ufw__key_value_store"
+
         object Selects {
             class GetEntryByKey(val key: String) : TypedSelect<EntryData>(
                 "SELECT * FROM $TableName WHERE key = :key"
+            )
+
+            class ListByPrefix(
+                val prefix: String,
+                val limit: Int,
+                val offset: Int
+            ) : TypedSelect<EntryData>(
+                """
+                SELECT * 
+                FROM $TableName 
+                WHERE key LIKE (:prefix || '%')
+                ORDER BY key
+                LIMIT :limit
+                OFFSET :offset
+                """.trimIndent()
             )
 
             object DebugDumpTable : TypedSelect<Map<String, Any?>>("SELECT * FROM $TableName")

@@ -19,5 +19,7 @@ public interface StorageEngine {
     public suspend fun deleteExpiredEntries(
         now: Instant
     ): Int
+
+    public suspend fun list(prefix: String, limit: Int, offset: Int): List<EntryDataFromRead>
 }
 
