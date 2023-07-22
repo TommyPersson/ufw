@@ -34,6 +34,7 @@ import org.testcontainers.utility.DockerImageName
 import java.time.Duration
 import java.time.Instant
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 @Timeout(5)
 internal class HandlerIntegrationTests {
@@ -68,7 +69,7 @@ internal class HandlerIntegrationTests {
             transactionalEvents {
                 configure {
                     stalenessDetectionInterval = Duration.ofMillis(100)
-                    stalenessAge = Duration.ofMillis(90)
+                    stalenessAge = Duration.ofMillis(500)
                     queuePollWaitTime = Duration.ofMillis(20)
                     watchdogRefreshInterval = Duration.ofMillis(25)
                     successfulEventRetention = Duration.ofDays(1)
@@ -320,7 +321,11 @@ internal class HandlerIntegrationTests {
     }
 
     private suspend fun waitUntilQueueIsCompleted() {
-        await.untilAssertedSuspend {
+        val pollDelay = Duration.ofMillis(10)
+
+        await.pollDelay(pollDelay).untilAssertedSuspend {
+            testClock.advance(pollDelay)
+
             val allEvents = eventQueueDAO.debugGetAllEvents()
             assertThat(allEvents).isNotEmpty()
             assertThat(allEvents.map { it.state }).containsAnyOf(EventState.Successful.id, EventState.Failed.id)
@@ -358,11 +363,7 @@ internal class HandlerIntegrationTests {
             }
 
             if (event.delayTime != null) {
-                val stepMs = 25L
-                for (i in (1..event.delayTime.toMillis() / stepMs)) {
-                    clock.advance(Duration.ofMillis(stepMs))
-                    delay(stepMs)
-                }
+                delay(event.delayTime.toMillis())
             }
 
             keyValueStore.put(event.resultKey, event.text, unitOfWork = context.unitOfWork)
