@@ -246,15 +246,13 @@ internal class IntegrationTests {
 
     @Test
     fun `Retention - Successful jobs are automatically removed after their retention duration`(): Unit = runBlocking {
-        staleJobRescheduler.stop()
-
         val testJob = TestJob(greeting = "Hello, World!")
 
         enqueueJob(testJob)
 
         waitUntilQueueIsCompleted()
 
-        testClock.advance(Duration.ofDays(2).plusSeconds(1))
+        testClock.advance(Duration.ofDays(1).plusSeconds(1))
 
         await.untilCallTo {
             runBlocking { jobRepository.debugGetAllJobs() }
@@ -265,8 +263,6 @@ internal class IntegrationTests {
 
     @Test
     fun `Retention - Failed jobs are automatically removed after their retention duration`(): Unit = runBlocking {
-        staleJobRescheduler.stop()
-
         val testJob = TestJob(greeting = "Hello, World!", shouldFail = true)
 
         enqueueJob(testJob)

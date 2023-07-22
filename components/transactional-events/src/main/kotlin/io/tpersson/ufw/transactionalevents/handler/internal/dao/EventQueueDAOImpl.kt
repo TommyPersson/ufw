@@ -131,7 +131,7 @@ public class EventQueueDAOImpl @Inject constructor(
     }
 
     override suspend fun deleteExpiredEvents(now: Instant): Int {
-        TODO("Not yet implemented")
+        return database.update(Queries.Updates.DeleteExpiredEvents(now))
     }
 
     override suspend fun debugGetAllEvents(queueId: EventQueueId?): List<EventEntityData> {
@@ -357,7 +357,20 @@ public class EventQueueDAOImpl @Inject constructor(
                 minimumAffectedRows = 0
             )
 
-            object DebugTruncate : TypedUpdate("DELETE FROM $TableName")
+            data class DeleteExpiredEvents(
+                val now: Instant,
+            ) : TypedUpdate(
+                """
+                DELETE FROM $TableName
+                WHERE expire_at < :now
+                """.trimIndent(),
+                minimumAffectedRows = 0
+            )
+
+            object DebugTruncate : TypedUpdate(
+                "DELETE FROM $TableName",
+                minimumAffectedRows = 0
+            )
         }
     }
 }

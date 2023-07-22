@@ -72,6 +72,9 @@ internal class HandlerIntegrationTests {
                     stalenessAge = Duration.ofMillis(90)
                     queuePollWaitTime = Duration.ofMillis(20)
                     watchdogRefreshInterval = Duration.ofMillis(25)
+                    successfulEventRetention = Duration.ofDays(1)
+                    failedEventRetention = Duration.ofDays(2)
+                    expiredEventReapingInterval = Duration.ofMillis(50)
                 }
             }
         }
@@ -210,11 +213,9 @@ internal class HandlerIntegrationTests {
 
         publish("test-topic", testEvent)
 
-        await.pollDelay(Duration.ofMillis(1)).untilAsserted {
-            runBlocking {
-                assertThat(eventQueueDAO.getById(testEventHandler1.eventQueueId, testEvent.id)?.state)
-                    .isEqualTo(EventState.InProgress.id)
-            }
+        await.pollDelay(Duration.ofMillis(1)).untilAssertedSuspend {
+            assertThat(eventQueueDAO.getById(testEventHandler1.eventQueueId, testEvent.id)?.state)
+                .isEqualTo(EventState.InProgress.id)
         }
 
         testClock.advance(Duration.ofSeconds(1))
@@ -228,39 +229,68 @@ internal class HandlerIntegrationTests {
     }
 
     @Test
-    fun `Staleness - If a runner loses ownership of a job, it will not modify its state or record failures`(): Unit = runBlocking {
-        staleEventsRescheduler.stop()
+    fun `Staleness - If a runner loses ownership of a job, it will not modify its state or record failures`(): Unit =
+        runBlocking {
+            staleEventsRescheduler.stop()
 
-        val testEvent = TestEvent1("Hello, World!", delayTime = Duration.ofMillis(200))
+            val testEvent = TestEvent1("Hello, World!", delayTime = Duration.ofMillis(200))
 
-        publish("test-topic", testEvent)
+            publish("test-topic", testEvent)
 
-        await.pollDelay(Duration.ofMillis(1)).untilAsserted {
-            runBlocking {
+            await.pollDelay(Duration.ofMillis(1)).untilAssertedSuspend {
                 assertThat(eventQueueDAO.getById(testEventHandler1.eventQueueId, testEvent.id)?.state)
                     .isEqualTo(EventState.InProgress.id)
             }
+
+            do {
+                delay(1)
+                val numStolen = database.update(TestQueries.Updates.StealAnyInProgressEvents)
+            } while (numStolen == 0)
+
+            // Testing "stuff not happening" is not fun. Add monitoring events to runner?
+            delay(testEvent.delayTime!!.multipliedBy(2).toMillis())
+
+            val event = eventQueueDAO.getById(testEventHandler1.eventQueueId, testEvent.id)!!
+
+            assertThat(event.state).isEqualTo(EventState.InProgress.id)
+            assertThat(eventFailuresDAO.getNumberOfFailuresFor(event.uid!!)).isZero()
         }
 
-        do {
-            delay(1)
-            val numStolen = database.update(TestQueries.Updates.StealAnyInProgressEvents)
-        } while (numStolen == 0)
+    @Test
+    fun `Retention - Successful jobs are automatically removed after their retention duration`(): Unit = runBlocking {
+        val testEvent = TestEvent1("Hello, World!")
 
-        // Testing "stuff not happening" is not fun. Add monitoring events to runner?
-        delay(testEvent.delayTime!!.multipliedBy(2).toMillis())
+        publish("test-topic", testEvent)
 
-        val event = eventQueueDAO.getById(testEventHandler1.eventQueueId, testEvent.id)!!
+        waitUntilQueueIsCompleted()
 
-        assertThat(event.state).isEqualTo(EventState.InProgress.id)
-        assertThat(eventFailuresDAO.getNumberOfFailuresFor(event.uid!!)).isZero()
+        testClock.advance(Duration.ofDays(1).plusSeconds(1))
+
+        await.untilAssertedSuspend {
+            assertThat(eventQueueDAO.debugGetAllEvents()).isEmpty()
+        }
+    }
+
+    @Test
+    fun `Retention - Failed jobs are automatically removed after their retention duration`(): Unit = runBlocking {
+        val testEvent = TestEvent1("Hello, World!", shouldFail = true)
+
+        publish("test-topic", testEvent)
+
+        waitUntilQueueIsCompleted()
+
+        testClock.advance(Duration.ofDays(2).plusSeconds(1))
+
+        await.untilAssertedSuspend {
+            assertThat(eventQueueDAO.debugGetAllEvents()).isEmpty()
+        }
     }
 
     private suspend fun waitUntilQueueIsCompleted() {
-        await.untilCallTo {
-            runBlocking { eventQueueDAO.debugGetAllEvents() }
-        } matches {
-            it!!.size > 0 && it.all { job -> job.state in setOf(EventState.Successful.id, EventState.Failed.id) }
+        await.untilAssertedSuspend {
+            val allEvents = eventQueueDAO.debugGetAllEvents()
+            assertThat(allEvents).isNotEmpty()
+            assertThat(allEvents.map { it.state }).containsAnyOf(EventState.Successful.id, EventState.Failed.id)
         }
     }
 
@@ -322,7 +352,16 @@ internal class HandlerIntegrationTests {
                 SET watchdog_owner = 'stolen'
                 WHERE state = ${EventState.InProgress.id}
                 """.trimIndent(),
-                minimumAffectedRows = 0)
+                minimumAffectedRows = 0
+            )
+        }
+    }
+}
+
+public fun org.awaitility.core.ConditionFactory.untilAssertedSuspend(block: suspend () -> Unit) {
+    untilAsserted {
+        runBlocking {
+            block()
         }
     }
 }

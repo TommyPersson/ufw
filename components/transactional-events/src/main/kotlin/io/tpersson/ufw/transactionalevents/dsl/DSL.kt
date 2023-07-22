@@ -14,7 +14,8 @@ import java.time.Duration
 
 @UfwDslMarker
 public fun UFWBuilder.RootBuilder.transactionalEvents(builder: TransactionalEventsComponentBuilder.() -> Unit = {}) {
-    components["TransactionalEvents"] = TransactionalEventsComponentBuilder(UFWRegistry(components)).also(builder).build()
+    components["TransactionalEvents"] =
+        TransactionalEventsComponentBuilder(UFWRegistry(components)).also(builder).build()
 }
 
 @UfwDslMarker
@@ -47,6 +48,9 @@ public class TransactionalEventsConfigBuilder {
     public var watchdogRefreshInterval: Duration = TransactionalEventsConfig.default.watchdogRefreshInterval
     public var stalenessDetectionInterval: Duration = TransactionalEventsConfig.default.stalenessDetectionInterval
     public var stalenessAge: Duration = TransactionalEventsConfig.default.stalenessAge
+    public var successfulEventRetention: Duration = TransactionalEventsConfig.default.successfulEventRetention
+    public var failedEventRetention: Duration = TransactionalEventsConfig.default.failedEventRetention
+    public var expiredEventReapingInterval: Duration = TransactionalEventsConfig.default.expiredEventReapingInterval
 
     internal fun build(): TransactionalEventsConfig {
         return TransactionalEventsConfig(
@@ -54,6 +58,9 @@ public class TransactionalEventsConfigBuilder {
             watchdogRefreshInterval = watchdogRefreshInterval,
             stalenessDetectionInterval = stalenessDetectionInterval,
             stalenessAge = stalenessAge,
+            successfulEventRetention = successfulEventRetention,
+            failedEventRetention = failedEventRetention,
+            expiredEventReapingInterval = expiredEventReapingInterval,
         )
     }
 }

@@ -89,7 +89,7 @@ public class EventQueueImpl(
     }
 
     override suspend fun markAsSuccessful(eventId: EventId, watchdogId: String, unitOfWork: UnitOfWork) {
-        val expireAt = Instant.now().plus(Duration.ofDays(1)) // TODO config
+        val expireAt = clock.instant().plus(config.successfulEventRetention)
 
         queueDAO.markAsSuccessful(
             queueId = queueId,
@@ -101,7 +101,7 @@ public class EventQueueImpl(
     }
 
     override suspend fun markAsFailed(eventId: EventId, error: Exception, watchdogId: String, unitOfWork: UnitOfWork) {
-        val expireAt = Instant.now().plus(Duration.ofDays(1)) // TODO config
+        val expireAt = clock.instant().plus(config.failedEventRetention)
 
         queueDAO.markAsFailed(queueId, eventId, clock.instant(), expireAt, watchdogId, unitOfWork)
     }
