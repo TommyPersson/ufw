@@ -11,7 +11,9 @@ import io.tpersson.ufw.transactionalevents.publisher.internal.managed.EventOutbo
 import io.tpersson.ufw.transactionalevents.type
 import jakarta.inject.Inject
 import jakarta.inject.Named
+import jakarta.inject.Singleton
 
+@Singleton
 public class TransactionalEventPublisherImpl @Inject constructor(
     private val outboxDAO: EventOutboxDAO,
     private val outboxNotifier: EventOutboxNotifier,

@@ -11,8 +11,10 @@ import io.tpersson.ufw.transactionalevents.handler.EventState
 import io.tpersson.ufw.transactionalevents.handler.internal.exceptions.EventOwnershipLostException
 import io.tpersson.ufw.transactionalevents.handler.internal.metrics.EventQueueStatistics
 import jakarta.inject.Inject
+import jakarta.inject.Singleton
 import java.time.Instant
 
+@Singleton
 public class EventQueueDAOImpl @Inject constructor(
     private val database: Database
 ) : EventQueueDAO {

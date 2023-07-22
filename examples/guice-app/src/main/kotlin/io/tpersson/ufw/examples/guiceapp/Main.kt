@@ -8,7 +8,9 @@ import com.google.inject.multibindings.OptionalBinder
 import io.micrometer.core.instrument.MeterRegistry
 import io.tpersson.ufw.aggregates.guice.AggregatesGuiceModule
 import io.tpersson.ufw.core.CoreGuiceModule
+import io.tpersson.ufw.core.dsl.UFWRegistry
 import io.tpersson.ufw.database.DatabaseComponent
+import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.database.guice.DatabaseGuiceModule
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.database.unitofwork.use
@@ -16,6 +18,7 @@ import io.tpersson.ufw.examples.common.Globals
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregate
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregateRepository
 import io.tpersson.ufw.examples.common.commands.PerformGreetingCommand
+import io.tpersson.ufw.examples.common.events.ExampleEventV1
 import io.tpersson.ufw.examples.common.events.LoggingOutgoingEventTransport
 import io.tpersson.ufw.examples.common.jobs.PrintJob
 import io.tpersson.ufw.jobqueue.JobQueue
@@ -27,8 +30,11 @@ import io.tpersson.ufw.managed.ManagedRunner
 import io.tpersson.ufw.managed.guice.ManagedGuiceModule
 import io.tpersson.ufw.mediator.Mediator
 import io.tpersson.ufw.mediator.guice.MediatorGuiceModule
+import io.tpersson.ufw.transactionalevents.dsl.transactionalEvents
 import io.tpersson.ufw.transactionalevents.guice.TransactionalEventsGuiceModule
 import io.tpersson.ufw.transactionalevents.publisher.OutgoingEventTransport
+import io.tpersson.ufw.transactionalevents.publisher.TransactionalEventPublisher
+import io.tpersson.ufw.transactionalevents.publisher.transports.DirectOutgoingEventTransport
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.slf4j.MDCContext
 import org.slf4j.bridge.SLF4JBridgeHandler
@@ -53,7 +59,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
                 .setBinding().toInstance(Globals.meterRegistry)
 
             OptionalBinder.newOptionalBinder(it, OutgoingEventTransport::class.java)
-                .setBinding().to(LoggingOutgoingEventTransport::class.java)
+                .setBinding().to(DirectOutgoingEventTransport::class.java)
 
             it.bind(CounterAggregateRepository::class.java)
         },
@@ -91,6 +97,8 @@ public fun main(): Unit = runBlocking(MDCContext()) {
     testJobQueue(injector)
 
     testAggregates(injector)
+
+    testTransactionalEvents(injector)
 
     println("Press Enter to exit")
 
@@ -138,5 +146,16 @@ private suspend fun testAggregates(injector: Injector) {
     run {
         val counter = counterRepository.getById(counterId)!!
         println("CounterAggregate.value = ${counter.value}")
+    }
+}
+
+private suspend fun testTransactionalEvents(injector: Injector) {
+    val transactionalEventPublisher = injector.getInstance(TransactionalEventPublisher::class.java)
+    val unitOfWorkFactory = injector.getInstance(UnitOfWorkFactory::class.java)
+
+    val event = ExampleEventV1(myContent = "Hello, World!")
+
+    unitOfWorkFactory.use { uow ->
+        transactionalEventPublisher.publish("example-topic", event, uow)
     }
 }
