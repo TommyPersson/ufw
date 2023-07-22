@@ -130,9 +130,9 @@ public class SingleEventQueueProcessor(
         logger.info("Starting work on event: '${event.queueId}/${event.id}'")
 
         val watchdogJob = launch {
-            forever(logger) {
-                delay(config.watchdogRefreshInterval.toMillis())
+            forever(logger, interval = config.watchdogRefreshInterval) {
                 if (!eventQueue.updateWatchdog(event.uid!!, watchdogId)) {
+                    logger.warn("Unable to update watchdog for event '${event.queueId}/${event.id}'")
                     this@coroutineScope.cancel()
                 }
             }

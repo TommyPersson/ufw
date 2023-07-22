@@ -19,12 +19,11 @@ import io.tpersson.ufw.transactionalevents.dsl.transactionalEvents
 import io.tpersson.ufw.transactionalevents.handler.*
 import io.tpersson.ufw.transactionalevents.handler.internal.dao.EventEntityData
 import io.tpersson.ufw.transactionalevents.handler.internal.dao.EventQueueDAOImpl
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
-import org.awaitility.kotlin.matches
-import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -68,7 +67,7 @@ internal class HandlerIntegrationTests {
             }
             transactionalEvents {
                 configure {
-                    stalenessDetectionInterval = Duration.ofMillis(50)
+                    stalenessDetectionInterval = Duration.ofMillis(100)
                     stalenessAge = Duration.ofMillis(90)
                     queuePollWaitTime = Duration.ofMillis(20)
                     watchdogRefreshInterval = Duration.ofMillis(25)
@@ -79,7 +78,7 @@ internal class HandlerIntegrationTests {
             }
         }
 
-        val testEventHandler1 = TestEventHandler1(ufw.keyValueStore.keyValueStore)
+        val testEventHandler1 = TestEventHandler1(ufw.keyValueStore.keyValueStore, testClock)
 
         val keyValueStore = ufw.keyValueStore.keyValueStore
         val unitOfWorkFactory = ufw.database.unitOfWorkFactory
@@ -254,8 +253,6 @@ internal class HandlerIntegrationTests {
                 .isEqualTo(EventState.InProgress.id)
         }
 
-        testClock.advance(Duration.ofSeconds(1))
-
         waitUntilQueueIsCompleted()
 
         val event = eventQueueDAO.getById(testEventHandler1.eventQueueId, testEvent.id)!!
@@ -351,16 +348,21 @@ internal class HandlerIntegrationTests {
 
     class TestEventHandler1(
         private val keyValueStore: KeyValueStore,
+        private val clock: TestInstantSource
     ) : TransactionalEventHandler() {
 
         @EventHandler(topic = "test-topic")
-        suspend fun handle(event: TestEvent1, context: EventContext) {
+        suspend fun handle(event: TestEvent1, context: EventContext) = coroutineScope {
             if (event.shouldFail) {
                 error("Failed")
             }
 
             if (event.delayTime != null) {
-                delay(event.delayTime.toMillis())
+                val stepMs = 25L
+                for (i in (1..event.delayTime.toMillis() / stepMs)) {
+                    clock.advance(Duration.ofMillis(stepMs))
+                    delay(stepMs)
+                }
             }
 
             keyValueStore.put(event.resultKey, event.text, unitOfWork = context.unitOfWork)
