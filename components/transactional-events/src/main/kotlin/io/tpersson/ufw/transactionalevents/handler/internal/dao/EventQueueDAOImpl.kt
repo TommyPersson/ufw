@@ -9,6 +9,7 @@ import io.tpersson.ufw.transactionalevents.EventId
 import io.tpersson.ufw.transactionalevents.handler.EventQueueId
 import io.tpersson.ufw.transactionalevents.handler.EventState
 import io.tpersson.ufw.transactionalevents.handler.internal.exceptions.EventOwnershipLostException
+import io.tpersson.ufw.transactionalevents.handler.internal.metrics.EventQueueStatistics
 import jakarta.inject.Inject
 import java.time.Instant
 
@@ -134,6 +135,20 @@ public class EventQueueDAOImpl @Inject constructor(
         return database.update(Queries.Updates.DeleteExpiredEvents(now))
     }
 
+    override suspend fun getQueueStatistics(queueId: EventQueueId): EventQueueStatistics {
+        val data = database.selectList(Queries.Selects.GetStatistics(queueId.id))
+
+        val map = data.associateBy { EventState.fromId(it.stateId) }
+
+        return EventQueueStatistics(
+            queueId = queueId,
+            numScheduled = map[EventState.Scheduled]?.count ?: 0,
+            numInProgress = map[EventState.InProgress]?.count ?: 0,
+            numSuccessful = map[EventState.Successful]?.count ?: 0,
+            numFailed = map[EventState.Failed]?.count ?: 0,
+        )
+    }
+
     override suspend fun debugGetAllEvents(queueId: EventQueueId?): List<EventEntityData> {
         return database.selectList(Queries.Selects.DebugSelectAll(queueId))
     }
@@ -182,6 +197,17 @@ public class EventQueueDAOImpl @Inject constructor(
                 FROM $TableName
                 WHERE queue_id = :queueId.id
                   AND id = :eventId.value
+                """.trimIndent()
+            )
+
+            data class GetStatistics(
+                val queueId: String
+            ) : TypedSelect<StatisticsData>(
+                """
+                SELECT count(*) as count, state as state_id
+                FROM $TableName
+                WHERE queue_id = :queueId
+                GROUP BY state
                 """.trimIndent()
             )
 
@@ -373,5 +399,10 @@ public class EventQueueDAOImpl @Inject constructor(
             )
         }
     }
+
+    internal class StatisticsData(
+        val count: Int,
+        val stateId: Int
+    )
 }
 

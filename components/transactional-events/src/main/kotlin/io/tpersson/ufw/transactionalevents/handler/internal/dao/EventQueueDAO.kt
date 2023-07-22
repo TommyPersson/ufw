@@ -3,6 +3,7 @@ package io.tpersson.ufw.transactionalevents.handler.internal.dao
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.transactionalevents.EventId
 import io.tpersson.ufw.transactionalevents.handler.EventQueueId
+import io.tpersson.ufw.transactionalevents.handler.internal.metrics.EventQueueStatistics
 import java.time.Instant
 
 public interface EventQueueDAO {
@@ -66,10 +67,9 @@ public interface EventQueueDAO {
 
     public suspend fun deleteExpiredEvents(now: Instant): Int
 
-    //public suspend fun getQueueStatistics(queueId: EventQueueId<TEvent>): EventQueueStatistics<TEvent>
+    public suspend fun getQueueStatistics(queueId: EventQueueId): EventQueueStatistics
 
     public suspend fun debugGetAllEvents(queueId: EventQueueId? = null): List<EventEntityData>
 
     public suspend fun debugTruncate()
-
 }

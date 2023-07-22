@@ -12,6 +12,7 @@ import io.tpersson.ufw.transactionalevents.handler.internal.dao.EventQueueDAO
 import io.tpersson.ufw.transactionalevents.handler.internal.dao.EventQueueDAOImpl
 import io.tpersson.ufw.transactionalevents.handler.internal.managed.ExpiredEventReaper
 import io.tpersson.ufw.transactionalevents.handler.internal.managed.StaleEventRescheduler
+import io.tpersson.ufw.transactionalevents.handler.internal.metrics.EventStateMetric
 import io.tpersson.ufw.transactionalevents.publisher.OutgoingEventTransport
 import io.tpersson.ufw.transactionalevents.publisher.internal.dao.EventOutboxDAO
 import io.tpersson.ufw.transactionalevents.publisher.internal.TransactionalEventPublisherImpl
@@ -101,6 +102,7 @@ public class TransactionalEventsComponent @Inject constructor(
                 eventQueueProvider = eventQueueProvider,
                 unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
                 objectMapper = coreComponent.objectMapper,
+                meterRegistry = coreComponent.meterRegistry,
                 config = config,
                 clock = coreComponent.clock
             )
@@ -117,10 +119,17 @@ public class TransactionalEventsComponent @Inject constructor(
                 config = config
             )
 
+            val eventStateMetric = EventStateMetric(
+                meterRegistry = coreComponent.meterRegistry,
+                eventQueueProvider = eventQueueProvider,
+                config = config
+            )
+
             managedComponent.register(eventOutboxWorker)
             managedComponent.register(eventQueueProcessor)
             managedComponent.register(staleEventRescheduler)
             managedComponent.register(expiredEventReaper)
+            managedComponent.register(eventStateMetric)
 
             return TransactionalEventsComponent(
                 eventPublisher = publisher,

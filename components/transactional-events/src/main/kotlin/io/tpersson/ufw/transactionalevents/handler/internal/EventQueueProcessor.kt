@@ -1,6 +1,8 @@
 package io.tpersson.ufw.transactionalevents.handler.internal
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Timer
 import io.tpersson.ufw.core.NamedBindings
 import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.core.utils.forever
@@ -25,9 +27,11 @@ import java.lang.reflect.InvocationTargetException
 import java.time.Duration
 import java.time.InstantSource
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.full.callSuspend
 import kotlin.time.DurationUnit
 import kotlin.time.measureTime
+import kotlin.time.toJavaDuration
 
 @Singleton
 public class EventQueueProcessor @Inject constructor(
@@ -35,6 +39,7 @@ public class EventQueueProcessor @Inject constructor(
     private val eventQueueProvider: EventQueueProvider,
     private val unitOfWorkFactory: UnitOfWorkFactory,
     @Named(NamedBindings.ObjectMapper) private val objectMapper: ObjectMapper,
+    private val meterRegistry: MeterRegistry,
     private val clock: InstantSource,
     private val config: TransactionalEventsConfig,
 ) : ManagedJob() {
@@ -64,8 +69,9 @@ public class EventQueueProcessor @Inject constructor(
         eventQueue = eventQueue,
         unitOfWorkFactory = unitOfWorkFactory,
         objectMapper = objectMapper,
+        meterRegistry = meterRegistry,
+        clock = clock,
         config = config,
-        clock = clock
     )
 }
 
@@ -74,6 +80,7 @@ public class SingleEventQueueProcessor(
     private val eventQueue: EventQueue,
     private val unitOfWorkFactory: UnitOfWorkFactory,
     private val objectMapper: ObjectMapper,
+    private val meterRegistry: MeterRegistry,
     private val clock: InstantSource,
     private val config: TransactionalEventsConfig,
 ) {
@@ -83,6 +90,8 @@ public class SingleEventQueueProcessor(
     private val watchdogId = UUID.randomUUID().toString()
 
     private val timeout: Duration = Duration.ofSeconds(30)
+
+    private val timers = ConcurrentHashMap<String, Timer>()
 
     public suspend fun run() {
         forever(logger) {
@@ -133,9 +142,13 @@ public class SingleEventQueueProcessor(
                 }
             }
 
-            //timer.record(duration.toJavaDuration())
+            getTimer(event.type).record(duration.toJavaDuration())
 
-            logger.info("Finished work on event: '${event.queueId}/${event.id}'. [Duration = ${duration.toString(DurationUnit.MILLISECONDS)}]")
+            logger.info(
+                "Finished work on event: '${event.queueId}/${event.id}'. [Duration = ${
+                    duration.toString(DurationUnit.MILLISECONDS)
+                }]"
+            )
         } catch (e: Exception) {
             val realException = if (e is InvocationTargetException) {
                 e.targetException
@@ -178,7 +191,10 @@ public class SingleEventQueueProcessor(
             val failureAction = handlerFunction.instance.onFailure(eventData, error, failureContext)
             when (failureAction) {
                 is FailureAction.Reschedule -> {
-                    logger.error("Failure during event: '${queueId}/${event.eventId}'. Rescheduling at ${failureAction.at}", error)
+                    logger.error(
+                        "Failure during event: '${queueId}/${event.eventId}'. Rescheduling at ${failureAction.at}",
+                        error
+                    )
                     eventQueue.rescheduleAt(event.eventId, failureAction.at, watchdogId, uow)
                 }
 
@@ -192,6 +208,16 @@ public class SingleEventQueueProcessor(
                     eventQueue.markAsFailed(event.eventId, error, watchdogId, uow)
                 }
             }
+        }
+    }
+
+    private fun getTimer(eventType: String): Timer {
+        return timers.getOrPut(eventType) {
+            Timer.builder("ufw.event_queue.duration.seconds")
+                .tag("queueId", queueId.id)
+                .tag("eventType", eventType)
+                .publishPercentiles(0.5, 0.75, 0.90, 0.99, 0.999)
+                .register(meterRegistry)
         }
     }
 

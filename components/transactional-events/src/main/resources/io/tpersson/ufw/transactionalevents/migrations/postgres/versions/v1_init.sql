@@ -38,7 +38,20 @@ CREATE TABLE ufw__transactional_events__queue
 CREATE UNIQUE INDEX UX_ufw__transactional_events__queue__id_queue_id
     ON ufw__transactional_events__queue (queue_id, id);
 
--- TODO more indexes
+-- Primarily for getNext queries
+CREATE INDEX IX_ufw__transactional_events__queue__1
+    ON ufw__transactional_events__queue (queue_id, state, scheduled_for ASC);
+
+-- Primarily for event expiration
+CREATE INDEX IX_ufw__transactional_events__queue__2
+    ON ufw__transactional_events__queue (expire_at ASC)
+    WHERE expire_at IS NOT NULL;
+
+-- Primarily for finding stale events
+CREATE INDEX IX_ufw__transactional_events__queue__3
+    ON ufw__transactional_events__queue (watchdog_timestamp ASC)
+    WHERE state = 2 -- 2 = InProgress
+      AND watchdog_timestamp IS NOT NULL;
 
 CREATE TABLE ufw__transactional_events__failures
 (

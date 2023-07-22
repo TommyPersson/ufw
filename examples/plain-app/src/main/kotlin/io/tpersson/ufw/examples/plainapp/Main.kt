@@ -79,7 +79,6 @@ public fun main(): Unit = runBlocking(MDCContext()) {
             )
         }
         transactionalEvents {
-            //outgoingEventTransport = LoggingOutgoingEventTransport()
             handlers = setOf(
                 ExampleEventHandler(components.keyValueStore.keyValueStore)
             )

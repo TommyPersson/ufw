@@ -22,6 +22,9 @@ public class EventQueueProviderImpl @Inject constructor(
     private val queues = ConcurrentHashMap<EventQueueId, EventQueue>()
     private val queuesMutex = Mutex()
 
+    override val all: List<EventQueue>
+        get() = queues.values.toList()
+
     override suspend fun get(queueId: EventQueueId): EventQueue {
         return queuesMutex.withLock {
             queues.getOrPut(queueId) {

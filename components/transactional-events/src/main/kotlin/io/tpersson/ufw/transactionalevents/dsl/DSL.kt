@@ -51,6 +51,7 @@ public class TransactionalEventsConfigBuilder {
     public var successfulEventRetention: Duration = TransactionalEventsConfig.default.successfulEventRetention
     public var failedEventRetention: Duration = TransactionalEventsConfig.default.failedEventRetention
     public var expiredEventReapingInterval: Duration = TransactionalEventsConfig.default.expiredEventReapingInterval
+    public var metricMeasurementInterval: Duration = TransactionalEventsConfig.default.metricMeasurementInterval
 
     internal fun build(): TransactionalEventsConfig {
         return TransactionalEventsConfig(
@@ -61,6 +62,7 @@ public class TransactionalEventsConfigBuilder {
             successfulEventRetention = successfulEventRetention,
             failedEventRetention = failedEventRetention,
             expiredEventReapingInterval = expiredEventReapingInterval,
+            metricMeasurementInterval = metricMeasurementInterval
         )
     }
 }
