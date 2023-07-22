@@ -249,7 +249,7 @@ internal class HandlerIntegrationTests {
 
         publish("test-topic", testEvent)
 
-        await.pollDelay(Duration.ofMillis(1)).untilAssertedSuspend {
+        await.untilAssertedSuspend(pollDelay = Duration.ofMillis(1)) {
             assertThat(eventQueueDAO.getById(testEventHandler1.eventQueueId, testEvent.id)?.state)
                 .isEqualTo(EventState.InProgress.id)
         }
@@ -271,15 +271,15 @@ internal class HandlerIntegrationTests {
 
             publish("test-topic", testEvent)
 
-            await.pollDelay(Duration.ofMillis(1)).untilAssertedSuspend {
+            await.untilAssertedSuspend(pollDelay = Duration.ofMillis(1)) {
                 assertThat(eventQueueDAO.getById(testEventHandler1.eventQueueId, testEvent.id)?.state)
                     .isEqualTo(EventState.InProgress.id)
             }
 
-            do {
-                delay(1)
+            await.untilAssertedSuspend(pollDelay = Duration.ofMillis(1)) {
                 val numStolen = database.update(TestQueries.Updates.StealAnyInProgressEvents)
-            } while (numStolen == 0)
+                assertThat(numStolen).isGreaterThan(0)
+            }
 
             // Testing "stuff not happening" is not fun. Add monitoring events to runner?
             delay(testEvent.delayTime!!.multipliedBy(2).toMillis())
@@ -321,11 +321,7 @@ internal class HandlerIntegrationTests {
     }
 
     private suspend fun waitUntilQueueIsCompleted() {
-        val pollDelay = Duration.ofMillis(10)
-
-        await.pollDelay(pollDelay).untilAssertedSuspend {
-            testClock.advance(pollDelay)
-
+        await.untilAssertedSuspend {
             val allEvents = eventQueueDAO.debugGetAllEvents()
             assertThat(allEvents).isNotEmpty()
             assertThat(allEvents.map { it.state }).containsAnyOf(EventState.Successful.id, EventState.Failed.id)
@@ -395,12 +391,16 @@ internal class HandlerIntegrationTests {
             )
         }
     }
-}
 
-public fun org.awaitility.core.ConditionFactory.untilAssertedSuspend(block: suspend () -> Unit) {
-    untilAsserted {
-        runBlocking {
-            block()
+    fun org.awaitility.core.ConditionFactory.untilAssertedSuspend(
+        pollDelay: Duration = Duration.ofMillis(10),
+        block: suspend () -> Unit
+    ) {
+        pollDelay(pollDelay).untilAsserted {
+            runBlocking {
+                testClock.advance(pollDelay)
+                block()
+            }
         }
     }
 }
