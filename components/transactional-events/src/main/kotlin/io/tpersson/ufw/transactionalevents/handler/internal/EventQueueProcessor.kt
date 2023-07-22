@@ -117,7 +117,7 @@ public class SingleEventQueueProcessor(
         val watchdogJob = launch {
             forever(logger) {
                 delay(config.watchdogRefreshInterval.toMillis())
-                if (!eventQueue.updateWatchdog(event.eventId, watchdogId)) {
+                if (!eventQueue.updateWatchdog(event.uid!!, watchdogId)) {
                     this@coroutineScope.cancel()
                 }
             }

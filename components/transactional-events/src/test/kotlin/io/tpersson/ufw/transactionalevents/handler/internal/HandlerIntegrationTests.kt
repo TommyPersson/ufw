@@ -7,6 +7,7 @@ import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.core.dsl.UFW
 import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.database.dsl.database
+import io.tpersson.ufw.database.typedqueries.TypedUpdate
 import io.tpersson.ufw.database.unitofwork.use
 import io.tpersson.ufw.keyvaluestore.KeyValueStore
 import io.tpersson.ufw.keyvaluestore.dsl.keyValueStore
@@ -16,6 +17,9 @@ import io.tpersson.ufw.transactionalevents.Event
 import io.tpersson.ufw.transactionalevents.EventId
 import io.tpersson.ufw.transactionalevents.dsl.transactionalEvents
 import io.tpersson.ufw.transactionalevents.handler.*
+import io.tpersson.ufw.transactionalevents.handler.internal.dao.EventEntityData
+import io.tpersson.ufw.transactionalevents.handler.internal.dao.EventQueueDAOImpl
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
@@ -28,7 +32,9 @@ import org.junit.jupiter.api.Timeout
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.lifecycle.Startables
 import org.testcontainers.utility.DockerImageName
+import java.time.Duration
 import java.time.Instant
+import java.util.*
 
 @Timeout(5)
 internal class HandlerIntegrationTests {
@@ -61,6 +67,12 @@ internal class HandlerIntegrationTests {
             keyValueStore {
             }
             transactionalEvents {
+                configure {
+                    stalenessDetectionInterval = Duration.ofMillis(50)
+                    stalenessAge = Duration.ofMillis(90)
+                    queuePollWaitTime = Duration.ofMillis(20)
+                    watchdogRefreshInterval = Duration.ofMillis(25)
+                }
             }
         }
 
@@ -71,6 +83,8 @@ internal class HandlerIntegrationTests {
         val publisher = ufw.transactionalEvents.eventPublisher
         val eventQueueDAO = ufw.transactionalEvents.eventQueueDAO
         val eventFailuresDAO = ufw.transactionalEvents.eventFailuresDAO
+        val staleEventsRescheduler = ufw.transactionalEvents.staleEventRescheduler
+        val database = ufw.database.database
 
         init {
             ufw.transactionalEvents.registerHandler(testEventHandler1)
@@ -143,6 +157,105 @@ internal class HandlerIntegrationTests {
         assertThat(failures).hasSize(4)
     }
 
+    @Test
+    fun `Staleness - Stale events are automatically rescheduled`(): Unit = runBlocking {
+        val eventId = EventId(UUID.randomUUID().toString())
+        val queueId = testEventHandler1.eventQueueId
+
+        database.update(
+            EventQueueDAOImpl.Queries.Updates.Insert(
+                EventEntityData(
+                    uid = 0,
+                    id = eventId.value,
+                    queueId = queueId.id,
+                    topic = "test-topic",
+                    type = "TestEvent1",
+                    state = EventState.InProgress.id,
+                    dataJson = """
+                            {
+                                "id": "$eventId",
+                                "queueId": "$queueId",
+                                "@type": "TestEvent1",
+                                "text": "hello",
+                                "numFailures": 0,
+                                "numRetries": 0,
+                                "timestamp": "2022-02-02T22:22:22Z"
+                            }
+                        """.trimIndent(),
+                    ceDataJson = "{}",
+                    createdAt = testClock.instant(),
+                    scheduledFor = testClock.instant(),
+                    stateChangedAt = testClock.instant(),
+                    expireAt = null,
+                    watchdogTimestamp = testClock.instant().minus(Duration.ofSeconds(1)),
+                    watchdogOwner = "anyone",
+                    timestamp = testClock.instant()
+                )
+            )
+        )
+
+        // Then wait for the job to complete normally
+        waitUntilQueueIsCompleted()
+
+        val job = eventQueueDAO.getById(queueId, eventId)!!
+
+        assertThat(job.state).isEqualTo(EventState.Successful.id)
+        assertThat(staleEventsRescheduler.hasFoundStaleEvents).isTrue()
+    }
+
+
+    @Test
+    fun `Staleness - An automatic watchdog refresher keeps long-running jobs from being stale`(): Unit = runBlocking {
+        val testEvent = TestEvent1("Hello, World!", delayTime = Duration.ofSeconds(1))
+
+        publish("test-topic", testEvent)
+
+        await.pollDelay(Duration.ofMillis(1)).untilAsserted {
+            runBlocking {
+                assertThat(eventQueueDAO.getById(testEventHandler1.eventQueueId, testEvent.id)?.state)
+                    .isEqualTo(EventState.InProgress.id)
+            }
+        }
+
+        testClock.advance(Duration.ofSeconds(1))
+
+        waitUntilQueueIsCompleted()
+
+        val event = eventQueueDAO.getById(testEventHandler1.eventQueueId, testEvent.id)!!
+
+        assertThat(event.state).isEqualTo(EventState.Successful.id)
+        assertThat(staleEventsRescheduler.hasFoundStaleEvents).isFalse()
+    }
+
+    @Test
+    fun `Staleness - If a runner loses ownership of a job, it will not modify its state or record failures`(): Unit = runBlocking {
+        staleEventsRescheduler.stop()
+
+        val testEvent = TestEvent1("Hello, World!", delayTime = Duration.ofMillis(200))
+
+        publish("test-topic", testEvent)
+
+        await.pollDelay(Duration.ofMillis(1)).untilAsserted {
+            runBlocking {
+                assertThat(eventQueueDAO.getById(testEventHandler1.eventQueueId, testEvent.id)?.state)
+                    .isEqualTo(EventState.InProgress.id)
+            }
+        }
+
+        do {
+            delay(1)
+            val numStolen = database.update(TestQueries.Updates.StealAnyInProgressEvents)
+        } while (numStolen == 0)
+
+        // Testing "stuff not happening" is not fun. Add monitoring events to runner?
+        delay(testEvent.delayTime!!.multipliedBy(2).toMillis())
+
+        val event = eventQueueDAO.getById(testEventHandler1.eventQueueId, testEvent.id)!!
+
+        assertThat(event.state).isEqualTo(EventState.InProgress.id)
+        assertThat(eventFailuresDAO.getNumberOfFailuresFor(event.uid!!)).isZero()
+    }
+
     private suspend fun waitUntilQueueIsCompleted() {
         await.untilCallTo {
             runBlocking { eventQueueDAO.debugGetAllEvents() }
@@ -162,6 +275,7 @@ internal class HandlerIntegrationTests {
         val text: String,
         val shouldFail: Boolean = false,
         val numRetries: Int = 0,
+        val delayTime: Duration? = null,
         override val id: EventId = EventId(),
         override val timestamp: Instant = Instant.now(),
     ) : Event {
@@ -179,6 +293,10 @@ internal class HandlerIntegrationTests {
                 error("Failed")
             }
 
+            if (event.delayTime != null) {
+                delay(event.delayTime.toMillis())
+            }
+
             keyValueStore.put(event.resultKey, event.text, unitOfWork = context.unitOfWork)
         }
 
@@ -193,6 +311,18 @@ internal class HandlerIntegrationTests {
             } else {
                 FailureAction.RescheduleNow
             }
+        }
+    }
+
+    object TestQueries {
+        object Updates {
+            object StealAnyInProgressEvents : TypedUpdate(
+                """
+                UPDATE ufw__transactional_events__queue
+                SET watchdog_owner = 'stolen'
+                WHERE state = ${EventState.InProgress.id}
+                """.trimIndent(),
+                minimumAffectedRows = 0)
         }
     }
 }

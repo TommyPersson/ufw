@@ -16,7 +16,7 @@ public class StaleJobRescheduler @Inject constructor(
 
     private val logger = createLogger()
 
-    private val delayTimeMs = config.stalenessDetectionInterval.toMillis()
+    private val interval = config.stalenessDetectionInterval
     private val staleAfter = config.stalenessAge
 
     // For tests
@@ -25,14 +25,12 @@ public class StaleJobRescheduler @Inject constructor(
     override suspend fun launch() {
         hasFoundStaleJobs = false
 
-        forever(logger) {
-            delay(delayTimeMs)
-
+        forever(logger, interval = interval) {
             runOnce()
         }
     }
 
-    public suspend fun runOnce() {
+    private suspend fun runOnce() {
         val now = clock.instant()
         val staleIfWatchdogOlderThan = now - staleAfter
         val numRescheduled = jobsDAO.markStaleJobsAsScheduled(now, staleIfWatchdogOlderThan)

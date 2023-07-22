@@ -18,7 +18,7 @@ public interface EventQueue {
 
     public suspend fun markAsFailed(eventId: EventId, error: Exception, watchdogId: String, unitOfWork: UnitOfWork)
 
-    public suspend fun updateWatchdog(eventId: EventId, watchdogId: String): Boolean
+    public suspend fun updateWatchdog(eventUid: Long, watchdogId: String): Boolean
 
     public suspend fun recordFailure(eventUid: Long, error: Exception, unitOfWork: UnitOfWork)
 

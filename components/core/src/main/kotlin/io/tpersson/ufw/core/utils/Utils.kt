@@ -10,7 +10,8 @@ import kotlin.reflect.KClass
 public suspend fun forever(
     logger: Logger,
     errorDelay: Duration = Duration.ofMillis(500),
-    block: suspend () -> Unit
+    interval: Duration? = null,
+    block: suspend () -> Unit,
 ): Unit = coroutineScope {
     while (isActive) {
         try {
@@ -25,6 +26,10 @@ public suspend fun forever(
             withContext(NonCancellable) {
                 delay(errorDelay.toMillis())
             }
+        }
+
+        if (interval != null) {
+            delay(interval.toMillis())
         }
     }
 }

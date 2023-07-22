@@ -10,6 +10,7 @@ import io.tpersson.ufw.transactionalevents.handler.internal.*
 import io.tpersson.ufw.transactionalevents.handler.internal.dao.EventFailuresDAO
 import io.tpersson.ufw.transactionalevents.handler.internal.dao.EventQueueDAO
 import io.tpersson.ufw.transactionalevents.handler.internal.dao.EventQueueDAOImpl
+import io.tpersson.ufw.transactionalevents.handler.internal.managed.StaleEventRescheduler
 import io.tpersson.ufw.transactionalevents.publisher.OutgoingEventTransport
 import io.tpersson.ufw.transactionalevents.publisher.internal.dao.EventOutboxDAO
 import io.tpersson.ufw.transactionalevents.publisher.internal.TransactionalEventPublisherImpl
@@ -25,6 +26,7 @@ public class TransactionalEventsComponent @Inject constructor(
     internal val eventQueueDAO: EventQueueDAO,
     internal val eventFailuresDAO: EventFailuresDAO,
     internal val eventHandlersProvider: EventHandlersProvider,
+    internal val staleEventRescheduler: StaleEventRescheduler,
 ) {
     public fun registerHandler(handler: TransactionalEventHandler) {
         eventHandlersProvider.add(handler)
@@ -72,7 +74,8 @@ public class TransactionalEventsComponent @Inject constructor(
             val eventQueueProvider = EventQueueProviderImpl(
                 eventQueueDAO = eventQueueDAO,
                 eventFailuresDAO = eventFailuresDAO,
-                clock = coreComponent.clock
+                clock = coreComponent.clock,
+                config = config,
             )
 
             val ingester = IncomingEventIngesterImpl(
@@ -101,15 +104,23 @@ public class TransactionalEventsComponent @Inject constructor(
                 clock = coreComponent.clock
             )
 
+            val staleEventRescheduler = StaleEventRescheduler(
+                eventQueueDAO = eventQueueDAO,
+                clock = coreComponent.clock,
+                config = config
+            )
+
             managedComponent.register(eventOutboxWorker)
             managedComponent.register(eventQueueProcessor)
+            managedComponent.register(staleEventRescheduler)
 
             return TransactionalEventsComponent(
                 eventPublisher = publisher,
                 eventIngester = ingester,
                 eventQueueDAO = eventQueueDAO,
                 eventFailuresDAO = eventFailuresDAO,
-                eventHandlersProvider = eventHandlersProvider
+                eventHandlersProvider = eventHandlersProvider,
+                staleEventRescheduler = staleEventRescheduler,
             )
         }
     }

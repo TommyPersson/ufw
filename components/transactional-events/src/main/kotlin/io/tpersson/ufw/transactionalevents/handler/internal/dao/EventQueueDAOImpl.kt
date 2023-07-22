@@ -1,5 +1,6 @@
 package io.tpersson.ufw.transactionalevents.handler.internal.dao
 
+import io.tpersson.ufw.database.exceptions.TypedUpdateMinimumAffectedRowsException
 import io.tpersson.ufw.database.jdbc.Database
 import io.tpersson.ufw.database.typedqueries.TypedSelect
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
@@ -7,6 +8,7 @@ import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.transactionalevents.EventId
 import io.tpersson.ufw.transactionalevents.handler.EventQueueId
 import io.tpersson.ufw.transactionalevents.handler.EventState
+import io.tpersson.ufw.transactionalevents.handler.internal.exceptions.EventOwnershipLostException
 import jakarta.inject.Inject
 import java.time.Instant
 
@@ -38,7 +40,7 @@ public class EventQueueDAOImpl @Inject constructor(
                 eventId = eventId,
                 timestamp = now,
                 watchdogOwner = watchdogId,
-            )
+            ),
         )
     }
 
@@ -57,7 +59,8 @@ public class EventQueueDAOImpl @Inject constructor(
                 timestamp = now,
                 expireAt = expireAt,
                 expectedWatchdogOwner = watchdogId
-            )
+            ),
+            ::exceptionMapper
         )
     }
 
@@ -76,7 +79,8 @@ public class EventQueueDAOImpl @Inject constructor(
                 timestamp = now,
                 expireAt = expireAt,
                 expectedWatchdogOwner = watchdogId
-            )
+            ),
+            ::exceptionMapper
         )
     }
 
@@ -89,13 +93,14 @@ public class EventQueueDAOImpl @Inject constructor(
         unitOfWork: UnitOfWork
     ) {
         unitOfWork.add(
-            Queries.Updates.MarkJobAsScheduled(
+            Queries.Updates.MarkEventAsScheduled(
                 queueId = queueId,
                 eventId = eventId,
                 timestamp = now,
                 scheduledFor = scheduleFor,
                 expectedWatchdogOwner = watchdogId
-            )
+            ),
+            ::exceptionMapper
         )
     }
 
@@ -103,16 +108,26 @@ public class EventQueueDAOImpl @Inject constructor(
         now: Instant,
         staleIfWatchdogOlderThan: Instant
     ): Int {
-        TODO("Not yet implemented")
+        return database.update(
+            Queries.Updates.MarkStaleEventsAsScheduled(
+                timestamp = now,
+                staleIfWatchdogOlderThan = staleIfWatchdogOlderThan
+            )
+        )
     }
 
     override suspend fun updateWatchdog(
-        queueId: EventQueueId,
-        eventId: EventId,
+        eventUid: Long,
         now: Instant,
         watchdogId: String
     ): Boolean {
-        TODO("Not yet implemented")
+        val affectedRows = database.update(Queries.Updates.UpdateWatchdog(
+            eventUid = eventUid,
+            watchdogTimestamp = now,
+            expectedWatchdogOwner = watchdogId
+        ))
+
+        return affectedRows > 0
     }
 
     override suspend fun deleteExpiredEvents(now: Instant): Int {
@@ -125,6 +140,18 @@ public class EventQueueDAOImpl @Inject constructor(
 
     override suspend fun debugTruncate() {
         database.update(Queries.Updates.DebugTruncate)
+    }
+
+    private fun exceptionMapper(exception: Exception): Exception {
+        throw when (exception) {
+            is TypedUpdateMinimumAffectedRowsException -> {
+                if (exception.query::class in Queries.Updates.queriesThatRequireOwnership) {
+                    EventOwnershipLostException(exception)
+                } else exception
+            }
+
+            else -> exception
+        }
     }
 
     internal object Queries {
@@ -160,17 +187,26 @@ public class EventQueueDAOImpl @Inject constructor(
 
             data class DebugSelectAll(
                 val queueId: EventQueueId?
-            ) : TypedSelect<EventEntityData>("""
+            ) : TypedSelect<EventEntityData>(
+                """
                 SELECT * FROM $TableName 
                 WHERE queue_id = :queueId.id::text
                    OR :queueId.id::text IS NULL
-                """)
+                """
+            )
         }
 
         object Updates {
+            val queriesThatRequireOwnership = listOf(
+                MarkEventAsSuccessful::class,
+                MarkEventAsFailed::class,
+                MarkEventAsScheduled::class,
+                UpdateWatchdog::class
+            )
+
             class Insert(val data: EventEntityData) : TypedUpdate(
                 """
-                INSERT INTO ufw__transactional_events__queue (
+                INSERT INTO $TableName (
                     queue_id, 
                     id, 
                     topic, 
@@ -268,7 +304,7 @@ public class EventQueueDAOImpl @Inject constructor(
                 """.trimIndent()
             )
 
-            data class MarkJobAsScheduled(
+            data class MarkEventAsScheduled(
                 val eventId: EventId,
                 val queueId: EventQueueId,
                 val timestamp: Instant,
@@ -288,6 +324,37 @@ public class EventQueueDAOImpl @Inject constructor(
                   AND id = :eventId.value
                   AND watchdog_owner = :expectedWatchdogOwner
                 """.trimIndent()
+            )
+
+            data class MarkStaleEventsAsScheduled(
+                val timestamp: Instant,
+                val staleIfWatchdogOlderThan: Instant,
+            ) : TypedUpdate(
+                """
+                UPDATE $TableName
+                SET state = ${EventState.Scheduled.id},
+                    state_changed_at = :timestamp,
+                    scheduled_for = :timestamp,
+                    watchdog_timestamp = NULL,
+                    watchdog_owner = NULL
+                WHERE state = ${EventState.InProgress.id}
+                  AND watchdog_timestamp < :staleIfWatchdogOlderThan
+                """.trimIndent(),
+                minimumAffectedRows = 0
+            )
+
+            data class UpdateWatchdog(
+                val eventUid: Long,
+                val watchdogTimestamp: Instant,
+                val expectedWatchdogOwner: String,
+            ) : TypedUpdate(
+                """
+                UPDATE $TableName
+                SET watchdog_timestamp = :watchdogTimestamp
+                WHERE uid = :eventUid
+                  AND watchdog_owner = :expectedWatchdogOwner
+                """.trimIndent(),
+                minimumAffectedRows = 0
             )
 
             object DebugTruncate : TypedUpdate("DELETE FROM $TableName")

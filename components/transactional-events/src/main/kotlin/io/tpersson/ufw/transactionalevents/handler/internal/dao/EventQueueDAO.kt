@@ -59,8 +59,7 @@ public interface EventQueueDAO {
     ): Int
 
     public suspend fun updateWatchdog(
-        queueId: EventQueueId,
-        eventId: EventId,
+        eventUid: Long,
         now: Instant,
         watchdogId: String,
     ): Boolean

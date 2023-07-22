@@ -10,6 +10,7 @@ import io.tpersson.ufw.transactionalevents.TransactionalEventsComponent
 import io.tpersson.ufw.transactionalevents.TransactionalEventsConfig
 import io.tpersson.ufw.transactionalevents.handler.TransactionalEventHandler
 import io.tpersson.ufw.transactionalevents.publisher.OutgoingEventTransport
+import java.time.Duration
 
 @UfwDslMarker
 public fun UFWBuilder.RootBuilder.transactionalEvents(builder: TransactionalEventsComponentBuilder.() -> Unit = {}) {
@@ -42,11 +43,17 @@ public class TransactionalEventsComponentBuilder(
 
 @UfwDslMarker
 public class TransactionalEventsConfigBuilder {
-    public var thing: Boolean = TransactionalEventsConfig.default.thing
+    public var queuePollWaitTime: Duration = TransactionalEventsConfig.default.queuePollWaitTime
+    public var watchdogRefreshInterval: Duration = TransactionalEventsConfig.default.watchdogRefreshInterval
+    public var stalenessDetectionInterval: Duration = TransactionalEventsConfig.default.stalenessDetectionInterval
+    public var stalenessAge: Duration = TransactionalEventsConfig.default.stalenessAge
 
     internal fun build(): TransactionalEventsConfig {
         return TransactionalEventsConfig(
-            thing = thing,
+            queuePollWaitTime = queuePollWaitTime,
+            watchdogRefreshInterval = watchdogRefreshInterval,
+            stalenessDetectionInterval = stalenessDetectionInterval,
+            stalenessAge = stalenessAge,
         )
     }
 }

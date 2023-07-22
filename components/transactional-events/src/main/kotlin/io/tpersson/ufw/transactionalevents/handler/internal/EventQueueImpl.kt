@@ -3,6 +3,7 @@ package io.tpersson.ufw.transactionalevents.handler.internal
 import io.tpersson.ufw.core.concurrency.ConsumerSignal
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.transactionalevents.EventId
+import io.tpersson.ufw.transactionalevents.TransactionalEventsConfig
 import io.tpersson.ufw.transactionalevents.handler.EventQueueId
 import io.tpersson.ufw.transactionalevents.handler.EventState
 import io.tpersson.ufw.transactionalevents.handler.IncomingEvent
@@ -20,9 +21,10 @@ public class EventQueueImpl(
     private val queueDAO: EventQueueDAO,
     private val failuresDAO: EventFailuresDAO,
     private val clock: InstantSource,
+    private val config: TransactionalEventsConfig,
 ) : EventQueue {
 
-    private val pollWaitTime = Duration.ofSeconds(5)
+    private val pollWaitTime = config.queuePollWaitTime
     private val signal = ConsumerSignal()
 
     override suspend fun enqueue(event: IncomingEvent, unitOfWork: UnitOfWork) {
@@ -57,9 +59,12 @@ public class EventQueueImpl(
         )
     }
 
-    override suspend fun updateWatchdog(eventId: EventId, watchdogId: String): Boolean {
-        return true
-        //TODO("Not yet implemented")
+    override suspend fun updateWatchdog(eventUid: Long, watchdogId: String): Boolean {
+        return queueDAO.updateWatchdog(
+            eventUid = eventUid,
+            now = clock.instant(),
+            watchdogId = watchdogId
+        )
     }
 
     override suspend fun recordFailure(eventUid: Long, error: Exception, unitOfWork: UnitOfWork) {

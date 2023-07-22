@@ -171,7 +171,6 @@ internal class IntegrationTests {
                                 "type": "${queueId.typeName}",
                                 "greeting": "hello",
                                 "shouldFail": false,
-                                "numFailures": 0,
                                 "numRetries": 0
                             }
                         """.trimIndent(),
@@ -212,6 +211,8 @@ internal class IntegrationTests {
         val testJob = TestJob(greeting = "Hello, World!", delayTime = Duration.ofSeconds(2))
 
         enqueueJob(testJob)
+
+        testClock.advance(Duration.ofSeconds(2))
 
         waitUntilQueueIsCompleted()
 
@@ -298,7 +299,6 @@ internal class IntegrationTests {
     data class TestJob(
         val greeting: String,
         val shouldFail: Boolean = false,
-        val numFailures: Int = Int.MAX_VALUE,
         val numRetries: Int = 0,
         val delayTime: Duration? = null,
         override val jobId: JobId = JobId.new()
