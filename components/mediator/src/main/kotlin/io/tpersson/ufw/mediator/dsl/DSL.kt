@@ -3,6 +3,7 @@ package io.tpersson.ufw.mediator.dsl
 import io.tpersson.ufw.core.dsl.UFWBuilder
 import io.tpersson.ufw.core.dsl.UFWRegistry
 import io.tpersson.ufw.core.dsl.UfwDslMarker
+import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.mediator.MediatorComponent
 import io.tpersson.ufw.mediator.Middleware
 import io.tpersson.ufw.mediator.RequestHandler
@@ -28,7 +29,11 @@ public class MediatorComponentBuilder(public val components: UFWRegistry) {
             CacheableMiddleware(),
             LoggableMiddleware(),
         )
-        return MediatorComponent.create(handlers, middlewares)
+        return MediatorComponent.create(
+            coreComponent = components.core,
+            handlers = handlers,
+            middlewares = middlewares
+        )
     }
 }
 

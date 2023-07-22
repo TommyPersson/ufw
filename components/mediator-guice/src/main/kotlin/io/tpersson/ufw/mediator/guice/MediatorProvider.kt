@@ -2,6 +2,7 @@ package io.tpersson.ufw.mediator.guice
 
 import com.google.inject.Injector
 import io.github.classgraph.ScanResult
+import io.micrometer.core.instrument.MeterRegistry
 import io.tpersson.ufw.core.NamedBindings
 import io.tpersson.ufw.mediator.Mediator
 import io.tpersson.ufw.mediator.MediatorImpl
@@ -15,6 +16,7 @@ import jakarta.inject.Singleton
 @Singleton
 public class MediatorProvider @Inject constructor(
     @Named(NamedBindings.ScanResult) private val scanResult: ScanResult,
+    private val meterRegistry: MeterRegistry,
     private val injector: Injector
 ) : Provider<Mediator> {
 
@@ -34,7 +36,7 @@ public class MediatorProvider @Inject constructor(
             .map { injector.getInstance(it.java) as Middleware<*, *> }
             .toSet()
 
-        MediatorImpl(handlers, middlewares)
+        MediatorImpl(meterRegistry, handlers, middlewares)
     }
 
 

@@ -1,5 +1,7 @@
 package io.tpersson.ufw.mediator
 
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -90,7 +92,8 @@ internal class IntegrationTest {
         assertThat(receivedContext).containsEntry(AnyCommandMiddleware.ContextKeys.TestKey, "test-value")
     }
 
-    private fun createMediator() = Mediator.create(
+    private fun createMediator() = MediatorImpl(
+        meterRegistry = SimpleMeterRegistry(),
         handlers = setOf(
             TestCommand1Handler(),
             TestQuery1Handler(),

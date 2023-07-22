@@ -1,12 +1,17 @@
 package io.tpersson.ufw.mediator
 
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Timer
 import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.mediator.internal.ContextImpl
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
+import kotlin.time.measureTimedValue
+import kotlin.time.toJavaDuration
 
 public class MediatorImpl(
+    private val meterRegistry: MeterRegistry,
     handlers: Set<RequestHandler<*, *>>,
     middlewares: Set<Middleware<*, *>>
 ) : Mediator {
@@ -26,6 +31,13 @@ public class MediatorImpl(
     private val middlewaresByRequest = ConcurrentHashMap<KClass<*>, List<Middleware<*, *>>>()
     private val handlersByRequest = handlers.associateBy { it.javaClass.kotlin.getRequestClass() }
 
+    private val timers = handlersByRequest.keys.associateBy { it }.mapValues {
+        Timer.builder("ufw.mediator.duration.seconds")
+            .tag("requestType", it.key.simpleName.toString())
+            .publishPercentiles(0.5, 0.75, 0.90, 0.99, 0.999)
+            .register(meterRegistry)
+    }
+
     override suspend fun <TRequest : Request<TResult>, TResult> send(request: TRequest): TResult {
         val handler = handlersByRequest[request::class] as? RequestHandler<TRequest, TResult>
             ?: error("No handler found for ${request::class.simpleName}")
@@ -42,7 +54,13 @@ public class MediatorImpl(
             }
         }
 
-        return pipeline.invoke(request, context)
+        val (result, duration) = measureTimedValue {
+            pipeline.invoke(request, context)
+        }
+
+        timers[request::class]?.record(duration.toJavaDuration())
+
+        return result
     }
 
     private fun <TRequest : Request<TResult>, TResult> getMiddlewaresFor(request: TRequest): List<Middleware<TRequest, TResult>> {
