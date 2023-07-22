@@ -20,11 +20,11 @@ public interface EventQueue {
 
     public suspend fun markAsSuccessful(eventId: EventId, watchdogId: String, unitOfWork: UnitOfWork)
 
-    public suspend fun markAsFailed(eventId: EventId, error: Exception, watchdogId: String, unitOfWork: UnitOfWork)
+    public suspend fun markAsFailed(eventId: EventId, watchdogId: String, unitOfWork: UnitOfWork)
 
     public suspend fun updateWatchdog(eventUid: Long, watchdogId: String): Boolean
 
-    public suspend fun recordFailure(eventUid: Long, error: Exception, unitOfWork: UnitOfWork)
+    public suspend fun recordFailure(eventUid: Long, error: Throwable, unitOfWork: UnitOfWork)
 
     public suspend fun rescheduleAt(eventId: EventId, at: Instant, watchdogId: String, unitOfWork: UnitOfWork)
 

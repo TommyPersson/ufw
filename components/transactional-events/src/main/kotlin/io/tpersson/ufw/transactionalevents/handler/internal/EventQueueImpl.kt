@@ -70,7 +70,7 @@ public class EventQueueImpl(
         )
     }
 
-    override suspend fun recordFailure(eventUid: Long, error: Exception, unitOfWork: UnitOfWork) {
+    override suspend fun recordFailure(eventUid: Long, error: Throwable, unitOfWork: UnitOfWork) {
         val failure = EventFailure(
             id = UUID.randomUUID(),
             eventUid = eventUid,
@@ -107,7 +107,7 @@ public class EventQueueImpl(
         )
     }
 
-    override suspend fun markAsFailed(eventId: EventId, error: Exception, watchdogId: String, unitOfWork: UnitOfWork) {
+    override suspend fun markAsFailed(eventId: EventId, watchdogId: String, unitOfWork: UnitOfWork) {
         val expireAt = clock.instant().plus(config.failedEventRetention)
 
         queueDAO.markAsFailed(queueId, eventId, clock.instant(), expireAt, watchdogId, unitOfWork)

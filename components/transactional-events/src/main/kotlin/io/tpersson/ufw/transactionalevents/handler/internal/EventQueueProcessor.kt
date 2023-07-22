@@ -117,9 +117,15 @@ public class SingleEventQueueProcessor(
     }
 
     private suspend fun processEvent(event: EventEntityData) = coroutineScope {
-        val handlerFunction = findHandlerMethod(event)
-        // TODO what if deserialization failure?
-        val eventData = objectMapper.readValue(event.dataJson, handlerFunction.eventClass.java)
+        val (handlerFunction, eventData) = try {
+            val handlerFunction = findHandlerMethod(event)
+            val eventData = objectMapper.readValue(event.dataJson, handlerFunction.eventClass.java)
+            handlerFunction to eventData
+
+        } catch (t: Throwable) {
+            handleFailure(event, null, null, t)
+            return@coroutineScope
+        }
 
         logger.info("Starting work on event: '${event.queueId}/${event.id}'")
 
@@ -150,20 +156,21 @@ public class SingleEventQueueProcessor(
                 }]"
             )
         } catch (e: Exception) {
-            val realException = if (e is InvocationTargetException) {
+            val realError = if (e is InvocationTargetException) {
                 e.targetException
             } else {
                 e
             }
 
-            handleFailure(event, eventData, handlerFunction, realException as Exception) // TODO switch to Throwable?
+            handleFailure(event, eventData, handlerFunction, realError)
         }
 
         watchdogJob.cancel()
     }
 
     private fun findHandlerMethod(event: EventEntityData): EventHandlerFunction {
-        return handler.functions[event.topic to event.type] ?: error("not found")
+        return handler.functions[event.topic to event.type]
+            ?: error("No handler found for event type '${event.type}' in handler '${handler::class.simpleName}'")
     }
 
     private fun createEventContext(uow: UnitOfWork): EventContextImpl {
@@ -172,9 +179,9 @@ public class SingleEventQueueProcessor(
 
     private suspend fun handleFailure(
         event: EventEntityData,
-        eventData: Event,
-        handlerFunction: EventHandlerFunction,
-        error: Exception
+        eventData: Event?,
+        handlerFunction: EventHandlerFunction?,
+        error: Throwable
     ) {
         if (error is EventOwnershipLostException) {
             return
@@ -188,7 +195,10 @@ public class SingleEventQueueProcessor(
 
             eventQueue.recordFailure(event.uid, error, uow)
 
-            val failureAction = handlerFunction.instance.onFailure(eventData, error, failureContext)
+            val failureAction = if (eventData != null && handlerFunction != null) {
+                handlerFunction.instance.onFailure(eventData, error, failureContext)
+            } else FailureAction.GiveUp
+
             when (failureAction) {
                 is FailureAction.Reschedule -> {
                     logger.error(
@@ -205,7 +215,7 @@ public class SingleEventQueueProcessor(
 
                 FailureAction.GiveUp -> {
                     logger.error("Failure during event: '${queueId}/${event.eventId}'. Giving up.", error)
-                    eventQueue.markAsFailed(event.eventId, error, watchdogId, uow)
+                    eventQueue.markAsFailed(event.eventId, watchdogId, uow)
                 }
             }
         }

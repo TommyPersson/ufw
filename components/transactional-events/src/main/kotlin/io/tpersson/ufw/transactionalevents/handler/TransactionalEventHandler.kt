@@ -11,7 +11,7 @@ import kotlin.reflect.full.hasAnnotation
 public abstract class TransactionalEventHandler {
     public val eventQueueId: EventQueueId get() = EventQueueId(this::class.simpleName!!)
 
-    public open fun onFailure(event: Event, error: Exception, context: EventFailureContext): FailureAction = FailureAction.GiveUp
+    public open fun onFailure(event: Event, error: Throwable, context: EventFailureContext): FailureAction = FailureAction.GiveUp
 
     internal val functions: Map<Pair<String, String>, EventHandlerFunction> = this::class.declaredMemberFunctions
         .filter { fn ->

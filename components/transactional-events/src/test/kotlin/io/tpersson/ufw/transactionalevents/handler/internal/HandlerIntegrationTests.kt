@@ -145,7 +145,7 @@ internal class HandlerIntegrationTests {
     }
 
     @Test
-    fun `Failures - Am EventFailure is recorded for each failure`(): Unit = runBlocking {
+    fun `Failures - An EventFailure is recorded for each failure`(): Unit = runBlocking {
         val testEvent = TestEvent1("Hello, World!", shouldFail = true, numRetries = 3)
 
         publish("test-topic", testEvent)
@@ -158,6 +158,42 @@ internal class HandlerIntegrationTests {
 
         assertThat(numFailures).isEqualTo(4)
         assertThat(failures).hasSize(4)
+    }
+
+    @Test
+    fun `Failures - JSON deserialization errors are recorded as failures`(): Unit = runBlocking {
+        val eventId = EventId()
+
+        database.update(
+            EventQueueDAOImpl.Queries.Updates.Insert(
+                EventEntityData(
+                    uid = 0,
+                    id = eventId.value,
+                    queueId = testEventHandler1.eventQueueId.id,
+                    topic = "test-topic",
+                    type = "TestEvent1",
+                    state = EventState.Scheduled.id,
+                    dataJson = """{ "hasMissing": "properties" }""",
+                    ceDataJson = "{}",
+                    createdAt = testClock.instant(),
+                    scheduledFor = testClock.instant(),
+                    stateChangedAt = testClock.instant(),
+                    expireAt = null,
+                    watchdogTimestamp = null,
+                    watchdogOwner = null,
+                    timestamp = testClock.instant()
+                )
+            )
+        )
+
+        waitUntilQueueIsCompleted()
+
+        val event = eventQueueDAO.getById(testEventHandler1.eventQueueId, eventId)!!
+        val numFailures = eventFailuresDAO.getNumberOfFailuresFor(event.uid!!)
+        val failures = eventFailuresDAO.getLatestFor(event.uid!!, limit = 10)
+
+        assertThat(numFailures).isEqualTo(1)
+        assertThat(failures).hasSize(1)
     }
 
     @Test
@@ -330,7 +366,7 @@ internal class HandlerIntegrationTests {
             keyValueStore.put(event.resultKey, event.text, unitOfWork = context.unitOfWork)
         }
 
-        override fun onFailure(event: Event, error: Exception, context: EventFailureContext): FailureAction {
+        override fun onFailure(event: Event, error: Throwable, context: EventFailureContext): FailureAction {
             val numRetries = when (event) {
                 is TestEvent1 -> event.numRetries
                 else -> 0
