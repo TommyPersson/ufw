@@ -9,7 +9,7 @@ public class SimpleEventHandlersProvider(
     private val _handlers = handlers.toMutableSet()
 
     override fun get(): Set<TransactionalEventHandler> {
-        return _handlers
+        return _handlers.toSet()
     }
 
     override fun add(handler: TransactionalEventHandler) {

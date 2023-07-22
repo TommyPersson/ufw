@@ -1,10 +1,12 @@
 package io.tpersson.ufw.keyvaluestore.storageengine
 
+import io.tpersson.ufw.database.exceptions.MinimumAffectedRowsException
 import io.tpersson.ufw.database.jdbc.Database
 import io.tpersson.ufw.database.typedqueries.TypedSelect
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
+import io.tpersson.ufw.keyvaluestore.exceptions.VersionMismatchException
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import java.time.Instant
@@ -14,8 +16,6 @@ public class PostgresStorageEngine @Inject constructor(
     private val unitOfWorkFactory: UnitOfWorkFactory,
     private val database: Database
 ) : StorageEngine {
-
-    // TODO custom exception for expectedVersion mismatch?
 
     override suspend fun get(key: String): EntryDataFromRead? {
         val data = database.select(Queries.Selects.GetEntryByKey(key))
@@ -51,7 +51,8 @@ public class PostgresStorageEngine @Inject constructor(
             Queries.Updates.Put(
                 data = data,
                 expectedVersion = expectedVersion
-            )
+            ),
+            exceptionMapper(key, expectedVersion)
         )
     }
 
@@ -72,11 +73,17 @@ public class PostgresStorageEngine @Inject constructor(
         return database.selectList(Queries.Selects.DebugDumpTable)
     }
 
+    private fun exceptionMapper(key: String, expectedVersion: Int?): (Exception) -> Exception = {
+        if (it is MinimumAffectedRowsException) {
+            VersionMismatchException(key, expectedVersion, it)
+        } else it
+    }
+
     private fun EntryData.asEntryDataFromRead(): EntryDataFromRead {
         val value = when (type) {
             EntryType.Json.int -> EntryValue.Json(json!!)
             EntryType.Bytes.int -> EntryValue.Bytes(bytes!!)
-            else -> TODO()
+            else -> error("Unknown EntryValue type: $type")
         }
 
         return EntryDataFromRead(

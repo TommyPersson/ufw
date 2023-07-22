@@ -1,5 +1,6 @@
 package io.tpersson.ufw.transactionalevents.handler.internal
 
+import io.tpersson.ufw.core.utils.Memoized
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.transactionalevents.handler.IncomingEvent
 import io.tpersson.ufw.transactionalevents.handler.IncomingEventIngester
@@ -12,10 +13,7 @@ public class IncomingEventIngesterImpl @Inject constructor(
     private val eventQueueProvider: EventQueueProvider,
 ) : IncomingEventIngester {
 
-    private val handlers = eventHandlersProvider.get()
-
-    // TODO reevaluate when new handlers are added to the provider
-    private val functionsByTopicAndType by lazy {
+    private val functionsByTopicAndType by Memoized({ eventHandlersProvider.get() }) { handlers ->
         handlers.flatMap { it.functions.toList() }.groupBy({ it.first }, { it.second })
     }
 
