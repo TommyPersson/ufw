@@ -26,6 +26,7 @@ import io.tpersson.ufw.jobqueue.JobQueueConfig
 import io.tpersson.ufw.jobqueue.guice.JobQueueGuiceModule
 import io.tpersson.ufw.keyvaluestore.KeyValueStoreConfig
 import io.tpersson.ufw.keyvaluestore.guice.KeyValueStoreGuiceModule
+import io.tpersson.ufw.managed.ManagedComponent
 import io.tpersson.ufw.managed.ManagedRunner
 import io.tpersson.ufw.managed.guice.ManagedGuiceModule
 import io.tpersson.ufw.mediator.Mediator
@@ -89,7 +90,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
     val migrator = injector.getInstance(DatabaseComponent::class.java).migrator
     migrator.run()
 
-    val managedRunner = injector.getInstance(ManagedRunner::class.java)
+    val managedRunner = injector.getInstance(ManagedComponent::class.java).managedRunner
     managedRunner.startAll(addShutdownHook = true)
 
     testMediator(injector)
