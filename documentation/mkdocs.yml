@@ -1,5 +1,6 @@
 site_name: UFW Documentation
 
+site_url: https://github.com/TommyPersson/ufw/
 repo_url: https://github.com/TommyPersson/ufw/
 repo_name: TommyPersson/ufw
 edit_uri: edit/main/documentation/

@@ -1,11 +1,8 @@
 package io.tpersson.ufw.database.jdbc
 
 import io.tpersson.ufw.database.DatabaseModuleConfig
-import io.tpersson.ufw.database.typedqueries.TypedSelect
-import io.tpersson.ufw.database.typedqueries.TypedUpdate
-import io.tpersson.ufw.database.typedqueries.selectList
-import io.tpersson.ufw.database.typedqueries.selectSingle
 import io.tpersson.ufw.database.exceptions.TypedUpdateMinimumAffectedRowsException
+import io.tpersson.ufw.database.typedqueries.*
 import jakarta.inject.Inject
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.withContext
@@ -45,6 +42,52 @@ public class Database @Inject constructor(
             }
 
             affectedRows
+        } catch (e: Exception) {
+            throw exceptionMapper(e)
+        }
+    }
+
+    public suspend fun <T : Any> update(
+        query: TypedUpdateReturningSingle<T>,
+        exceptionMapper: (Exception) -> Exception = { it },
+        connection: Connection? = null
+    ): T? = io {
+        try {
+            if (connection == null) {
+                return@io connectionProvider.get().useInTransaction {
+                    update(query, exceptionMapper, it)
+                }
+            }
+
+            val result = connection.performUpdateReturning(query)
+            if (result == null && query.minimumAffectedRows > 0) {
+                throw TypedUpdateMinimumAffectedRowsException(query.minimumAffectedRows, 1, query)
+            }
+
+            result
+        } catch (e: Exception) {
+            throw exceptionMapper(e)
+        }
+    }
+
+    public suspend fun <T : Any> update(
+        query: TypedUpdateReturningList<T>,
+        exceptionMapper: (Exception) -> Exception = { it },
+        connection: Connection? = null
+    ): List<T> = io {
+        try {
+            if (connection == null) {
+                return@io connectionProvider.get().useInTransaction {
+                    update(query, exceptionMapper, it)
+                }
+            }
+
+            val result = connection.performUpdateReturningList(query)
+            if (result == null && query.minimumAffectedRows > 0) {
+                throw TypedUpdateMinimumAffectedRowsException(query.minimumAffectedRows, 1, query)
+            }
+
+            result
         } catch (e: Exception) {
             throw exceptionMapper(e)
         }

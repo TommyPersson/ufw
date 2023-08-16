@@ -16,6 +16,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.util.*
 
+
 internal class IntegrationTestsTypedQueries {
 
     private companion object {
@@ -73,8 +74,8 @@ internal class IntegrationTestsTypedQueries {
 
     @BeforeEach
     fun beforeEach(): Unit = runBlocking {
-        database.update(TruncateBasicTypes)
-        database.update(TruncateTimeTypes)
+        database.update(Queries.Updates.TruncateBasicTypes)
+        database.update(Queries.Updates.TruncateTimeTypes)
     }
 
     @Test
@@ -82,6 +83,7 @@ internal class IntegrationTestsTypedQueries {
         val id = UUID.fromString("b5f78035-1871-434c-8606-f16399e27e43")
 
         val originalData = BasicTypesEntity(
+            id = id,
             theShort = 1.toShort(),
             theInt = 2,
             theLong = 3L,
@@ -92,9 +94,9 @@ internal class IntegrationTestsTypedQueries {
             theString = "Hello, World!"
         )
 
-        database.update(InsertBasicTypesData(id, originalData))
+        database.update(Queries.Updates.InsertBasicTypesData(originalData))
 
-        val selectedData = connectionProvider.get().selectSingle(SelectBasicTypesData(id))
+        val selectedData = connectionProvider.get().selectSingle(Queries.Selects.SelectBasicTypesData(id))
 
         assertThat(selectedData).isEqualTo(originalData)
     }
@@ -104,6 +106,7 @@ internal class IntegrationTestsTypedQueries {
         val id = UUID.fromString("b5f78035-1871-434c-8606-f16399e27e43")
 
         val originalData = BasicTypesEntity(
+            id = id,
             theShort = null,
             theInt = null,
             theLong = null,
@@ -114,9 +117,9 @@ internal class IntegrationTestsTypedQueries {
             theString = null,
         )
 
-        database.update(InsertBasicTypesData(id, originalData))
+        database.update(Queries.Updates.InsertBasicTypesData(originalData))
 
-        val selectedData = database.select(SelectBasicTypesData(id))
+        val selectedData = database.select(Queries.Selects.SelectBasicTypesData(id))
 
         assertThat(selectedData).isEqualTo(originalData)
     }
@@ -130,14 +133,57 @@ internal class IntegrationTestsTypedQueries {
             theLocalDate = LocalDate.of(2000, 1, 1),
         )
 
-        database.update(InsertTimeTypesData(id, originalData))
+        database.update(Queries.Updates.InsertTimeTypesData(id, originalData))
 
-        val selectedData = database.select(SelectTimeTypesData(id))
+        val selectedData = database.select(Queries.Selects.SelectTimeTypesData(id))
 
         assertThat(selectedData).isEqualTo(originalData)
     }
 
+    @Test
+    fun `UpdateReturningSingle - Updates and returns a single item`(): Unit = runBlocking {
+        val id = UUID.fromString("b5f78035-1871-434c-8606-f16399e27e43")
+
+        val originalData = BasicTypesEntity(
+            id = id,
+            theShort = 1,
+            theInt = 2,
+            theLong = 3,
+            theDouble = 4.0,
+            theFloat = 5.0f,
+            theBoolean = true,
+            theChar = 'A',
+            theString = "ABC"
+        )
+
+        val insertedData = database.update(Queries.Updates.InsertBasicTypesDataReturning(originalData))
+
+        assertThat(insertedData).isEqualTo(originalData)
+    }
+
+    @Test
+    fun `UpdateReturningList - Updates and returns a list of results`(): Unit = runBlocking {
+        val id = UUID.fromString("b5f78035-1871-434c-8606-f16399e27e43")
+
+        val originalData = BasicTypesEntity(
+            id = id,
+            theShort = 1,
+            theInt = 2,
+            theLong = 3,
+            theDouble = 4.0,
+            theFloat = 5.0f,
+            theBoolean = true,
+            theChar = 'A',
+            theString = "ABC"
+        )
+
+        val insertedData = database.update(Queries.Updates.InsertBasicTypesDataReturningList(originalData))
+
+        assertThat(insertedData.single()).isEqualTo(originalData)
+    }
+
     data class BasicTypesEntity(
+        val id: UUID,
         val theShort: Short?,
         val theInt: Int?,
         val theLong: Long?,
@@ -148,65 +194,91 @@ internal class IntegrationTestsTypedQueries {
         val theString: String?
     )
 
-    class InsertBasicTypesData(
-        val id: UUID,
-        val data: BasicTypesEntity
-    ) : TypedUpdate(
-        """
-        INSERT INTO basic_types (
-            id,
-            the_short,
-            the_int,
-            the_long,
-            the_double,
-            the_float,
-            the_boolean,
-            the_char,
-            the_string)
-        VALUES
-            (:id,
-             :data.theShort,
-             :data.theInt,
-             :data.theLong,
-             :data.theDouble,
-             :data.theFloat,
-             :data.theBoolean,
-             :data.theChar,
-             :data.theString)
-    """.trimIndent()
-    )
-
-    class SelectBasicTypesData(
-        val id: UUID
-    ) : TypedSelect<BasicTypesEntity>("SELECT * FROM basic_types WHERE id = :id")
-
-    object TruncateBasicTypes : TypedUpdate("DELETE FROM basic_types", minimumAffectedRows = 0)
-
     data class TimeTypesEntity(
         val theInstant: Instant?,
         val theLocalDate: LocalDate?,
     )
 
-    class InsertTimeTypesData(
-        val id: UUID,
-        val data: TimeTypesEntity
-    ) : TypedUpdate(
-        """
-        INSERT INTO time_types (
-            id,
-            the_instant,
-            the_local_date)
-        VALUES
-            (:id,
-             :data.theInstant,
-             :data.theLocalDate)
-    """.trimIndent()
-    )
+    object Queries {
+        object Selects {
+            class SelectBasicTypesData(
+                val id: UUID
+            ) : TypedSelect<BasicTypesEntity>("SELECT * FROM basic_types WHERE id = :id")
 
-    class SelectTimeTypesData(
-        val id: UUID
-    ) : TypedSelect<TimeTypesEntity>("SELECT * FROM time_types WHERE id = :id")
+            class SelectTimeTypesData(
+                val id: UUID
+            ) : TypedSelect<TimeTypesEntity>("SELECT * FROM time_types WHERE id = :id")
+        }
 
-    object TruncateTimeTypes : TypedUpdate("DELETE FROM time_types", minimumAffectedRows = 0)
+        object Updates {
+            val insertBasicTypesSql = """
+                INSERT INTO basic_types (
+                    id,
+                    the_short,
+                    the_int,
+                    the_long,
+                    the_double,
+                    the_float,
+                    the_boolean,
+                    the_char,
+                    the_string)
+                VALUES
+                    (:data.id,
+                     :data.theShort,
+                     :data.theInt,
+                     :data.theLong,
+                     :data.theDouble,
+                     :data.theFloat,
+                     :data.theBoolean,
+                     :data.theChar,
+                     :data.theString)"""
 
+
+            class InsertBasicTypesData(
+                val data: BasicTypesEntity
+            ) : TypedUpdate(
+                """
+                $insertBasicTypesSql
+                """.trimIndent()
+            )
+
+            class InsertTimeTypesData(
+                val id: UUID,
+                val data: TimeTypesEntity
+            ) : TypedUpdate(
+                """
+                    INSERT INTO time_types (
+                        id,
+                        the_instant,
+                        the_local_date)
+                    VALUES
+                        (:id,
+                         :data.theInstant,
+                         :data.theLocalDate)
+                """.trimIndent()
+            )
+
+            class InsertBasicTypesDataReturning(
+                val data: BasicTypesEntity,
+            ) : TypedUpdateReturningSingle<BasicTypesEntity>(
+                """
+                $insertBasicTypesSql
+                RETURNING *     
+                """.trimIndent()
+            )
+
+            class InsertBasicTypesDataReturningList(
+                val data: BasicTypesEntity,
+            ) : TypedUpdateReturningList<BasicTypesEntity>(
+                """
+                $insertBasicTypesSql
+                RETURNING *     
+                """.trimIndent()
+            )
+
+            object TruncateBasicTypes : TypedUpdate("DELETE FROM basic_types", minimumAffectedRows = 0)
+
+            object TruncateTimeTypes : TypedUpdate("DELETE FROM time_types", minimumAffectedRows = 0)
+        }
+    }
 }

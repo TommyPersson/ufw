@@ -2,7 +2,7 @@ package io.tpersson.ufw.database.typedqueries
 
 import io.tpersson.ufw.database.typedqueries.internal.TypedQuery
 import org.intellij.lang.annotations.Language
-import java.sql.*
+import java.sql.Connection
 
 public abstract class TypedUpdate(
     @Language("sql")
