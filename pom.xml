@@ -41,7 +41,7 @@
         <kotlin.code.style>official</kotlin.code.style>
         <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
         <kotlin.version>1.9.0</kotlin.version>
-        <kotlinx-coroutines.version>1.7.2</kotlinx-coroutines.version>
+        <kotlinx-coroutines.version>1.7.3</kotlinx-coroutines.version>
 
         <jackson.version>2.15.2</jackson.version>
         <micrometer.version>1.11.2</micrometer.version>
