@@ -60,7 +60,7 @@
         <janino.version>3.1.10</janino.version>
         <slf4j.version>2.0.7</slf4j.version>
 
-        <junit.version>5.9.3</junit.version>
+        <junit.version>5.10.0</junit.version>
         <testcontainers.version>1.18.3</testcontainers.version>
         <assertj-core.version>3.24.2</assertj-core.version>
         <jakarta.inject-api.version>2.0.1</jakarta.inject-api.version>
