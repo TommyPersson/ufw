@@ -1,7 +1,8 @@
 package io.tpersson.ufw.transactionalevents.handler.internal.dao
 
 import io.tpersson.ufw.database.jdbc.Database
-import io.tpersson.ufw.database.typedqueries.TypedSelect
+import io.tpersson.ufw.database.typedqueries.TypedSelectList
+import io.tpersson.ufw.database.typedqueries.TypedSelectSingle
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.transactionalevents.handler.internal.EventFailure
@@ -19,7 +20,7 @@ public class EventFailuresDAO @Inject constructor(
     }
 
     public suspend fun getLatestFor(eventUid: Long, limit: Int): List<EventFailure> {
-        return database.selectList(Queries.Selects.GetLatest(eventUid, limit))
+        return database.select(Queries.Selects.GetLatest(eventUid, limit))
     }
 
     internal object Queries {
@@ -30,7 +31,7 @@ public class EventFailuresDAO @Inject constructor(
         object Selects {
             data class GetCount(
                 val eventUid: Long
-            ) : TypedSelect<CountResult>(
+            ) : TypedSelectSingle<CountResult>(
                 """
                 SELECT count(*) as count 
                 FROM $TableName
@@ -41,7 +42,7 @@ public class EventFailuresDAO @Inject constructor(
             data class GetLatest(
                 val eventUid: Long,
                 val limit: Int
-            ) : TypedSelect<EventFailure>(
+            ) : TypedSelectList<EventFailure>(
                 """
                 SELECT *
                 FROM $TableName

@@ -2,7 +2,8 @@ package io.tpersson.ufw.transactionalevents.handler.internal.dao
 
 import io.tpersson.ufw.database.exceptions.TypedUpdateMinimumAffectedRowsException
 import io.tpersson.ufw.database.jdbc.Database
-import io.tpersson.ufw.database.typedqueries.TypedSelect
+import io.tpersson.ufw.database.typedqueries.TypedSelectList
+import io.tpersson.ufw.database.typedqueries.TypedSelectSingle
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.transactionalevents.EventId
@@ -138,7 +139,7 @@ public class EventQueueDAOImpl @Inject constructor(
     }
 
     override suspend fun getQueueStatistics(queueId: EventQueueId): EventQueueStatistics {
-        val data = database.selectList(Queries.Selects.GetStatistics(queueId.id))
+        val data = database.select(Queries.Selects.GetStatistics(queueId.id))
 
         val map = data.associateBy { EventState.fromId(it.stateId) }
 
@@ -152,7 +153,7 @@ public class EventQueueDAOImpl @Inject constructor(
     }
 
     override suspend fun debugGetAllEvents(queueId: EventQueueId?): List<EventEntityData> {
-        return database.selectList(Queries.Selects.DebugSelectAll(queueId))
+        return database.select(Queries.Selects.DebugSelectAll(queueId))
     }
 
     override suspend fun debugTruncate() {
@@ -178,7 +179,7 @@ public class EventQueueDAOImpl @Inject constructor(
             data class SelectNextEvent(
                 val queueId: EventQueueId,
                 val now: Instant,
-            ) : TypedSelect<EventEntityData>(
+            ) : TypedSelectSingle<EventEntityData>(
                 """
                 SELECT * 
                 FROM $TableName
@@ -193,7 +194,7 @@ public class EventQueueDAOImpl @Inject constructor(
             data class GetById(
                 val queueId: EventQueueId,
                 val eventId: EventId,
-            ) : TypedSelect<EventEntityData>(
+            ) : TypedSelectSingle<EventEntityData>(
                 """
                 SELECT * 
                 FROM $TableName
@@ -204,7 +205,7 @@ public class EventQueueDAOImpl @Inject constructor(
 
             data class GetStatistics(
                 val queueId: String
-            ) : TypedSelect<StatisticsData>(
+            ) : TypedSelectList<StatisticsData>(
                 """
                 SELECT count(*) as count, state as state_id
                 FROM $TableName
@@ -215,7 +216,7 @@ public class EventQueueDAOImpl @Inject constructor(
 
             data class DebugSelectAll(
                 val queueId: EventQueueId?
-            ) : TypedSelect<EventEntityData>(
+            ) : TypedSelectList<EventEntityData>(
                 """
                 SELECT * FROM $TableName 
                 WHERE queue_id = :queueId.id::text

@@ -5,7 +5,8 @@ import io.tpersson.ufw.aggregates.*
 import io.tpersson.ufw.aggregates.exceptions.AggregateVersionConflictException
 import io.tpersson.ufw.core.NamedBindings
 import io.tpersson.ufw.database.jdbc.Database
-import io.tpersson.ufw.database.typedqueries.TypedSelect
+import io.tpersson.ufw.database.typedqueries.TypedSelectList
+import io.tpersson.ufw.database.typedqueries.TypedSelectSingle
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import jakarta.inject.Inject
@@ -38,7 +39,7 @@ public class AggregateFactRepositoryImpl @Inject constructor(
     }
 
     override suspend fun <TFact : Fact> getAll(aggregateId: AggregateId, factClass: KClass<TFact>): List<TFact> {
-        val rawFacts = database.selectList(Queries.Selects.GetAll(aggregateId.value))
+        val rawFacts = database.select(Queries.Selects.GetAll(aggregateId.value))
 
         return rawFacts.map { objectMapper.readValue(it.json, factClass.java) }
     }
@@ -61,7 +62,7 @@ public class AggregateFactRepositoryImpl @Inject constructor(
         private const val TableName = "ufw__aggregates__facts"
 
         object Selects {
-            class GetAll(val aggregateId: String) : TypedSelect<FactData>(
+            class GetAll(val aggregateId: String) : TypedSelectList<FactData>(
                 """
                 SELECT * 
                 FROM $TableName

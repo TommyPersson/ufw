@@ -1,10 +1,9 @@
 package io.tpersson.ufw.transactionalevents.publisher.internal.dao
 
 import io.tpersson.ufw.database.jdbc.Database
-import io.tpersson.ufw.database.typedqueries.TypedSelect
+import io.tpersson.ufw.database.typedqueries.TypedSelectList
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
-import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import jakarta.inject.Inject
 
 public class EventOutboxDAO @Inject constructor(
@@ -17,7 +16,7 @@ public class EventOutboxDAO @Inject constructor(
     }
 
     public suspend fun getNextBatch(limit: Int): List<EventEntityData> {
-        return database.selectList(Queries.Selects.GetNextBatch(limit))
+        return database.select(Queries.Selects.GetNextBatch(limit))
     }
 
     public fun deleteBatch(uids: List<Long>, unitOfWork: UnitOfWork) {
@@ -63,7 +62,7 @@ public class EventOutboxDAO @Inject constructor(
         object Selects {
             class GetNextBatch(
                 val limit: Int,
-            ) : TypedSelect<EventEntityData>(
+            ) : TypedSelectList<EventEntityData>(
                 """
                 SELECT * FROM ufw__transactional_events__outbox 
                 ORDER BY uid

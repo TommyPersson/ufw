@@ -2,7 +2,8 @@ package io.tpersson.ufw.keyvaluestore.storageengine
 
 import io.tpersson.ufw.database.exceptions.MinimumAffectedRowsException
 import io.tpersson.ufw.database.jdbc.Database
-import io.tpersson.ufw.database.typedqueries.TypedSelect
+import io.tpersson.ufw.database.typedqueries.TypedSelectList
+import io.tpersson.ufw.database.typedqueries.TypedSelectSingle
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
@@ -61,7 +62,7 @@ public class PostgresStorageEngine @Inject constructor(
     }
 
     override suspend fun list(prefix: String, limit: Int, offset: Int): List<EntryDataFromRead> {
-        return database.selectList(Queries.Selects.ListByPrefix(prefix, limit, offset))
+        return database.select(Queries.Selects.ListByPrefix(prefix, limit, offset))
             .map { it.asEntryDataFromRead() }
     }
 
@@ -70,7 +71,7 @@ public class PostgresStorageEngine @Inject constructor(
     }
 
     public suspend fun debugDumpTable(): List<Map<String, Any?>> {
-        return database.selectList(Queries.Selects.DebugDumpTable)
+        return database.select(Queries.Selects.DebugDumpTable)
     }
 
     private fun exceptionMapper(key: String, expectedVersion: Int?): (Exception) -> Exception = {
@@ -111,7 +112,7 @@ public class PostgresStorageEngine @Inject constructor(
         private const val TableName: String = "ufw__key_value_store"
 
         object Selects {
-            class GetEntryByKey(val key: String) : TypedSelect<EntryData>(
+            class GetEntryByKey(val key: String) : TypedSelectSingle<EntryData>(
                 "SELECT * FROM $TableName WHERE key = :key"
             )
 
@@ -119,7 +120,7 @@ public class PostgresStorageEngine @Inject constructor(
                 val prefix: String,
                 val limit: Int,
                 val offset: Int
-            ) : TypedSelect<EntryData>(
+            ) : TypedSelectList<EntryData>(
                 """
                 SELECT * 
                 FROM $TableName 
@@ -130,7 +131,7 @@ public class PostgresStorageEngine @Inject constructor(
                 """.trimIndent()
             )
 
-            object DebugDumpTable : TypedSelect<Map<String, Any?>>("SELECT * FROM $TableName")
+            object DebugDumpTable : TypedSelectList<Map<String, Any?>>("SELECT * FROM $TableName")
         }
 
         object Updates {

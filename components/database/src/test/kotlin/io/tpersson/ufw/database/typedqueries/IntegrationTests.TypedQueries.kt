@@ -96,7 +96,7 @@ internal class IntegrationTestsTypedQueries {
 
         database.update(Queries.Updates.InsertBasicTypesData(originalData))
 
-        val selectedData = connectionProvider.get().selectSingle(Queries.Selects.SelectBasicTypesData(id))
+        val selectedData = connectionProvider.get().select(Queries.Selects.SelectBasicTypesData(id))
 
         assertThat(selectedData).isEqualTo(originalData)
     }
@@ -138,6 +138,20 @@ internal class IntegrationTestsTypedQueries {
         val selectedData = database.select(Queries.Selects.SelectTimeTypesData(id))
 
         assertThat(selectedData).isEqualTo(originalData)
+    }
+
+    @Test
+    fun `SelectList - Returns a list of results`(): Unit = runBlocking {
+        val originalData1 = BasicTypesEntity(UUID.randomUUID())
+        database.update(Queries.Updates.InsertBasicTypesData(originalData1))
+
+        val originalData2 = BasicTypesEntity(UUID.randomUUID())
+        database.update(Queries.Updates.InsertBasicTypesData(originalData2))
+
+        val selectedData = database.select(Queries.Selects.SelectBasicTypesDataList())
+
+        assertThat(selectedData).contains(originalData1)
+        assertThat(selectedData).contains(originalData2)
     }
 
     @Test
@@ -184,14 +198,14 @@ internal class IntegrationTestsTypedQueries {
 
     data class BasicTypesEntity(
         val id: UUID,
-        val theShort: Short?,
-        val theInt: Int?,
-        val theLong: Long?,
-        val theDouble: Double?,
-        val theFloat: Float?,
-        val theBoolean: Boolean?,
-        val theChar: Char?,
-        val theString: String?
+        val theShort: Short? = null,
+        val theInt: Int? = null,
+        val theLong: Long? = null,
+        val theDouble: Double? = null,
+        val theFloat: Float? = null,
+        val theBoolean: Boolean? = null,
+        val theChar: Char? = null,
+        val theString: String? = null,
     )
 
     data class TimeTypesEntity(
@@ -203,11 +217,14 @@ internal class IntegrationTestsTypedQueries {
         object Selects {
             class SelectBasicTypesData(
                 val id: UUID
-            ) : TypedSelect<BasicTypesEntity>("SELECT * FROM basic_types WHERE id = :id")
+            ) : TypedSelectSingle<BasicTypesEntity>("SELECT * FROM basic_types WHERE id = :id")
+
+            class SelectBasicTypesDataList(
+            ) : TypedSelectList<BasicTypesEntity>("SELECT * FROM basic_types")
 
             class SelectTimeTypesData(
                 val id: UUID
-            ) : TypedSelect<TimeTypesEntity>("SELECT * FROM time_types WHERE id = :id")
+            ) : TypedSelectSingle<TimeTypesEntity>("SELECT * FROM time_types WHERE id = :id")
         }
 
         object Updates {

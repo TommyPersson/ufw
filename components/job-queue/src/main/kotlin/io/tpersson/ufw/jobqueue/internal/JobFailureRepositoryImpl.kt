@@ -1,12 +1,9 @@
 package io.tpersson.ufw.jobqueue.internal
 
-import io.tpersson.ufw.database.jdbc.ConnectionProvider
 import io.tpersson.ufw.database.jdbc.Database
-import io.tpersson.ufw.database.jdbc.useInTransaction
-import io.tpersson.ufw.database.typedqueries.TypedSelect
+import io.tpersson.ufw.database.typedqueries.TypedSelectList
+import io.tpersson.ufw.database.typedqueries.TypedSelectSingle
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
-import io.tpersson.ufw.database.typedqueries.selectList
-import io.tpersson.ufw.database.typedqueries.selectSingle
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import jakarta.inject.Inject
 
@@ -15,7 +12,7 @@ public class JobFailureRepositoryImpl @Inject constructor(
 ) : JobFailureRepository {
 
     override suspend fun getLatestFor(job: InternalJob<*>, limit: Long): List<JobFailure> {
-        return database.selectList(Queries.Selects.GetLatestFor(job.uid!!, limit))
+        return database.select(Queries.Selects.GetLatestFor(job.uid!!, limit))
     }
 
     override suspend fun getNumberOfFailuresFor(job: InternalJob<*>): Int {
@@ -38,10 +35,10 @@ public class JobFailureRepositoryImpl @Inject constructor(
         object Selects {
             class GetNumberOfFailuresFor(
                 val jobUid: Long
-            ) : TypedSelect<Count>(
+            ) : TypedSelectSingle<Count>(
                 """
                 SELECT COUNT(*) AS count
-                FROM ufw__job_queue__failures
+                FROM $TableName
                 WHERE job_uid = :jobUid                   
                 """.trimIndent()
             )
@@ -49,10 +46,10 @@ public class JobFailureRepositoryImpl @Inject constructor(
             class GetLatestFor(
                 val jobUid: Long,
                 val limit: Long,
-            ) : TypedSelect<JobFailure>(
+            ) : TypedSelectList<JobFailure>(
                 """
                     SELECT *
-                    FROM ufw__job_queue__failures
+                    FROM $TableName
                     WHERE job_uid = :jobUid
                     ORDER BY timestamp DESC
                     LIMIT :limit

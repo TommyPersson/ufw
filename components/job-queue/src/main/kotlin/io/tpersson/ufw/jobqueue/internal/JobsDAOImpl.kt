@@ -3,9 +3,10 @@ package io.tpersson.ufw.jobqueue.internal
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.tpersson.ufw.core.NamedBindings
 import io.tpersson.ufw.database.jdbc.Database
-import io.tpersson.ufw.database.typedqueries.TypedSelect
+import io.tpersson.ufw.database.typedqueries.TypedSelectSingle
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
 import io.tpersson.ufw.database.exceptions.TypedUpdateMinimumAffectedRowsException
+import io.tpersson.ufw.database.typedqueries.TypedSelectList
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.jobqueue.Job
 import io.tpersson.ufw.jobqueue.JobId
@@ -17,7 +18,6 @@ import jakarta.inject.Inject
 import jakarta.inject.Named
 import jakarta.inject.Singleton
 import java.time.Instant
-import java.util.*
 
 @Singleton
 public class JobsDAOImpl @Inject constructor(
@@ -160,7 +160,7 @@ public class JobsDAOImpl @Inject constructor(
     }
 
     override suspend fun <TJob : Job> getQueueStatistics(queueId: JobQueueId<TJob>): JobQueueStatistics<TJob> {
-        val data = database.selectList(Queries.Selects.GetStatistics(queueId.typeName))
+        val data = database.select(Queries.Selects.GetStatistics(queueId.typeName))
 
         val map = data.associateBy { JobState.fromId(it.stateId) }
 
@@ -174,7 +174,7 @@ public class JobsDAOImpl @Inject constructor(
     }
 
     override suspend fun debugGetAllJobs(): List<InternalJob<*>> {
-        val jobData = database.selectList(Queries.Selects.DebugGetAll)
+        val jobData = database.select(Queries.Selects.DebugGetAll)
 
         return jobData.map { toInternalJob(it, JobQueueId(StubJob::class)) }
     }
@@ -221,7 +221,7 @@ public class JobsDAOImpl @Inject constructor(
             data class SelectNextJob(
                 val type: String,
                 val now: Instant,
-            ) : TypedSelect<JobData>(
+            ) : TypedSelectSingle<JobData>(
                 """
                 SELECT * 
                 FROM $TableName
@@ -235,22 +235,22 @@ public class JobsDAOImpl @Inject constructor(
 
             data class SelectById(
                 val id: String,
-            ) : TypedSelect<JobData>(
+            ) : TypedSelectSingle<JobData>(
                 "SELECT * FROM $TableName WHERE id = :id"
             )
 
             data class GetStatistics(
                 val queueId: String
-            ) : TypedSelect<StatisticsData>(
+            ) : TypedSelectList<StatisticsData>(
                 """
                 SELECT count(*) as count, state as state_id
-                FROM ufw__job_queue__jobs
+                FROM $TableName
                 WHERE type = :queueId
                 GROUP BY state
                 """.trimIndent()
             )
 
-            object DebugGetAll : TypedSelect<JobData>("SELECT * FROM $TableName")
+            object DebugGetAll : TypedSelectList<JobData>("SELECT * FROM $TableName")
         }
 
         object Updates {

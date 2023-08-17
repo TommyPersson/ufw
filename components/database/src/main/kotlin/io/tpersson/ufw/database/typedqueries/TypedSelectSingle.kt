@@ -7,13 +7,13 @@ import org.intellij.lang.annotations.Language
 import java.sql.Connection
 import kotlin.reflect.KClass
 
-public abstract class TypedSelect<T>(
+public abstract class TypedSelectSingle<T>(
     @Language("sql")
     pseudoSql: String
 ) : TypedQuery(pseudoSql)
 
-public fun <T : Any> Connection.selectSingle(select: TypedSelect<T>): T? {
-    val returnType = select::class.supertypes.find { it.classifier == TypedSelect::class }
+public fun <T : Any> Connection.select(select: TypedSelectSingle<T>): T? {
+    val returnType = select::class.supertypes.find { it.classifier == TypedSelectSingle::class }
         ?.arguments?.get(0)?.type?.classifier as? KClass<T>
         ?: error("No return type found for ${select::class.simpleName}")
 
@@ -23,16 +23,3 @@ public fun <T : Any> Connection.selectSingle(select: TypedSelect<T>): T? {
 
     return statement.executeQuery().asMaps().map { rowEntityMapper.map(it) }.singleOrNull()
 }
-
-public fun <T : Any> Connection.selectList(select: TypedSelect<T>): List<T> {
-    val returnType = select::class.supertypes.find { it.classifier == TypedSelect::class }
-        ?.arguments?.get(0)?.type?.classifier as? KClass<T>
-        ?: error("No return type found for ${select::class.simpleName}")
-
-    val rowEntityMapper = RowEntityMapper(returnType)
-
-    val statement = select.asPreparedStatement(this)
-
-    return statement.executeQuery().asMaps().map { rowEntityMapper.map(it) }
-}
-

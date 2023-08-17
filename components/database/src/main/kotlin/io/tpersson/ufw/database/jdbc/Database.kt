@@ -12,15 +12,15 @@ public class Database @Inject constructor(
     private val connectionProvider: ConnectionProvider,
     private val config: DatabaseModuleConfig
 ) {
-    public suspend fun <T : Any> select(query: TypedSelect<T>): T? = io {
+    public suspend fun <T : Any> select(query: TypedSelectSingle<T>): T? = io {
         connectionProvider.get(autoCommit = true).use {
-            it.selectSingle(query)
+            it.select(query)
         }
     }
 
-    public suspend fun <T : Any> selectList(query: TypedSelect<T>): List<T> = io {
+    public suspend fun <T : Any> select(query: TypedSelectList<T>): List<T> = io {
         connectionProvider.get(autoCommit = true).use {
-            it.selectList(query)
+            it.select(query)
         }
     }
 
