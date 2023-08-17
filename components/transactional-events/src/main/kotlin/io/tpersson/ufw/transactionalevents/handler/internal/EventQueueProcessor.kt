@@ -102,7 +102,11 @@ public class SingleEventQueueProcessor(
                         eventQueue.markAsInProgress(event.eventId, watchdogId, uow)
                     }
 
-                    processEvent(event)
+                    try {
+                        processEvent(event)
+                    } catch (e: CancellationException) {
+                        // Let `forever` exit normally
+                    }
                 }
             }
         }
@@ -121,7 +125,6 @@ public class SingleEventQueueProcessor(
             val handlerFunction = findHandlerMethod(event)
             val eventData = objectMapper.readValue(event.dataJson, handlerFunction.eventClass.java)
             handlerFunction to eventData
-
         } catch (t: Throwable) {
             handleFailure(event, null, null, t)
             return@coroutineScope

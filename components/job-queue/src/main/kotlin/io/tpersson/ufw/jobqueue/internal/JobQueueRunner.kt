@@ -92,6 +92,8 @@ public class SingleJobHandlerRunner<TJob : Job>(
 
                     try {
                         handleJob(job)
+                    } catch (e: CancellationException) {
+                        // Let `forever` exit normally
                     } catch (e: Exception) {
                         handleFailure(job, e)
                     }
