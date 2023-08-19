@@ -40,26 +40,16 @@ public class EventQueueImpl(
         }
     }
 
-    override suspend fun pollOne(timeout: Duration): EventEntityData? {
+    override suspend fun pollOne(timeout: Duration, watchdogId: String): EventEntityData? {
         return withTimeoutOrNull(timeout) {
-            var next = queueDAO.getNext(queueId, clock.instant())
+            var next = queueDAO.takeNext(queueId, clock.instant(), watchdogId)
             while (next == null) {
                 signal.wait(pollWaitTime)
-                next = queueDAO.getNext(queueId, clock.instant())
+                next = queueDAO.takeNext(queueId, clock.instant(), watchdogId)
             }
 
             next
         }
-    }
-
-    override suspend fun markAsInProgress(eventId: EventId, watchdogId: String, unitOfWork: UnitOfWork) {
-        queueDAO.markAsInProgress(
-            queueId = queueId,
-            eventId = eventId,
-            now = clock.instant(),
-            watchdogId = watchdogId,
-            unitOfWork = unitOfWork
-        )
     }
 
     override suspend fun updateWatchdog(eventUid: Long, watchdogId: String): Boolean {

@@ -9,23 +9,16 @@ import java.time.Instant
 public interface EventQueueDAO {
     public suspend fun insert(event: EventEntityData, unitOfWork: UnitOfWork)
 
-    public suspend fun getNext(
+    public suspend fun takeNext(
         queueId: EventQueueId,
-        now: Instant
+        now: Instant,
+        watchdogId: String,
     ): EventEntityData?
 
     public suspend fun getById(
         queueId: EventQueueId,
         eventId: EventId
     ): EventEntityData?
-
-    public suspend fun markAsInProgress(
-        queueId: EventQueueId,
-        eventId: EventId,
-        now: Instant,
-        watchdogId: String,
-        unitOfWork: UnitOfWork
-    )
 
     public suspend fun markAsSuccessful(
         queueId: EventQueueId,

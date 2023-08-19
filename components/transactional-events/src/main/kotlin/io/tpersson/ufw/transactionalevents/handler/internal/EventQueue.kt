@@ -14,9 +14,7 @@ public interface EventQueue {
 
     public suspend fun enqueue(event: IncomingEvent, unitOfWork: UnitOfWork)
 
-    public suspend fun pollOne(timeout: Duration): EventEntityData?
-
-    public suspend fun markAsInProgress(eventId: EventId, watchdogId: String, unitOfWork: UnitOfWork)
+    public suspend fun pollOne(timeout: Duration, watchdogId: String): EventEntityData?
 
     public suspend fun markAsSuccessful(eventId: EventId, watchdogId: String, unitOfWork: UnitOfWork)
 

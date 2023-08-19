@@ -95,13 +95,9 @@ public class SingleEventQueueProcessor(
 
     public suspend fun run() {
         forever(logger) {
-            val event = eventQueue.pollOne(timeout = timeout)
+            val event = eventQueue.pollOne(timeout, watchdogId)
             if (event != null) {
                 withEventContext(event) {
-                    unitOfWorkFactory.use { uow ->
-                        eventQueue.markAsInProgress(event.eventId, watchdogId, uow)
-                    }
-
                     try {
                         processEvent(event)
                     } catch (e: CancellationException) {

@@ -5,6 +5,7 @@ import io.tpersson.ufw.database.jdbc.Database
 import io.tpersson.ufw.database.typedqueries.TypedSelectList
 import io.tpersson.ufw.database.typedqueries.TypedSelectSingle
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
+import io.tpersson.ufw.database.typedqueries.TypedUpdateReturningSingle
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.transactionalevents.EventId
 import io.tpersson.ufw.transactionalevents.handler.EventQueueId
@@ -23,29 +24,16 @@ public class EventQueueDAOImpl @Inject constructor(
         unitOfWork.add(Queries.Updates.Insert(event))
     }
 
-    override suspend fun getNext(queueId: EventQueueId, now: Instant): EventEntityData? {
-        return database.select(Queries.Selects.SelectNextEvent(queueId, now))
+    override suspend fun takeNext(
+        queueId: EventQueueId,
+        now: Instant,
+        watchdogId: String,
+    ): EventEntityData? {
+        return database.update(Queries.Updates.TakeNextEvent(queueId, now, watchdogId))
     }
 
     override suspend fun getById(queueId: EventQueueId, eventId: EventId): EventEntityData? {
         return database.select(Queries.Selects.GetById(queueId, eventId))
-    }
-
-    override suspend fun markAsInProgress(
-        queueId: EventQueueId,
-        eventId: EventId,
-        now: Instant,
-        watchdogId: String,
-        unitOfWork: UnitOfWork
-    ) {
-        unitOfWork.add(
-            Queries.Updates.MarkEventAsInProgress(
-                queueId = queueId,
-                eventId = eventId,
-                timestamp = now,
-                watchdogOwner = watchdogId,
-            ),
-        )
     }
 
     override suspend fun markAsSuccessful(
@@ -125,11 +113,13 @@ public class EventQueueDAOImpl @Inject constructor(
         now: Instant,
         watchdogId: String
     ): Boolean {
-        val affectedRows = database.update(Queries.Updates.UpdateWatchdog(
-            eventUid = eventUid,
-            watchdogTimestamp = now,
-            expectedWatchdogOwner = watchdogId
-        ))
+        val affectedRows = database.update(
+            Queries.Updates.UpdateWatchdog(
+                eventUid = eventUid,
+                watchdogTimestamp = now,
+                expectedWatchdogOwner = watchdogId
+            )
+        )
 
         return affectedRows > 0
     }
@@ -176,21 +166,6 @@ public class EventQueueDAOImpl @Inject constructor(
         const val TableName = "ufw__transactional_events__queue"
 
         object Selects {
-            data class SelectNextEvent(
-                val queueId: EventQueueId,
-                val now: Instant,
-            ) : TypedSelectSingle<EventEntityData>(
-                """
-                SELECT * 
-                FROM $TableName
-                WHERE state = ${EventState.Scheduled.id}
-                  AND queue_id = :queueId.id
-                  AND scheduled_for <= :now
-                ORDER BY scheduled_for ASC
-                LIMIT 1
-                """.trimIndent()
-            )
-
             data class GetById(
                 val queueId: EventQueueId,
                 val eventId: EventId,
@@ -207,7 +182,7 @@ public class EventQueueDAOImpl @Inject constructor(
                 val queueId: String
             ) : TypedSelectList<StatisticsData>(
                 """
-                SELECT count(*) as count, state as state_id
+                SELECT COUNT(*) AS count, state AS state_id
                 FROM $TableName
                 WHERE queue_id = :queueId
                 GROUP BY state
@@ -219,8 +194,8 @@ public class EventQueueDAOImpl @Inject constructor(
             ) : TypedSelectList<EventEntityData>(
                 """
                 SELECT * FROM $TableName 
-                WHERE queue_id = :queueId.id::text
-                   OR :queueId.id::text IS NULL
+                WHERE queue_id = :queueId.id::TEXT
+                   OR :queueId.id::TEXT IS NULL
                 """
             )
         }
@@ -270,23 +245,31 @@ public class EventQueueDAOImpl @Inject constructor(
                 minimumAffectedRows = 0
             )
 
-            data class MarkEventAsInProgress(
+            data class TakeNextEvent(
                 val queueId: EventQueueId,
-                val eventId: EventId,
-                val timestamp: Instant,
-                val toState: Int = EventState.InProgress.id,
+                val now: Instant,
                 val watchdogOwner: String
-            ) : TypedUpdate(
+            ) : TypedUpdateReturningSingle<EventEntityData>(
                 """
                 UPDATE $TableName
-                SET state = :toState,
-                    state_changed_at = :timestamp,
-                    watchdog_timestamp = :timestamp,
+                SET state = ${EventState.InProgress.id},
+                    state_changed_at = :now,
+                    watchdog_timestamp = :now,
                     watchdog_owner = :watchdogOwner
-                WHERE queue_id = :queueId.id
-                  AND id = :eventId.value
-                  AND state = ${EventState.Scheduled.id}
-                """.trimIndent()
+                WHERE uid = (
+                    SELECT uid 
+                    FROM $TableName
+                    WHERE state = ${EventState.Scheduled.id}
+                      AND queue_id = :queueId.id
+                      AND scheduled_for <= :now
+                      AND watchdog_owner IS NULL
+                    ORDER BY scheduled_for ASC
+                    FOR UPDATE SKIP LOCKED  
+                    LIMIT 1
+                )
+                RETURNING *
+                """.trimIndent(),
+                minimumAffectedRows = 0
             )
 
             data class MarkEventAsSuccessful(
