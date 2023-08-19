@@ -2,6 +2,7 @@ package io.tpersson.ufw.aggregates
 
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import kotlin.reflect.KClass
+import kotlin.reflect.full.allSupertypes
 
 public abstract class AbstractAggregateRepository<TAggregate : AbstractAggregate<TFact>, TFact : Fact>(
     component: AggregatesComponent,
@@ -45,7 +46,7 @@ public abstract class AbstractAggregateRepository<TAggregate : AbstractAggregate
 
     private val factType: KClass<TFact>
         get() = javaClass.kotlin
-            .supertypes[0]
+            .allSupertypes.first { it.classifier == AbstractAggregateRepository::class }
             .arguments[1]
             .type!!
             .classifier as KClass<TFact>
