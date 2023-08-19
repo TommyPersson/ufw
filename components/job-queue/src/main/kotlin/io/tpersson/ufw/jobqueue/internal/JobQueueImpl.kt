@@ -59,24 +59,20 @@ public class JobQueueImpl @Inject constructor(
         getSignal(queueId).signal()
     }
 
-    override suspend fun <TJob : Job> pollOne(queueId: JobQueueId<TJob>, timeout: Duration): InternalJob<TJob>? {
+    override suspend fun <TJob : Job> pollOne(
+        queueId: JobQueueId<TJob>,
+        timeout: Duration,
+        watchdogId: String
+    ): InternalJob<TJob>? {
         return withTimeoutOrNull(timeout) {
-            var next = jobsDAO.getNext(queueId, clock.instant())
+            var next = jobsDAO.takeNext(queueId, clock.instant(), watchdogId)
             while (next == null) {
                 getSignal(queueId).wait(pollWaitTime)
-                next = jobsDAO.getNext(queueId, clock.instant())
+                next = jobsDAO.takeNext(queueId, clock.instant(), watchdogId)
             }
 
             next
         }
-    }
-
-    override suspend fun <TJob : Job> markAsInProgress(
-        job: InternalJob<TJob>,
-        watchdogId: String,
-        unitOfWork: UnitOfWork
-    ) {
-        jobsDAO.markAsInProgress(job, clock.instant(), watchdogId, unitOfWork)
     }
 
     override suspend fun <TJob : Job> markAsSuccessful(

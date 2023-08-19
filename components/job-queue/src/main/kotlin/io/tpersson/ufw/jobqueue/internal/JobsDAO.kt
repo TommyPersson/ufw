@@ -13,22 +13,16 @@ public interface JobsDAO {
         unitOfWork: UnitOfWork
     )
 
-    public suspend fun <TJob : Job> getNext(
+    public suspend fun <TJob : Job> takeNext(
         jobQueueId: JobQueueId<TJob>,
-        now: Instant
+        now: Instant,
+        watchdogId: String,
     ): InternalJob<TJob>?
 
     public suspend fun <TJob : Job> getById(
         jobQueueId: JobQueueId<TJob>,
         jobId: JobId
     ): InternalJob<TJob>?
-
-    public suspend fun <TJob : Job> markAsInProgress(
-        job: InternalJob<TJob>,
-        now: Instant,
-        watchdogId: String,
-        unitOfWork: UnitOfWork
-    )
 
     public suspend fun <TJob : Job> markAsSuccessful(
         job: InternalJob<TJob>,

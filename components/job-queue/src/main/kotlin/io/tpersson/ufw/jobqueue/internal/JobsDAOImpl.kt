@@ -7,6 +7,7 @@ import io.tpersson.ufw.database.typedqueries.TypedSelectSingle
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
 import io.tpersson.ufw.database.exceptions.TypedUpdateMinimumAffectedRowsException
 import io.tpersson.ufw.database.typedqueries.TypedSelectList
+import io.tpersson.ufw.database.typedqueries.TypedUpdateReturningSingle
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.jobqueue.Job
 import io.tpersson.ufw.jobqueue.JobId
@@ -43,8 +44,12 @@ public class JobsDAOImpl @Inject constructor(
         unitOfWork.add(Queries.Updates.InsertJob(jobData))
     }
 
-    override suspend fun <TJob : Job> getNext(jobQueueId: JobQueueId<TJob>, now: Instant): InternalJob<TJob>? {
-        val jobData = database.select(Queries.Selects.SelectNextJob(jobQueueId.typeName, now))
+    override suspend fun <TJob : Job> takeNext(
+        jobQueueId: JobQueueId<TJob>,
+        now: Instant,
+        watchdogId: String
+    ): InternalJob<TJob>? {
+        val jobData = database.update(Queries.Updates.TakeNextJob(jobQueueId.typeName, now, watchdogId))
             ?: return null
 
         return toInternalJob(jobData, jobQueueId)
@@ -55,21 +60,6 @@ public class JobsDAOImpl @Inject constructor(
             ?: return null
 
         return toInternalJob(jobData, jobQueueId)
-    }
-
-    override suspend fun <TJob : Job> markAsInProgress(
-        job: InternalJob<TJob>,
-        now: Instant,
-        watchdogId: String,
-        unitOfWork: UnitOfWork,
-    ) {
-        unitOfWork.add(
-            Queries.Updates.MarkJobAsInProgress(
-                id = job.job.jobId.value,
-                timestamp = now,
-                watchdogOwner = watchdogId
-            )
-        )
     }
 
     override suspend fun <TJob : Job> markAsSuccessful(
@@ -218,21 +208,6 @@ public class JobsDAOImpl @Inject constructor(
         private val TableName = "ufw__job_queue__jobs"
 
         object Selects {
-            data class SelectNextJob(
-                val type: String,
-                val now: Instant,
-            ) : TypedSelectSingle<JobData>(
-                """
-                SELECT * 
-                FROM $TableName
-                WHERE state = ${JobState.Scheduled.id}
-                  AND type = :type
-                  AND scheduled_for <= :now
-                ORDER BY scheduled_for ASC
-                LIMIT 1
-                """.trimIndent()
-            )
-
             data class SelectById(
                 val id: String,
             ) : TypedSelectSingle<JobData>(
@@ -291,21 +266,31 @@ public class JobsDAOImpl @Inject constructor(
                 minimumAffectedRows = 0
             )
 
-            data class MarkJobAsInProgress(
-                val id: String,
-                val timestamp: Instant,
-                val toState: Int = JobState.InProgress.id,
+            data class TakeNextJob(
+                val type: String,
+                val now: Instant,
                 val watchdogOwner: String
-            ) : TypedUpdate(
+            ) : TypedUpdateReturningSingle<JobData>(
                 """
                 UPDATE $TableName
-                SET state = :toState,
-                    state_changed_at = :timestamp,
-                    watchdog_timestamp = :timestamp,
+                SET state = ${JobState.InProgress.id},
+                    state_changed_at = :now,
+                    watchdog_timestamp = :now,
                     watchdog_owner = :watchdogOwner
-                WHERE state = ${JobState.Scheduled.id}
-                  AND id = :id
-                """.trimIndent()
+                WHERE uid = (
+                    SELECT uid 
+                    FROM $TableName
+                    WHERE state = ${JobState.Scheduled.id}
+                      AND type = :type
+                      AND scheduled_for <= :now
+                      AND watchdog_owner IS NULL
+                    ORDER BY scheduled_for ASC
+                    FOR UPDATE SKIP LOCKED
+                    LIMIT 1
+                )
+                RETURNING *
+                """.trimIndent(),
+                minimumAffectedRows = 0
             )
 
             data class MarkJobAsSuccessful(

@@ -11,14 +11,9 @@ import java.time.Instant
 public interface JobQueueInternal : JobQueue {
     public suspend fun <TJob : Job> pollOne(
         queueId: JobQueueId<TJob>,
-        timeout: Duration
-    ): InternalJob<TJob>?
-
-    public suspend fun <TJob : Job> markAsInProgress(
-        job: InternalJob<TJob>,
+        timeout: Duration,
         watchdogId: String,
-        unitOfWork: UnitOfWork
-    )
+    ): InternalJob<TJob>?
 
     public suspend fun <TJob : Job> markAsSuccessful(
         job: InternalJob<TJob>,
