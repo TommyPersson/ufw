@@ -4,9 +4,11 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
+import io.tpersson.ufw.database.exceptions.MinimumAffectedRowsException
 import io.tpersson.ufw.database.jdbc.useInTransaction
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.testcontainers.containers.PostgreSQLContainer
@@ -141,7 +143,7 @@ internal class IntegrationTestsTypedQueries {
     }
 
     @Test
-    fun `SelectList - Returns a list of results`(): Unit = runBlocking {
+    fun `TypedSelectList - Returns a list of results`(): Unit = runBlocking {
         val originalData1 = BasicTypesEntity(UUID.randomUUID())
         database.update(Queries.Updates.InsertBasicTypesData(originalData1))
 
@@ -155,7 +157,23 @@ internal class IntegrationTestsTypedQueries {
     }
 
     @Test
-    fun `UpdateReturningSingle - Updates and returns a single item`(): Unit = runBlocking {
+    fun `TypedUpdate - Can throws 'MinimumAffectedRowsException'`(): Unit = runBlocking {
+        val id = UUID.fromString("b5f78035-1871-434c-8606-f16399e27e43")
+
+        assertThatThrownBy {
+            runBlocking {
+                database.update(
+                    Queries.Updates.UpdateData(
+                        id = id,
+                        int = 2
+                    )
+                )
+            }
+        }.isInstanceOf(MinimumAffectedRowsException::class.java)
+    }
+
+    @Test
+    fun `TypedUpdateReturningSingle - Updates and returns a single item`(): Unit = runBlocking {
         val id = UUID.fromString("b5f78035-1871-434c-8606-f16399e27e43")
 
         val originalData = BasicTypesEntity(
@@ -176,7 +194,23 @@ internal class IntegrationTestsTypedQueries {
     }
 
     @Test
-    fun `UpdateReturningList - Updates and returns a list of results`(): Unit = runBlocking {
+    fun `TypedUpdateReturningSingle - Can throws 'MinimumAffectedRowsException'`(): Unit = runBlocking {
+        val id = UUID.fromString("b5f78035-1871-434c-8606-f16399e27e43")
+
+        assertThatThrownBy {
+            runBlocking {
+                database.update(
+                    Queries.Updates.UpdateDataReturningSingle(
+                        id = id,
+                        int = 2
+                    )
+                )
+            }
+        }.isInstanceOf(MinimumAffectedRowsException::class.java)
+    }
+
+    @Test
+    fun `TypedUpdateReturningList - Updates and returns a list of results`(): Unit = runBlocking {
         val id = UUID.fromString("b5f78035-1871-434c-8606-f16399e27e43")
 
         val originalData = BasicTypesEntity(
@@ -194,6 +228,22 @@ internal class IntegrationTestsTypedQueries {
         val insertedData = database.update(Queries.Updates.InsertBasicTypesDataReturningList(originalData))
 
         assertThat(insertedData.single()).isEqualTo(originalData)
+    }
+
+    @Test
+    fun `TypedUpdateReturningList - Can throws 'MinimumAffectedRowsException'`(): Unit = runBlocking {
+        val id = UUID.fromString("b5f78035-1871-434c-8606-f16399e27e43")
+
+        assertThatThrownBy {
+            runBlocking {
+                database.update(
+                    Queries.Updates.UpdateDataReturningSingle(
+                        id = id,
+                        int = 2
+                    )
+                )
+            }
+        }.isInstanceOf(MinimumAffectedRowsException::class.java)
     }
 
     data class BasicTypesEntity(
@@ -248,8 +298,8 @@ internal class IntegrationTestsTypedQueries {
                      :data.theFloat,
                      :data.theBoolean,
                      :data.theChar,
-                     :data.theString)"""
-
+                     :data.theString)
+                """
 
             class InsertBasicTypesData(
                 val data: BasicTypesEntity
@@ -289,6 +339,42 @@ internal class IntegrationTestsTypedQueries {
             ) : TypedUpdateReturningList<BasicTypesEntity>(
                 """
                 $insertBasicTypesSql
+                RETURNING *     
+                """.trimIndent()
+            )
+
+            val updateSql = """
+                UPDATE basic_types 
+                SET the_int = :int
+                WHERE id = :id
+                """
+
+            class UpdateData(
+                val id: UUID,
+                val int: Int,
+            ) : TypedUpdateReturningList<BasicTypesEntity>(
+                """
+                $updateSql
+                RETURNING *
+                """.trimIndent()
+            )
+
+            class UpdateDataReturningSingle(
+                val id: UUID,
+                val int: Int,
+            ) : TypedUpdateReturningList<BasicTypesEntity>(
+                """
+                $updateSql
+                RETURNING *
+                """.trimIndent()
+            )
+
+            class UpdateDataReturningList(
+                val id: UUID,
+                val int: Int,
+            ) : TypedUpdateReturningList<BasicTypesEntity>(
+                """
+                $updateSql
                 RETURNING *     
                 """.trimIndent()
             )
