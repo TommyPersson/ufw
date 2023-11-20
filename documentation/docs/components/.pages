@@ -2,4 +2,5 @@ nav:
   - index.md
   - core
   - database
+  - managed
   - job-queue

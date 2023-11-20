@@ -2,7 +2,7 @@
 title: Installation
 ---
 
-# Core: Installation
+# Database: Installation
 
 ## Maven Package
 
