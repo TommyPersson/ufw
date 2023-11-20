@@ -31,5 +31,5 @@ For more details:
 graph LR
     ufw-database --> ufw-core
 
-    click ufw-core href "../../core"
+    click ufw-core href "../core"
 ```

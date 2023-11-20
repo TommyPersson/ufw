@@ -11,7 +11,7 @@ title: Installation
 <dependency>
     <groupId>io.tpersson.ufw</groupId>
     <artifactId>ufw-job-core</artifactId>
-    <version>${ufw-version}</version> <!-- Disregard then using the BOM -->
+    <version>${ufw-version}</version> <!-- Disregard when using the BOM -->
 </dependency>
 ```
 
@@ -44,7 +44,7 @@ ufw = UFW.build {
 <dependency>
     <groupId>io.tpersson.ufw</groupId>
     <artifactId>ufw-core-guice</artifactId>
-    <version>${ufw-version}</version> <!-- Disregard then using the BOM -->
+    <version>${ufw-version}</version> <!-- Disregard when using the BOM -->
 </dependency>
 ```
 
