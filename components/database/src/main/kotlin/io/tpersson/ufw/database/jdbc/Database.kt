@@ -83,7 +83,7 @@ public class Database @Inject constructor(
             }
 
             val result = connection.performUpdateReturningList(query)
-            if (result == null && query.minimumAffectedRows > 0) {
+            if (result.size < query.minimumAffectedRows) {
                 throw TypedUpdateMinimumAffectedRowsException(query.minimumAffectedRows, 1, query)
             }
 

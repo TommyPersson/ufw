@@ -11,7 +11,7 @@ title: Installation
 <dependency>
     <groupId>io.tpersson.ufw</groupId>
     <artifactId>ufw-job-queue</artifactId>
-    <version>${ufw-version}</version> <!-- Disregard then using the BOM -->
+    <version>${ufw-version}</version> <!-- Disregard when using the BOM -->
 </dependency>
 ```
 
@@ -46,7 +46,7 @@ the `Managed` instances.
 
 ```kotlin title="Example: Initialization" linenums="1"
 ufw.database.runMigrations()
-ufw.managed.startAll(addShutdownHook = true)
+ufw.managed.startAll(addShutdownHook = true) // default = true
 ```
 
 !!! warning
@@ -63,7 +63,7 @@ ufw.managed.startAll(addShutdownHook = true)
 <dependency>
     <groupId>io.tpersson.ufw</groupId>
     <artifactId>ufw-job-queue-guice</artifactId>
-    <version>${ufw-version}</version> <!-- Disregard then using the BOM -->
+    <version>${ufw-version}</version> <!-- Disregard when using the BOM -->
 </dependency>
 ```
 

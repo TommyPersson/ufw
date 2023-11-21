@@ -2,4 +2,6 @@ nav:
   - index.md
   - core
   - database
-  - job-queue
+  - managed
+  - Job Queue: job-queue
+  - Key-Value Store: key-value-store

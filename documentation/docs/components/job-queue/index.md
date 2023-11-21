@@ -20,7 +20,7 @@ graph LR
     ufw-database --> ufw-core
     ufw-managed --> ufw-core
 
-    click ufw-database href "../../database"
-    click ufw-managed href "../../managed"
-    click ufw-core href "../../core"
+    click ufw-database href "../database"
+    click ufw-managed href "../managed"
+    click ufw-core href "../core"
 ```

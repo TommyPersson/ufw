@@ -4,24 +4,53 @@ title: Usage
 
 # Database: Usage
 
-## Typed queries with `TypedSelect` and `TypedUpdate`
+## Typed queries
 
 As mentioned in the [Introduction](./index.md), the Database component does not depend on any specific database library.
 Instead, it provides its own set of minimal constructs to make querying easier. They are somewhat limited at the moment,
 so you should not hesitate to bring a more full-featured library if necessary.
 
-`TypedSelect` and `TypedUpdate` are base classes used to define SQL queries that can later be converted into
-JDBC `PreparedStatement`s and executed. Their advantage over using `PreparedStatement`s directly is that they can be
-passed around without an active `Connection` and provide a easier way to specify query parameters.
+Queries are implemented by inheriting one of the following base classes. Each is responsible for translating the 
+high-level query and parameters to an executable JDCB `PreparedStatement` upon execution. Their advantage over using
+`PreparedStatement`s directly is that they can be passed around without an active `Connection` and provide a easier way 
+to specify query parameters.
 
-```kotlin title="Example: Using TypedSelect" linenums="1"
+### Typed query variants
+
+* `TypedSelectSingle<T>`
+: Returns `T?`.     
+
+* `TypedSelectList<T>`
+: Returns `List<T>`.
+
+* `TypedUpdate`
+: Returns `Int` for the number of affected rows.<br /> 
+  Can be included in a `UnitOfWork`.<br /> 
+  Allows a `minimumAffectedRows` to be specified.<br />
+
+* `TypedUpdateReturningSingle<T>`
+: Supports the `UPDATE ... RETURNING` syntax. <br />
+  Returns `T?`. <br />
+  Allows a `minimumAffectedRows` to be specified.<br />
+
+* `TypedupdateReturningList<T>`
+: Supports the `UPDATE ... RETURNING` syntax. <br />
+  Returns `List<T>`.<br />
+  Allows a `minimumAffectedRows` to be specified.<br />
+
+If the `minimumAffectedRows` (default: `1`) is not reached for a update query, then a `MiniumumAffectedRowsException`
+is thrown. 
+
+### Examples
+
+```kotlin title="Example: Using TypedSelectSingle" linenums="1"
 data class MyExampleResult(
     val thing: String
 )
 
 data class MyExampleSelect(
     val param1: String
-) : TypedSelect<MyExampleResult>(
+) : TypedSelectSingle<MyExampleResult>(
     "SELECT * FROM stuff WHERE column = :param1"
 )
 
@@ -31,8 +60,6 @@ fun example() {
     val result: MyExampleResult? = database.select(MyExampleSelect("param1Value"))
 }
 ```
-
-Additionally, `Database` has a `selectList` function for returning a list of all results.
 
 ```kotlin title="Example: Using TypedUpdate" linenums="1"
 data class MyExampleUpdate(
@@ -48,11 +75,9 @@ fun example() {
 }
 ```
 
-The `TypedUpdate` currently only supports returning the number of affected rows. That is, `UPDATE ... RETURNING` queries
-are not possible.
+### High-level SQL
 
-`TypedUpdate` takes an optional `minimumAffectedRows` parameter (default: `1`). If the actual number of affected rows is
-smaller, then a `MinimumAffectedRowsException` is thrown.
+TODO
 
 ## Transactions using `UnitOfWorkFactory` and `UnitOfWork`
 
@@ -120,19 +145,20 @@ been lost, then the `refresh`-method returns false.
 val appInstanceId = UUID.randomUUID().toString()
 
 fun example() {
-    val databaseLocks = ufw.database.locks
+    val databaseLocks: DatabaseLocks = ufw.database.locks
 
-    val myLock = databaseLocks.create("my-lock", instanceId = appInstanceId)    
-    val lockHandle = myLock.tryAcquire(stealIfOlderThan = Duration.ofMinutes(5))
-    
+    val myLock: DatabaseLock = databaseLocks.create("my-lock", instanceId = appInstanceId)
+    val lockHandle: DatabaseLockHandle = myLock.tryAcquire(stealIfOlderThan = Duration.ofMinutes(5))
+
     for (i in 1..100) {
         if (!lockHandle.refresh()) {
+            // We lost the lock
             break
         }
-        
+
         /* do task */
     }
-    
+
     lockHandle.release()
 }
 ```
