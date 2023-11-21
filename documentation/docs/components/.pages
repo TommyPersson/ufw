@@ -3,4 +3,5 @@ nav:
   - core
   - database
   - managed
-  - job-queue
+  - Job Queue: job-queue
+  - Key-Value Store: key-value-store

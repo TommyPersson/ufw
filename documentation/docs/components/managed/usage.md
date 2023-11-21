@@ -45,7 +45,7 @@ class MyManagedJob : ManagedJob() {
 
 ## Guice notes
 
-Remember that Guice requires and `@Inject`-annotated constructor.
+Remember that Guice requires an `@Inject`-annotated constructor.
 
 ```kotlin title="MyGuiceManaged.kt" linenums="1"
 class MyManaged @Inject constructor(): Managed() {
