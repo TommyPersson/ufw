@@ -52,7 +52,7 @@
 
         <hikaricp.version>5.0.1</hikaricp.version>
         <postgresql.version>42.6.0</postgresql.version>
-        <liquibase.version>4.24.0</liquibase.version>
+        <liquibase.version>4.25.1</liquibase.version>
         <liquibase-slf4j.version>5.0.0</liquibase-slf4j.version>
 
         <logback.version>1.4.11</logback.version>
