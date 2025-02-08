@@ -1,7 +1,6 @@
 package io.tpersson.ufw.transactionalevents.handler.internal
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.annotation.JsonTypeName
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.core.dsl.UFW
@@ -14,6 +13,7 @@ import io.tpersson.ufw.keyvaluestore.dsl.keyValueStore
 import io.tpersson.ufw.managed.dsl.managed
 import io.tpersson.ufw.test.TestInstantSource
 import io.tpersson.ufw.transactionalevents.Event
+import io.tpersson.ufw.transactionalevents.EventDefinition
 import io.tpersson.ufw.transactionalevents.EventId
 import io.tpersson.ufw.transactionalevents.dsl.transactionalEvents
 import io.tpersson.ufw.transactionalevents.handler.*
@@ -34,7 +34,6 @@ import org.testcontainers.utility.DockerImageName
 import java.time.Duration
 import java.time.Instant
 import java.util.*
-import java.util.concurrent.TimeUnit
 
 @Timeout(5)
 internal class HandlerIntegrationTests {
@@ -110,7 +109,7 @@ internal class HandlerIntegrationTests {
     fun `Basic - Can handle events`(): Unit = runBlocking {
         val event = TestEvent1("Hello, World!")
 
-        publish("test-topic", event)
+        publish(event)
 
         waitUntilQueueIsCompleted()
 
@@ -122,8 +121,8 @@ internal class HandlerIntegrationTests {
         val event = TestEvent1("Hello, World!")
         val eventDuplicate = event.copy()
 
-        publish("test-topic", event)
-        publish("test-topic", eventDuplicate)
+        publish(event)
+        publish(eventDuplicate)
 
         waitUntilQueueIsCompleted()
 
@@ -136,7 +135,7 @@ internal class HandlerIntegrationTests {
     fun `Failures - Event state is set to 'Failed' on failure`(): Unit = runBlocking {
         val testEvent = TestEvent1("Hello, World!", shouldFail = true)
 
-        publish("test-topic", testEvent)
+        publish(testEvent)
 
         waitUntilQueueIsCompleted()
 
@@ -148,7 +147,7 @@ internal class HandlerIntegrationTests {
     fun `Failures - An EventFailure is recorded for each failure`(): Unit = runBlocking {
         val testEvent = TestEvent1("Hello, World!", shouldFail = true, numRetries = 3)
 
-        publish("test-topic", testEvent)
+        publish(testEvent)
 
         waitUntilQueueIsCompleted()
 
@@ -247,7 +246,7 @@ internal class HandlerIntegrationTests {
     fun `Staleness - An automatic watchdog refresher keeps long-running jobs from being stale`(): Unit = runBlocking {
         val testEvent = TestEvent1("Hello, World!", delayTime = Duration.ofSeconds(1))
 
-        publish("test-topic", testEvent)
+        publish(testEvent)
 
         await.untilAssertedSuspend(pollDelay = Duration.ofMillis(1)) {
             assertThat(eventQueueDAO.getById(testEventHandler1.eventQueueId, testEvent.id)?.state)
@@ -269,7 +268,7 @@ internal class HandlerIntegrationTests {
 
             val testEvent = TestEvent1("Hello, World!", delayTime = Duration.ofMillis(200))
 
-            publish("test-topic", testEvent)
+            publish(testEvent)
 
             await.untilAssertedSuspend(pollDelay = Duration.ofMillis(1)) {
                 assertThat(eventQueueDAO.getById(testEventHandler1.eventQueueId, testEvent.id)?.state)
@@ -294,7 +293,7 @@ internal class HandlerIntegrationTests {
     fun `Retention - Successful jobs are automatically removed after their retention duration`(): Unit = runBlocking {
         val testEvent = TestEvent1("Hello, World!")
 
-        publish("test-topic", testEvent)
+        publish(testEvent)
 
         waitUntilQueueIsCompleted()
 
@@ -309,7 +308,7 @@ internal class HandlerIntegrationTests {
     fun `Retention - Failed jobs are automatically removed after their retention duration`(): Unit = runBlocking {
         val testEvent = TestEvent1("Hello, World!", shouldFail = true)
 
-        publish("test-topic", testEvent)
+        publish(testEvent)
 
         waitUntilQueueIsCompleted()
 
@@ -328,13 +327,13 @@ internal class HandlerIntegrationTests {
         }
     }
 
-    private suspend fun publish(topic: String, event: Event) {
+    private suspend fun publish(event: Event) {
         unitOfWorkFactory.use { uow ->
-            publisher.publish(topic, event, uow)
+            publisher.publish(event, uow)
         }
     }
 
-    @JsonTypeName("TestEvent1")
+    @EventDefinition("TestEvent1", "test-topic")
     data class TestEvent1(
         val text: String,
         val shouldFail: Boolean = false,
@@ -342,7 +341,7 @@ internal class HandlerIntegrationTests {
         val delayTime: Duration? = null,
         override val id: EventId = EventId(),
         override val timestamp: Instant = Instant.now(),
-    ) : Event {
+    ) : Event() {
         @JsonIgnore
         val resultKey = KeyValueStore.Key.of<String>("test-results:TestEvent1:$id")
     }

@@ -25,8 +25,12 @@ graph LR
     ufw-job-queue --> ufw-core
     ufw-database --> ufw-core
     ufw-managed --> ufw-core
+    ufw-key-value-store --> ufw-core
+    ufw-key-value-store --> ufw-database
+    ufw-key-value-store --> ufw-managed
 
     click ufw-job-queue href "./job-queue"
+    click ufw-key-value-store href "./key-value-store"
     click ufw-database href "./database"
     click ufw-managed href "./managed"
     click ufw-core href "./core"

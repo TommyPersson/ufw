@@ -13,9 +13,10 @@ import io.tpersson.ufw.database.unitofwork.use
 import io.tpersson.ufw.managed.dsl.managed
 import io.tpersson.ufw.test.TestInstantSource
 import io.tpersson.ufw.transactionalevents.Event
+import io.tpersson.ufw.transactionalevents.EventDefinition
 import io.tpersson.ufw.transactionalevents.EventId
 import io.tpersson.ufw.transactionalevents.dsl.transactionalEvents
-import io.tpersson.ufw.transactionalevents.jsonTypeName
+import io.tpersson.ufw.transactionalevents.eventDefinition
 import io.tpersson.ufw.transactionalevents.publisher.OutgoingEvent
 import io.tpersson.ufw.transactionalevents.publisher.OutgoingEventTransport
 import kotlinx.coroutines.runBlocking
@@ -28,9 +29,7 @@ import org.junit.jupiter.api.Test
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.lifecycle.Startables
 import org.testcontainers.utility.DockerImageName
-import java.time.Duration
 import java.time.Instant
-import java.time.InstantSource
 import java.util.*
 
 internal class IntegrationTests {
@@ -228,9 +227,9 @@ internal class IntegrationTests {
         await.untilAsserted {
             val sentEvents = testOutgoingEventTransport.sentEvents
             assertThat(sentEvents).hasSize(3)
-            assertThat(sentEvents[0].type).isEqualTo(IncrementedEvent::class.jsonTypeName)
-            assertThat(sentEvents[1].type).isEqualTo(IncrementedEvent::class.jsonTypeName)
-            assertThat(sentEvents[2].type).isEqualTo(DecrementedEvent::class.jsonTypeName)
+            assertThat(sentEvents[0].type).isEqualTo(IncrementedEvent::class.eventDefinition.type)
+            assertThat(sentEvents[1].type).isEqualTo(IncrementedEvent::class.eventDefinition.type)
+            assertThat(sentEvents[2].type).isEqualTo(DecrementedEvent::class.eventDefinition.type)
         }
     }
 
@@ -274,27 +273,27 @@ internal class IntegrationTests {
             }
         }
 
-        override fun mapFactToEvent(fact: Facts): List<PendingEvent> {
+        override fun mapFactToEvent(fact: Facts): List<Event> {
             val event = when (fact) {
                 is Facts.Incremented -> IncrementedEvent(EventId(), fact.timestamp)
                 is Facts.Decremented -> DecrementedEvent(EventId(), fact.timestamp)
             }
 
-            return listOf(PendingEvent(topic = "test-topic", event))
+            return listOf(event)
         }
     }
 
-    @JsonTypeName("IncrementedV1")
+    @EventDefinition("IncrementedEventV1", "test-topic")
     data class IncrementedEvent(
         override val id: EventId = EventId(),
         override val timestamp: Instant
-    ) : Event
+    ) : Event()
 
-    @JsonTypeName("DecrementedV1")
+    @EventDefinition("DecrementedEventV1", "test-topic")
     data class DecrementedEvent(
         override val id: EventId = EventId(),
         override val timestamp: Instant
-    ) : Event
+    ) : Event()
 
     class TestAggregateRepository(
         component: AggregatesComponent

@@ -2,6 +2,7 @@ package io.tpersson.ufw.transactionalevents.handler
 
 import com.fasterxml.jackson.annotation.JsonTypeName
 import io.tpersson.ufw.transactionalevents.Event
+import io.tpersson.ufw.transactionalevents.eventDefinition
 import io.tpersson.ufw.transactionalevents.handler.internal.EventHandlerFunction
 import kotlin.reflect.KClass
 import kotlin.reflect.full.declaredMemberFunctions
@@ -19,7 +20,7 @@ public abstract class TransactionalEventHandler {
         }.map { fn ->
             EventHandlerFunction(
                 topic = fn.findAnnotation<EventHandler>()!!.topic,
-                type = (fn.parameters[1].type.classifier as KClass<out Event>).findAnnotation<JsonTypeName>()!!.value,
+                type = (fn.parameters[1].type.classifier as KClass<out Event>).eventDefinition.type,
                 instance = this,
                 function = fn,
                 eventClass = (fn.parameters[1].type.classifier as KClass<out Event>)

@@ -7,6 +7,7 @@ import io.tpersson.ufw.database.unitofwork.use
 import io.tpersson.ufw.examples.common.events.ExampleEventV1
 import io.tpersson.ufw.managed.ManagedJob
 import io.tpersson.ufw.transactionalevents.EventId
+import io.tpersson.ufw.transactionalevents.eventDefinition
 import io.tpersson.ufw.transactionalevents.publisher.TransactionalEventPublisher
 import jakarta.inject.Inject
 import kotlinx.coroutines.*
@@ -32,7 +33,7 @@ public class PeriodicEventPublisher @Inject constructor(
                         timestamp = clock.instant(),
                         myContent = "$i"
                     )
-                    transactionalEventPublisher.publish("example-topic", event, uow)
+                    transactionalEventPublisher.publish(event, uow)
                 }
 
                 delay(5_000)

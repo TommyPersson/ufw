@@ -26,7 +26,7 @@ public abstract class AbstractAggregateRepository<TAggregate : AbstractAggregate
         doSave(aggregate, version, unitOfWork)
 
         for (event in aggregate.pendingEvents) {
-            eventPublisher.publish(event.topic, event.event, unitOfWork)
+            eventPublisher.publish(event, unitOfWork)
         }
 
         aggregate.pendingFacts.clear()

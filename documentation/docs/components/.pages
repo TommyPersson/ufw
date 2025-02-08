@@ -5,3 +5,4 @@ nav:
   - managed
   - Job Queue: job-queue
   - Key-Value Store: key-value-store
+  - mediator

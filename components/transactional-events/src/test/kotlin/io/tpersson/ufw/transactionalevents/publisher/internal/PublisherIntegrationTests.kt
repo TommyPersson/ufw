@@ -11,6 +11,7 @@ import io.tpersson.ufw.database.unitofwork.use
 import io.tpersson.ufw.managed.dsl.managed
 import io.tpersson.ufw.test.TestInstantSource
 import io.tpersson.ufw.transactionalevents.Event
+import io.tpersson.ufw.transactionalevents.EventDefinition
 import io.tpersson.ufw.transactionalevents.EventId
 import io.tpersson.ufw.transactionalevents.dsl.transactionalEvents
 import io.tpersson.ufw.transactionalevents.publisher.OutgoingEvent
@@ -91,7 +92,7 @@ internal class PublisherIntegrationTests {
         )
 
         unitOfWorkFactory.use { uow ->
-            publisher.publish("test-topic", event, uow)
+            publisher.publish(event, uow)
         }
 
         await.untilAsserted {
@@ -111,7 +112,7 @@ internal class PublisherIntegrationTests {
 
         try {
             unitOfWorkFactory.use { uow ->
-                publisher.publish("test-topic", event, uow)
+                publisher.publish(event, uow)
                 error("error")
             }
         } catch (_: Exception) {
@@ -132,8 +133,8 @@ internal class PublisherIntegrationTests {
         )
 
         unitOfWorkFactory.use { uow ->
-            publisher.publish("test-topic", event, uow)
-            publisher.publish("test-topic", event.copy(), uow)
+            publisher.publish(event, uow)
+            publisher.publish(event.copy(), uow)
         }
 
         await.untilAsserted {
@@ -141,12 +142,12 @@ internal class PublisherIntegrationTests {
         }
     }
 
-    @JsonTypeName("TEST_EVENT")
+    @EventDefinition("TEST_EVENT", "test-topic")
     data class TestEvent(
         override val id: EventId,
         override val timestamp: Instant,
         val content: String,
-    ) : Event
+    ) : Event()
 
     class TestOutgoingEventTransport : OutgoingEventTransport {
         var sentBatches: MutableList<List<OutgoingEvent>> = mutableListOf()

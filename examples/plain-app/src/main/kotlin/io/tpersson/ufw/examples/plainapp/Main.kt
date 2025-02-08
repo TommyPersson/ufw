@@ -122,7 +122,7 @@ private suspend fun testTransactionalEvents(ufw: UFWRegistry) {
     val event = ExampleEventV1(myContent = "Hello, World!")
 
     unitOfWorkFactory.use { uow ->
-        transactionalEventPublisher.publish("example-topic", event, uow)
+        transactionalEventPublisher.publish(event, uow)
     }
 }
 
