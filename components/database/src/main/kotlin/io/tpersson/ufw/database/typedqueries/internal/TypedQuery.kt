@@ -25,7 +25,8 @@ public abstract class TypedQuery(
         return statement
     }
 
-    public  data class PreparedSql(
+    public data class PreparedSql(
+        @Language("sql")
         val pseudoSql: String,
         val rawSql: String,
         val argNames: List<String>

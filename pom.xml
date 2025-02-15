@@ -16,6 +16,7 @@
         <module>components/core-guice</module>
         <module>components/database</module>
         <module>components/database-guice</module>
+        <module>components/database-queue</module>
         <module>components/managed</module>
         <module>components/managed-guice</module>
         <module>components/mediator</module>
@@ -52,7 +53,7 @@
 
         <hikaricp.version>5.0.1</hikaricp.version>
         <postgresql.version>42.6.0</postgresql.version>
-        <liquibase.version>4.28.0</liquibase.version>
+        <liquibase.version>4.31.0</liquibase.version>
         <liquibase-slf4j.version>5.0.0</liquibase-slf4j.version>
 
         <logback.version>1.4.11</logback.version>
@@ -101,6 +102,11 @@
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>ufw-database-guice</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>io.tpersson.ufw</groupId>
+                <artifactId>ufw-database-queue</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>

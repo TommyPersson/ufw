@@ -15,6 +15,8 @@
     <file url="file://$PROJECT_DIR$/components/core/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/components/database-guice/src/main/kotlin" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/components/database-guice/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/database-queue/src/main/kotlin" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/database-queue/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/components/database/src/main/kotlin" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/components/database/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/components/job-queue-guice/src/main/kotlin" charset="UTF-8" />
