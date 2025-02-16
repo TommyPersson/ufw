@@ -4,7 +4,7 @@ import java.time.Instant
 
 public data class WorkItemDbEntity(
     val uid: Long,
-    val id: String,
+    val itemId: String,
     val queueId: String,
     val type: String,
     val state: Int,
@@ -13,7 +13,7 @@ public data class WorkItemDbEntity(
     val concurrencyKey: String?,
     val createdAt: Instant,
     val firstScheduledFor: Instant,
-    val nextScheduledFor: Instant,
+    val nextScheduledFor: Instant?,
     val stateChangedAt: Instant,
     val watchdogTimestamp: Instant?,
     val watchdogOwner: String?,
