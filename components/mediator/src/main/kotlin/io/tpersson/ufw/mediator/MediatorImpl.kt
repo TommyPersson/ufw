@@ -3,12 +3,11 @@ package io.tpersson.ufw.mediator
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
 import io.tpersson.ufw.core.logging.createLogger
+import io.tpersson.ufw.core.utils.measureTimedValue
 import io.tpersson.ufw.mediator.internal.ContextImpl
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
-import kotlin.time.measureTimedValue
-import kotlin.time.toJavaDuration
 
 public class MediatorImpl(
     private val meterRegistry: MeterRegistry,
@@ -58,7 +57,7 @@ public class MediatorImpl(
             pipeline.invoke(request, context)
         }
 
-        timers[request::class]?.record(duration.toJavaDuration())
+        timers[request::class]?.record(duration)
 
         return result
     }

@@ -1,8 +1,8 @@
-package io.tpersson.ufw.databasequeue
+package io.tpersson.ufw.databasequeue.worker
 
 import java.time.Instant
 
-public data class WorkItemDbEntity(
+public data class WorkItem(
     val uid: Long,
     val itemId: String,
     val queueId: String,
@@ -14,9 +14,4 @@ public data class WorkItemDbEntity(
     val createdAt: Instant,
     val firstScheduledFor: Instant,
     val nextScheduledFor: Instant?,
-    val stateChangedAt: Instant,
-    val watchdogTimestamp: Instant?,
-    val watchdogOwner: String?,
-    val expiresAt: Instant?,
 )
-

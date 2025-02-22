@@ -1,18 +1,9 @@
-package io.tpersson.ufw.databasequeue
+package io.tpersson.ufw.databasequeue.internal
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
 import java.time.Instant
-
-/*
-public data class WorkItemEvent(
-    val type: WorkItemEventType,
-    val timestamp: Instant,
-)
-
- */
 
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,

@@ -28,6 +28,10 @@ public abstract class Managed {
     }
 
     public suspend fun stop() {
+        if (!isRunning) {
+            return
+        }
+
         logger.info("Stopping Managed instance: $name")
 
         try {
@@ -37,7 +41,7 @@ public abstract class Managed {
             throw e
         }
 
-        logger.info("Stopped Managed instance: $name")
+        logger.info(" Stopped Managed instance: $name")
         _isRunning.set(false)
     }
 

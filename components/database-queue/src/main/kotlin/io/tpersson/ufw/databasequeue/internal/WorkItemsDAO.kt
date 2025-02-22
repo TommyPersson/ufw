@@ -1,6 +1,7 @@
-package io.tpersson.ufw.databasequeue
+package io.tpersson.ufw.databasequeue.internal
 
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
+import io.tpersson.ufw.databasequeue.NewWorkItem
 import java.time.Instant
 
 public interface WorkItemsDAO {

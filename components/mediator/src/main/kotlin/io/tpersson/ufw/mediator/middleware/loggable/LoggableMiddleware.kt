@@ -1,5 +1,6 @@
 package io.tpersson.ufw.mediator.middleware.loggable
 
+import io.tpersson.ufw.core.utils.measureTimedValue
 import io.tpersson.ufw.mediator.Context
 import io.tpersson.ufw.mediator.Middleware
 import io.tpersson.ufw.mediator.middleware.StandardMiddlewarePriorities
@@ -12,7 +13,6 @@ import org.slf4j.MDC
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 import kotlin.time.DurationUnit
-import kotlin.time.measureTimedValue
 
 public class LoggableMiddleware @Inject constructor(
 ) : Middleware<Loggable, Any> {
@@ -38,7 +38,7 @@ public class LoggableMiddleware @Inject constructor(
                     next(request, context)
                 }
 
-                logger.info("Successful: ${request.logText}. [Duration = ${duration.toString(DurationUnit.MILLISECONDS)}]")
+                logger.info("Successful: ${request.logText}. [Duration = ${duration.toMillis()} ms]")
                 return@withContext result
             } catch (e: Exception) {
                 logger.error("Failed: ${request.logText}.", e)

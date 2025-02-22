@@ -8,6 +8,7 @@ import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.core.dsl.objectMapper
 import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.database.unitofwork.use
+import io.tpersson.ufw.databasequeue.dsl.databaseQueue
 import io.tpersson.ufw.examples.common.Globals
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregate
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregateRepository
@@ -55,6 +56,8 @@ public fun main(): Unit = runBlocking(MDCContext()) {
         }
         database {
             dataSource = Globals.dataSource
+        }
+        databaseQueue {
         }
         keyValueStore {
             configure {

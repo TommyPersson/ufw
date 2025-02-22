@@ -1,4 +1,4 @@
-package io.tpersson.ufw.databasequeue
+package io.tpersson.ufw.databasequeue.internal
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -8,6 +8,8 @@ import io.tpersson.ufw.database.typedqueries.TypedSelectSingle
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
 import io.tpersson.ufw.database.typedqueries.TypedUpdateReturningSingle
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
+import io.tpersson.ufw.databasequeue.NewWorkItem
+import io.tpersson.ufw.databasequeue.WorkItemState
 import jakarta.inject.Inject
 import java.time.Instant
 

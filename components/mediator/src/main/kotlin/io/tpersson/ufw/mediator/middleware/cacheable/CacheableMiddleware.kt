@@ -4,13 +4,10 @@ import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import io.tpersson.ufw.mediator.Context
 import io.tpersson.ufw.mediator.Middleware
-import io.tpersson.ufw.mediator.Request
 import io.tpersson.ufw.mediator.middleware.StandardMiddlewarePriorities
 import jakarta.inject.Inject
-import kotlinx.coroutines.withTimeout
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.jvm.optionals.getOrNull
 import kotlin.reflect.KClass
 
 public class CacheableMiddleware @Inject constructor(
@@ -29,7 +26,7 @@ public class CacheableMiddleware @Inject constructor(
 
         val existing = cache.getIfPresent(request.cacheKey)
         if (existing != null) {
-            return existing.getOrNull()
+            return existing.orElse(null)
         }
 
         val result = next(request, context)

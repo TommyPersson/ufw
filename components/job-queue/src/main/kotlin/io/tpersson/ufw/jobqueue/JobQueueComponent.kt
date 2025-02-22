@@ -3,8 +3,12 @@ package io.tpersson.ufw.jobqueue
 import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
+import io.tpersson.ufw.databasequeue.DatabaseQueueComponent
+import io.tpersson.ufw.databasequeue.internal.WorkItemsDAOImpl
 import io.tpersson.ufw.jobqueue.internal.*
 import io.tpersson.ufw.jobqueue.internal.metrics.JobStateMetric
+import io.tpersson.ufw.jobqueue.v2.DurableJobHandler
+import io.tpersson.ufw.jobqueue.v2.internal.DurableJobQueueWorkersManager
 import io.tpersson.ufw.managed.ManagedComponent
 import jakarta.inject.Inject
 
@@ -26,9 +30,16 @@ public class JobQueueComponent @Inject constructor(
             coreComponent: CoreComponent,
             managedComponent: ManagedComponent,
             databaseComponent: DatabaseComponent,
+            databaseQueueComponent: DatabaseQueueComponent,
             config: JobQueueConfig,
             jobHandlers: Set<JobHandler<*>>,
+            durableJobHandlers: Set<DurableJobHandler<*>>,
         ): JobQueueComponent {
+            val durableJobQueueWorkersManager = DurableJobQueueWorkersManager(
+                workerFactory = databaseQueueComponent.databaseQueueWorkerFactory,
+                handlers = durableJobHandlers,
+                objectMapper = coreComponent.objectMapper,
+            )
 
             val jobRepository = JobsDAOImpl(
                 database = databaseComponent.database,
@@ -81,6 +92,7 @@ public class JobQueueComponent @Inject constructor(
             managedComponent.register(staleJobRescheduler)
             managedComponent.register(expiredJobReaper)
             managedComponent.register(jobStateMetric)
+            managedComponent.register(durableJobQueueWorkersManager)
 
             return JobQueueComponent(
                 jobQueue = jobQueue,

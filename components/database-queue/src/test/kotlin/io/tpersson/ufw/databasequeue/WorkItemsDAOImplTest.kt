@@ -8,6 +8,10 @@ import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.database.exceptions.MinimumAffectedRowsException
 import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.database.unitofwork.use
+import io.tpersson.ufw.databasequeue.dsl.databaseQueue
+import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
+import io.tpersson.ufw.databasequeue.internal.WorkItemEvent
+import io.tpersson.ufw.databasequeue.internal.WorkItemsDAOImpl
 import io.tpersson.ufw.test.TestInstantSource
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -49,18 +53,14 @@ internal class WorkItemsDAOImplTest {
             database {
                 dataSource = HikariDataSource(config)
             }
+            databaseQueue {
+            }
         }
 
         val database = ufw.database.database
         val unitOfWorkFactory = ufw.database.unitOfWorkFactory
 
         init {
-            // TODO move to component module
-            Migrator.registerMigrationScript(
-                componentName = "databasequeue",
-                scriptLocation = "io/tpersson/ufw/databasequeue/migrations/postgres/liquibase.xml"
-            )
-
             ufw.database.migrator.run()
         }
     }

@@ -1,4 +1,4 @@
-package io.tpersson.ufw.databasequeue
+package io.tpersson.ufw.databasequeue.internal
 
 import java.time.Instant
 

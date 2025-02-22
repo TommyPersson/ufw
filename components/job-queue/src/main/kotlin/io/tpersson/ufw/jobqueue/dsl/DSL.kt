@@ -5,9 +5,11 @@ import io.tpersson.ufw.core.dsl.UFWRegistry
 import io.tpersson.ufw.core.dsl.UfwDslMarker
 import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.database.dsl.database
+import io.tpersson.ufw.databasequeue.dsl.databaseQueue
 import io.tpersson.ufw.jobqueue.JobHandler
 import io.tpersson.ufw.jobqueue.JobQueueComponent
 import io.tpersson.ufw.jobqueue.JobQueueConfig
+import io.tpersson.ufw.jobqueue.v2.DurableJobHandler
 import io.tpersson.ufw.managed.dsl.managed
 import java.time.Duration
 
@@ -19,6 +21,7 @@ public fun UFWBuilder.RootBuilder.jobQueue(builder: JobQueueComponentBuilder.() 
 @UfwDslMarker
 public class JobQueueComponentBuilder(private val components: UFWRegistry) {
     public var handlers: Set<JobHandler<*>> = emptySet()
+    public var durableJobHandlers: Set<DurableJobHandler<*>> = emptySet()
     public var config: JobQueueConfig = JobQueueConfig()
 
     public fun configure(builder: JobQueueConfigBuilder.() -> Unit) {
@@ -30,8 +33,10 @@ public class JobQueueComponentBuilder(private val components: UFWRegistry) {
             coreComponent = components.core,
             managedComponent = components.managed,
             databaseComponent = components.database,
+            databaseQueueComponent = components.databaseQueue,
             config = config,
-            jobHandlers = handlers
+            jobHandlers = handlers,
+            durableJobHandlers = durableJobHandlers,
         )
     }
 }

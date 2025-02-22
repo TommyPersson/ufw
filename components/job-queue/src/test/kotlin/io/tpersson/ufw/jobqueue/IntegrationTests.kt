@@ -7,6 +7,7 @@ import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
 import io.tpersson.ufw.database.unitofwork.use
+import io.tpersson.ufw.databasequeue.dsl.databaseQueue
 import io.tpersson.ufw.jobqueue.dsl.jobQueue
 import io.tpersson.ufw.jobqueue.internal.JobQueueImpl
 import io.tpersson.ufw.jobqueue.internal.JobsDAOImpl
@@ -56,6 +57,8 @@ internal class IntegrationTests {
             }
             database {
                 dataSource = HikariDataSource(config)
+            }
+            databaseQueue {
             }
             jobQueue {
                 handlers = setOf(TestJobHandler())
