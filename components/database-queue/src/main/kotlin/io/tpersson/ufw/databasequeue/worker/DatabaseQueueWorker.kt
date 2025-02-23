@@ -60,6 +60,7 @@ public class DatabaseQueueWorker @Inject constructor(
 
                 handleSuccess(workItem, unitOfWork)
             } catch (e: Exception) {
+                println(e)
                 handleFailure(workItem, unitOfWork)
 
             } finally {

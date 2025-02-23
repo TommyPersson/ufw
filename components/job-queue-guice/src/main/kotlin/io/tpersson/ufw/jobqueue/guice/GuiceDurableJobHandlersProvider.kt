@@ -3,24 +3,23 @@ package io.tpersson.ufw.jobqueue.guice
 import com.google.inject.Injector
 import io.github.classgraph.ScanResult
 import io.tpersson.ufw.core.NamedBindings
-import io.tpersson.ufw.jobqueue.JobHandler
-import io.tpersson.ufw.jobqueue.internal.JobHandlersProvider
+import io.tpersson.ufw.jobqueue.v2.DurableJobHandler
+import io.tpersson.ufw.jobqueue.v2.internal.DurableJobHandlersProvider
 import jakarta.inject.Inject
 import jakarta.inject.Named
 
-public class GuiceJobHandlersProvider @Inject constructor(
+public class GuiceDurableJobHandlersProvider @Inject constructor(
     @Named(NamedBindings.ScanResult) private val scanResult: ScanResult,
     private val injector: Injector,
-) : JobHandlersProvider {
+) : DurableJobHandlersProvider {
 
     private val handlers = scanResult.allClasses
-        .filter { it.extendsSuperclass(JobHandler::class.java) }
+        .filter { it.implementsInterface(DurableJobHandler::class.java) }
         .filter { !it.isAbstract }
         .loadClasses()
-        .map { injector.getInstance(it) as JobHandler<*> }
+        .map { injector.getInstance(it) as DurableJobHandler<*> }
 
-    public override fun get(): Set<JobHandler<*>> {
+    public override fun get(): Set<DurableJobHandler<*>> {
         return handlers.toSet()
     }
 }
-

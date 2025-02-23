@@ -2,6 +2,7 @@ package io.tpersson.ufw.databasequeue.internal
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.tpersson.ufw.core.NamedBindings
 import io.tpersson.ufw.database.jdbc.Database
 import io.tpersson.ufw.database.typedqueries.TypedSelectList
 import io.tpersson.ufw.database.typedqueries.TypedSelectSingle
@@ -11,11 +12,12 @@ import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.databasequeue.NewWorkItem
 import io.tpersson.ufw.databasequeue.WorkItemState
 import jakarta.inject.Inject
+import jakarta.inject.Named
 import java.time.Instant
 
 public class WorkItemsDAOImpl @Inject constructor(
     private val database: Database,
-    private val objectMapper: ObjectMapper
+    @Named(NamedBindings.ObjectMapper) private val objectMapper: ObjectMapper
 ) : WorkItemsDAO {
 
     override suspend fun scheduleNewItem(newItem: NewWorkItem, now: Instant, unitOfWork: UnitOfWork) {

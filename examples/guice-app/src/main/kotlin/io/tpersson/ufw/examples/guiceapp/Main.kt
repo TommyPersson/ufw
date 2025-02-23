@@ -8,30 +8,27 @@ import com.google.inject.multibindings.OptionalBinder
 import io.micrometer.core.instrument.MeterRegistry
 import io.tpersson.ufw.aggregates.guice.AggregatesGuiceModule
 import io.tpersson.ufw.core.CoreGuiceModule
-import io.tpersson.ufw.core.dsl.UFWRegistry
 import io.tpersson.ufw.database.DatabaseComponent
-import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.database.guice.DatabaseGuiceModule
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.database.unitofwork.use
+import io.tpersson.ufw.databasequeue.guice.DatabaseQueueGuiceModule
 import io.tpersson.ufw.examples.common.Globals
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregate
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregateRepository
 import io.tpersson.ufw.examples.common.commands.PerformGreetingCommand
 import io.tpersson.ufw.examples.common.events.ExampleEventV1
-import io.tpersson.ufw.examples.common.events.LoggingOutgoingEventTransport
 import io.tpersson.ufw.examples.common.jobs.PrintJob
+import io.tpersson.ufw.examples.common.jobs.PrintJob2
 import io.tpersson.ufw.jobqueue.JobQueue
 import io.tpersson.ufw.jobqueue.JobQueueConfig
 import io.tpersson.ufw.jobqueue.guice.JobQueueGuiceModule
 import io.tpersson.ufw.keyvaluestore.KeyValueStoreConfig
 import io.tpersson.ufw.keyvaluestore.guice.KeyValueStoreGuiceModule
 import io.tpersson.ufw.managed.ManagedComponent
-import io.tpersson.ufw.managed.ManagedRunner
 import io.tpersson.ufw.managed.guice.ManagedGuiceModule
 import io.tpersson.ufw.mediator.Mediator
 import io.tpersson.ufw.mediator.guice.MediatorGuiceModule
-import io.tpersson.ufw.transactionalevents.dsl.transactionalEvents
 import io.tpersson.ufw.transactionalevents.guice.TransactionalEventsGuiceModule
 import io.tpersson.ufw.transactionalevents.publisher.OutgoingEventTransport
 import io.tpersson.ufw.transactionalevents.publisher.TransactionalEventPublisher
@@ -71,6 +68,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
             }
         ),
         DatabaseGuiceModule(),
+        DatabaseQueueGuiceModule(),
         KeyValueStoreGuiceModule(
             config = KeyValueStoreConfig(
                 expiredEntryReapingInterval = Duration.ofMinutes(1)
@@ -120,6 +118,7 @@ private suspend fun testJobQueue(injector: Injector) {
 
     unitOfWorkFactory.use { uow ->
         jobQueue.enqueue(PrintJob("Hello, World!"), uow)
+        jobQueue.enqueue(PrintJob2("Hello, World!"), uow)
     }
 }
 

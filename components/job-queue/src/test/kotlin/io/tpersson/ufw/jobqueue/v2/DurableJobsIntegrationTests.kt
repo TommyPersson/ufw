@@ -129,11 +129,11 @@ internal class DurableJobsIntegrationTests {
 public data class MyJob(
     val greeting: String,
     override val id: String = UUID.randomUUID().toString(),
-) : DurableJob<MyJob>
+) : DurableJob
 
 
 public class MyJobHandler : DurableJobHandler<MyJob> {
-    override suspend fun handle(item: MyJob) {
-        println("${item.greeting}, World!")
+    override suspend fun handle(job: MyJob) {
+        println("${job.greeting}, World!")
     }
 }

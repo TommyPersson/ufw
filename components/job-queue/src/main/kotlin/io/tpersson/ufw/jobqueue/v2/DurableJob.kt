@@ -1,5 +1,5 @@
 package io.tpersson.ufw.jobqueue.v2
 
-public interface DurableJob<TData : Any> {
+public interface DurableJob {
     public val id: String
 }

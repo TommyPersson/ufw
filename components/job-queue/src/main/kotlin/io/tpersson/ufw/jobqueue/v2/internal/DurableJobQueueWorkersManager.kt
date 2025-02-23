@@ -1,18 +1,21 @@
 package io.tpersson.ufw.jobqueue.v2.internal
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.tpersson.ufw.core.NamedBindings
 import io.tpersson.ufw.databasequeue.worker.DatabaseQueueWorkerFactory
 import io.tpersson.ufw.jobqueue.v2.DurableJobHandler
 import io.tpersson.ufw.managed.Managed
 import jakarta.inject.Inject
+import jakarta.inject.Named
 import kotlinx.coroutines.*
+
 
 public class DurableJobQueueWorkersManager @Inject constructor(
     private val workerFactory: DatabaseQueueWorkerFactory,
-    private val handlers: Set<DurableJobHandler<*>>,
-    private val objectMapper: ObjectMapper,
+    private val durableJobHandlersProvider: DurableJobHandlersProvider,
+    @Named(NamedBindings.ObjectMapper) private val objectMapper: ObjectMapper,
 ) : Managed() {
-    private val mappedHandlers = handlers.map { createTypeMapping(it) }
+    private val mappedHandlers = durableJobHandlersProvider.get().map { createTypeMapping(it) }
 
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 

@@ -4,11 +4,11 @@ import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.databasequeue.DatabaseQueueComponent
-import io.tpersson.ufw.databasequeue.internal.WorkItemsDAOImpl
 import io.tpersson.ufw.jobqueue.internal.*
 import io.tpersson.ufw.jobqueue.internal.metrics.JobStateMetric
 import io.tpersson.ufw.jobqueue.v2.DurableJobHandler
 import io.tpersson.ufw.jobqueue.v2.internal.DurableJobQueueWorkersManager
+import io.tpersson.ufw.jobqueue.v2.internal.SimpleDurableJobHandlersProvider
 import io.tpersson.ufw.managed.ManagedComponent
 import jakarta.inject.Inject
 
@@ -35,9 +35,12 @@ public class JobQueueComponent @Inject constructor(
             jobHandlers: Set<JobHandler<*>>,
             durableJobHandlers: Set<DurableJobHandler<*>>,
         ): JobQueueComponent {
+
+            val durableJobHandlersProvider = SimpleDurableJobHandlersProvider(durableJobHandlers)
+
             val durableJobQueueWorkersManager = DurableJobQueueWorkersManager(
                 workerFactory = databaseQueueComponent.databaseQueueWorkerFactory,
-                handlers = durableJobHandlers,
+                durableJobHandlersProvider = durableJobHandlersProvider,
                 objectMapper = coreComponent.objectMapper,
             )
 
@@ -54,7 +57,9 @@ public class JobQueueComponent @Inject constructor(
                 config = config,
                 clock = coreComponent.clock,
                 jobsDAO = jobRepository,
-                jobFailureRepository = jobFailureRepository
+                jobFailureRepository = jobFailureRepository,
+                workItemsDAO = databaseQueueComponent.workItemsDAO,
+                objectMapper = coreComponent.objectMapper,
             )
 
             val jobHandlersProvider = SimpleJobHandlersProvider(jobHandlers)

@@ -17,7 +17,9 @@ import io.tpersson.ufw.examples.common.commands.PerformGreetingCommandHandler
 import io.tpersson.ufw.examples.common.events.ExampleEventHandler
 import io.tpersson.ufw.examples.common.events.ExampleEventV1
 import io.tpersson.ufw.examples.common.jobs.PrintJob
+import io.tpersson.ufw.examples.common.jobs.PrintJob2
 import io.tpersson.ufw.examples.common.jobs.PrintJobHandler
+import io.tpersson.ufw.examples.common.jobs.PrintJob2Handler
 import io.tpersson.ufw.examples.common.managed.PeriodicEventPublisher
 import io.tpersson.ufw.examples.common.managed.PeriodicLogger
 import io.tpersson.ufw.examples.common.managed.PrometheusServer
@@ -80,6 +82,9 @@ public fun main(): Unit = runBlocking(MDCContext()) {
             handlers = setOf(
                 PrintJobHandler()
             )
+            durableJobHandlers = setOf(
+                PrintJob2Handler()
+            )
         }
         transactionalEvents {
             handlers = setOf(
@@ -138,8 +143,9 @@ private suspend fun testJobQueue(ufw: UFWRegistry) {
     val jobQueue = ufw.jobQueue.jobQueue
 
     ufw.database.unitOfWorkFactory.use { uow ->
-        (1..1).forEach {
+        (1..3).forEach {
             jobQueue.enqueue(PrintJob("$it: Hello, World!"), uow)
+            jobQueue.enqueue(PrintJob2("$it: Hello, World!"), uow)
         }
     }
 }

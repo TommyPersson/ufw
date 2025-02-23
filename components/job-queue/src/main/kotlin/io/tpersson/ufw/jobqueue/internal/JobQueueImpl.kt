@@ -1,10 +1,16 @@
 package io.tpersson.ufw.jobqueue.internal
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import io.tpersson.ufw.core.NamedBindings
 import io.tpersson.ufw.core.concurrency.ConsumerSignal
 import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
+import io.tpersson.ufw.databasequeue.NewWorkItem
+import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
 import io.tpersson.ufw.jobqueue.*
+import io.tpersson.ufw.jobqueue.v2.DurableJob
 import jakarta.inject.Inject
+import jakarta.inject.Named
 import jakarta.inject.Singleton
 import kotlinx.coroutines.time.withTimeoutOrNull
 import java.lang.Exception
@@ -20,6 +26,8 @@ public class JobQueueImpl @Inject constructor(
     private val clock: InstantSource,
     private val jobsDAO: JobsDAO,
     private val jobFailureRepository: JobFailureRepository,
+    private val workItemsDAO: WorkItemsDAO,
+    @Named(NamedBindings.ObjectMapper) private val objectMapper: ObjectMapper,
 ) : JobQueueInternal {
 
     private val logger = createLogger()
@@ -51,6 +59,36 @@ public class JobQueueImpl @Inject constructor(
 
         unitOfWork.addPostCommitHook {
             getSignal(queueId).signal()
+        }
+    }
+
+
+    override suspend fun <TJob : DurableJob> enqueue(
+        job: TJob,
+        unitOfWork: UnitOfWork,
+        builder: JobOptionsBuilder.() -> Unit
+    ) {
+        val jobOptions = JobOptionsBuilder().apply(builder)
+
+        val type = job::class.simpleName!!
+        val queueId = type
+
+        workItemsDAO.scheduleNewItem(
+            newItem = NewWorkItem(
+                queueId = queueId, // TODO
+                type = type, // TODO
+                itemId = job.id,
+                dataJson = objectMapper.writeValueAsString(job), // TODO move to new 'WorkItemsQueue'?
+                metadataJson = "{}",
+                concurrencyKey = null,
+                scheduleFor = jobOptions.scheduleFor ?: clock.instant(),
+            ),
+            now = clock.instant(),
+            unitOfWork = unitOfWork,
+        )
+
+        unitOfWork.addPostCommitHook {
+            //getSignal(queueId).signal()
         }
     }
 

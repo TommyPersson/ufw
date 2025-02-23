@@ -1,17 +1,19 @@
 package io.tpersson.ufw.jobqueue.v2.internal
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.tpersson.ufw.core.NamedBindings
 import io.tpersson.ufw.databasequeue.worker.DatabaseQueueWorker
 import io.tpersson.ufw.databasequeue.worker.DatabaseQueueWorkerFactory
 import io.tpersson.ufw.jobqueue.v2.DurableJobHandler
 import jakarta.inject.Inject
+import jakarta.inject.Named
 import kotlinx.coroutines.Job
 
 public class DurableJobQueueWorker @Inject constructor(
     private val queueId: String,
     private val workerFactory: DatabaseQueueWorkerFactory,
     private val handlersByType: Map<String, DurableJobHandler<*>>,
-    private val objectMapper: ObjectMapper
+    @Named(NamedBindings.ObjectMapper) private val objectMapper: ObjectMapper
 ) {
     @Suppress("UNCHECKED_CAST")
     private val adaptersByType = handlersByType.mapValues {
