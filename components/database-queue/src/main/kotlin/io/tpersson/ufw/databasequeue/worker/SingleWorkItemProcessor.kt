@@ -110,7 +110,7 @@ public class SingleWorkItemProcessor(
             errorStackTrace = error.stackTraceToString(),
         )
 
-        workItemFailuresDAO.saveFailure(failure, unitOfWork = unitOfWork)
+        workItemFailuresDAO.insertFailure(failure, unitOfWork = unitOfWork)
 
         if (rescheduleAt != null) {
             workItemsDAO.rescheduleInProgressItem(

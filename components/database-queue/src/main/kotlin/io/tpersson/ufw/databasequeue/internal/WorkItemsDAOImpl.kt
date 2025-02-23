@@ -198,13 +198,22 @@ public class WorkItemsDAOImpl @Inject constructor(
             .map { objectMapper.readValue<WorkItemEvent>(it.event) }
     }
 
-    override suspend fun debugInsert(item: WorkItemDbEntity, unitOfWork: UnitOfWork) {
-        unitOfWork.add(
-            Queries.Updates.InsertItem(
-                item = item,
-                eventJson = "[]"
+    override suspend fun debugInsert(item: WorkItemDbEntity, unitOfWork: UnitOfWork?) {
+        if (unitOfWork != null) {
+            unitOfWork.add(
+                Queries.Updates.InsertItem(
+                    item = item,
+                    eventJson = "[]"
+                )
             )
-        )
+        } else {
+            database.update(
+                Queries.Updates.InsertItem(
+                    item = item,
+                    eventJson = "[]"
+                )
+            )
+        }
     }
 
     override suspend fun debugTruncate() {

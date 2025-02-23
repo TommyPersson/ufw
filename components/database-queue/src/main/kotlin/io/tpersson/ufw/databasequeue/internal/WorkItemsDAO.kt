@@ -97,7 +97,7 @@ public interface WorkItemsDAO {
 
     public suspend fun debugInsert(
         item: WorkItemDbEntity,
-        unitOfWork: UnitOfWork
+        unitOfWork: UnitOfWork? = null
     )
 
     public suspend fun debugTruncate()
