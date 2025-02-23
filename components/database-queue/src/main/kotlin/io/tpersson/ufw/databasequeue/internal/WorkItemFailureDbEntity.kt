@@ -8,5 +8,5 @@ public data class WorkItemFailureDbEntity(
     val timestamp: Instant,
     val errorType: String,
     val errorMessage: String,
-    val errorStackTract: String,
+    val errorStackTrace: String,
 )

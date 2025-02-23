@@ -117,8 +117,10 @@ private suspend fun testJobQueue(injector: Injector) {
     val unitOfWorkFactory = injector.getInstance(UnitOfWorkFactory::class.java)
 
     unitOfWorkFactory.use { uow ->
-        jobQueue.enqueue(PrintJob("Hello, World!"), uow)
-        jobQueue.enqueue(PrintJob2("Hello, World!"), uow)
+        (1..3).forEach {
+            jobQueue.enqueue(PrintJob("$it: Hello, World!"), uow)
+            jobQueue.enqueue(PrintJob2("$it: Hello, World!"), uow)
+        }
     }
 }
 

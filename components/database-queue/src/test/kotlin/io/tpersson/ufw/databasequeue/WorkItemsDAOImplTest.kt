@@ -6,7 +6,6 @@ import io.tpersson.ufw.core.dsl.UFW
 import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.database.exceptions.MinimumAffectedRowsException
-import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.database.unitofwork.use
 import io.tpersson.ufw.databasequeue.dsl.databaseQueue
 import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
@@ -431,6 +430,41 @@ internal class WorkItemsDAOImplTest {
         )
     }
 
+
+    @Test
+    fun `markInProgressItemAsFailed - Shall increment the number of failures`(): Unit = runBlocking {
+        debugInsertItem(makeWorkItem(itemId = "testId1", numFailures = 2))
+        testClock.advance(Duration.ofMinutes(2))
+
+        val item = dao.takeNext(
+            queueId = "testQueueId",
+            watchdogId = "testWatchdog",
+            now = testClock.dbNow
+        )!!
+
+        testClock.advance(Duration.ofMinutes(2))
+
+        val unitOfWork = unitOfWorkFactory.create()
+
+        val now = testClock.dbNow
+        val expiresAt = testClock.dbNow.plus(Duration.ofDays(1))
+
+        dao.markInProgressItemAsFailed(
+            queueId = item.queueId,
+            itemId = item.itemId,
+            expiresAt = expiresAt,
+            watchdogId = "testWatchdog",
+            now = now,
+            unitOfWork = unitOfWork
+        )
+
+        unitOfWork.commit()
+
+        val item2 = dao.listAllItems().first { it.itemId == item.itemId }
+
+        assertThat(item2.numFailures).isEqualTo(3)
+    }
+
     @Test
     fun `markInProgressItemAsFailed - Shall fail UnitOfWork if the watchdog is incorrect`(): Unit = runBlocking {
         debugInsertItem(makeWorkItem(itemId = "testId1"))
@@ -532,6 +566,39 @@ internal class WorkItemsDAOImplTest {
         dumpEvents(item2.queueId, item2.itemId)
     }
 
+    @Test
+    fun `rescheduleInProgressItem - Shall increment the number of failures`(): Unit = runBlocking {
+        debugInsertItem(makeWorkItem(itemId = "testId1", numFailures = 2))
+        testClock.advance(Duration.ofMinutes(2))
+
+        val item = dao.takeNext(
+            queueId = "testQueueId",
+            watchdogId = "testWatchdog",
+            now = testClock.dbNow
+        )!!
+
+        testClock.advance(Duration.ofMinutes(2))
+
+        val unitOfWork = unitOfWorkFactory.create()
+
+        val now = testClock.dbNow
+        val scheduleFor = testClock.dbNow.plus(Duration.ofDays(1))
+
+        dao.rescheduleInProgressItem(
+            queueId = item.queueId,
+            itemId = item.itemId,
+            scheduleFor = scheduleFor,
+            watchdogId = "testWatchdog",
+            now = now,
+            unitOfWork = unitOfWork
+        )
+
+        unitOfWork.commit()
+
+        val item2 = dao.listAllItems().first { it.itemId == item.itemId }
+
+        assertThat(item2.numFailures).isEqualTo(3)
+    }
 
     @Test
     fun `rescheduleInProgressItem - Shall record state transition events`(): Unit = runBlocking {
@@ -896,6 +963,7 @@ internal class WorkItemsDAOImplTest {
         stateChangedAt: Instant = testClock.instant(),
         watchdogTimestamp: Instant? = null,
         watchdogOwner: String? = null,
+        numFailures: Int = 0,
         expiresAt: Instant? = null,
     ): WorkItemDbEntity {
         return WorkItemDbEntity(
@@ -913,6 +981,7 @@ internal class WorkItemsDAOImplTest {
             stateChangedAt = stateChangedAt,
             watchdogTimestamp = watchdogTimestamp,
             watchdogOwner = watchdogOwner,
+            numFailures = numFailures,
             expiresAt = expiresAt,
         )
     }

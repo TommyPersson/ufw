@@ -5,6 +5,7 @@ import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.core.dsl.UFW
 import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.database.dsl.database
+import io.tpersson.ufw.databasequeue.FailureAction
 import io.tpersson.ufw.databasequeue.NewWorkItem
 import io.tpersson.ufw.databasequeue.WorkItemState
 import io.tpersson.ufw.databasequeue.dsl.databaseQueue
@@ -135,5 +136,9 @@ public data class MyJob(
 public class MyJobHandler : DurableJobHandler<MyJob> {
     override suspend fun handle(job: MyJob) {
         println("${job.greeting}, World!")
+    }
+
+    override suspend fun onFailure(job: MyJob, error: Exception, context: JobFailureContext): FailureAction {
+        TODO("Not yet implemented")
     }
 }

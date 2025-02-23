@@ -3,6 +3,7 @@ package io.tpersson.ufw.databasequeue
 import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
+import io.tpersson.ufw.databasequeue.internal.WorkItemFailuresDAOImpl
 import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
 import io.tpersson.ufw.databasequeue.internal.WorkItemsDAOImpl
 import io.tpersson.ufw.databasequeue.worker.DatabaseQueueWorkerFactory
@@ -30,8 +31,13 @@ public class DatabaseQueueComponent @Inject constructor(
                 objectMapper = coreComponent.objectMapper,
             )
 
+            val workItemFailuresDAO = WorkItemFailuresDAOImpl(
+                database = databaseComponent.database,
+            )
+
             val databaseQueueWorkerFactory = DatabaseQueueWorkerFactoryImpl(
                 workItemsDAO = workItemsDAO,
+                workItemFailuresDAO = workItemFailuresDAO,
                 unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
                 clock = coreComponent.clock,
             )

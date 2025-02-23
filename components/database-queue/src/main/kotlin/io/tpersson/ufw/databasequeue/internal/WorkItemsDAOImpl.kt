@@ -36,6 +36,7 @@ public class WorkItemsDAOImpl @Inject constructor(
             stateChangedAt = now,
             watchdogTimestamp = null,
             watchdogOwner = null,
+            numFailures = 0,
             expiresAt = null,
         )
 
@@ -228,6 +229,7 @@ public class WorkItemsDAOImpl @Inject constructor(
             "state_changed_at",
             "watchdog_timestamp",
             "watchdog_owner",
+            "num_failures",
             "expires_at",
         )
 
@@ -288,6 +290,7 @@ public class WorkItemsDAOImpl @Inject constructor(
                     watchdog_timestamp,
                     watchdog_owner,
                     expires_at,
+                    num_failures,
                     events
                 ) VALUES (                    
                     :item.itemId,
@@ -304,6 +307,7 @@ public class WorkItemsDAOImpl @Inject constructor(
                     :item.watchdogTimestamp,
                     :item.watchdogOwner,
                     :item.expiresAt,
+                    :item.numFailures,
                     :eventJson::jsonb
                 ) ON CONFLICT (queue_id, item_id) DO NOTHING
                 """.trimIndent(),
@@ -390,6 +394,7 @@ public class WorkItemsDAOImpl @Inject constructor(
                    watchdog_timestamp = NULL,
                    watchdog_owner = NULL,
                    expires_at = :expiresAt,
+                   num_failures = num_failures + 1,
                    events = events || :eventJson::jsonb   
                 WHERE queue_id = :queueId
                   AND item_id = :itemId
@@ -415,6 +420,7 @@ public class WorkItemsDAOImpl @Inject constructor(
                    watchdog_timestamp = NULL,
                    watchdog_owner = NULL,
                    expires_at = NULL,
+                   num_failures = num_failures + 1,
                    events = events || :eventJson::jsonb    
                 WHERE queue_id = :queueId
                   AND item_id = :itemId

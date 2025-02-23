@@ -17,6 +17,7 @@ public data class WorkItemDbEntity(
     val stateChangedAt: Instant,
     val watchdogTimestamp: Instant?,
     val watchdogOwner: String?,
+    val numFailures: Int,
     val expiresAt: Instant?,
 )
 

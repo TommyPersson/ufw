@@ -19,6 +19,7 @@ CREATE TABLE ufw__db_queue__items
     watchdog_timestamp  TIMESTAMPTZ,
     watchdog_owner      TEXT,
     expires_at          TIMESTAMPTZ,
+    num_failures        INT         NOT NULL,
     events              JSONB       NOT NULL
 );
 
