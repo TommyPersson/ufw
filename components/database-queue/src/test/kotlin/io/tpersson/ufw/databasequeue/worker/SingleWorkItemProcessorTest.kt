@@ -20,7 +20,6 @@ import java.util.*
 
 internal class SingleWorkItemProcessorTest {
 
-    private lateinit var unitOfWork: UnitOfWork
     private lateinit var unitOfWorkFactory: UnitOfWorkFactory
     private lateinit var workItemFailuresDAO: WorkItemFailuresDAO
     private lateinit var workItemsDAO: WorkItemsDAO
@@ -40,8 +39,7 @@ internal class SingleWorkItemProcessorTest {
         workItemFailuresDAO = mock()
 
         unitOfWorkFactory = mock()
-        unitOfWork = mock()
-        whenever(unitOfWorkFactory.create()).thenReturn(unitOfWork)
+        whenever(unitOfWorkFactory.create()).then { mock<UnitOfWork>() }
 
         now = Instant.now()
 
@@ -141,10 +139,10 @@ internal class SingleWorkItemProcessorTest {
             expiresAt = eq(now.plus(config.successfulItemExpirationDelay)),
             watchdogId = eq(watchdogId),
             now = eq(now),
-            unitOfWork = same(unitOfWork)
+            unitOfWork = same(TestWorkItem1Handler.successContextUnitOfWork!!)
         )
 
-        verify(unitOfWork).commit()
+        verify(TestWorkItem1Handler.successContextUnitOfWork!!).commit()
     }
 
     @Test
@@ -164,10 +162,10 @@ internal class SingleWorkItemProcessorTest {
             expiresAt = eq(now.plus(config.failedItemExpirationDelay)),
             watchdogId = eq(watchdogId),
             now = eq(now),
-            unitOfWork = same(unitOfWork)
+            unitOfWork = same(TestWorkItem1Handler.failureContextUnitOfWork!!)
         )
 
-        verify(unitOfWork).commit()
+        verify(TestWorkItem1Handler.failureContextUnitOfWork!!).commit()
     }
 
     @Test
@@ -190,7 +188,7 @@ internal class SingleWorkItemProcessorTest {
                 watchdogId = eq(watchdogId),
                 scheduleFor = same(now),
                 now = eq(now),
-                unitOfWork = same(unitOfWork),
+                unitOfWork = same(TestWorkItem1Handler.failureContextUnitOfWork!!),
             )
         }
 
@@ -216,7 +214,7 @@ internal class SingleWorkItemProcessorTest {
                 watchdogId = eq(watchdogId),
                 scheduleFor = same(rescheduleAt),
                 now = eq(now),
-                unitOfWork = same(unitOfWork),
+                unitOfWork = same(TestWorkItem1Handler.failureContextUnitOfWork!!),
             )
         }
 
@@ -244,7 +242,7 @@ internal class SingleWorkItemProcessorTest {
                         it.errorMessage == "fail" &&
                         it.errorStackTrace.contains("TestWorkItem1Handler")
             },
-            unitOfWork = same(unitOfWork),
+            unitOfWork = same(TestWorkItem1Handler.failureContextUnitOfWork!!),
         )
     }
 
@@ -270,6 +268,69 @@ internal class SingleWorkItemProcessorTest {
         assertThat(TestWorkItem1Handler.failureContext?.timestamp).isSameAs(now)
     }
 
+    @Test
+    fun `processSingleItem - Shall store a failure when item transformation fails`(): Unit = runBlocking {
+        val workItem = stubNextWorkItem(
+            item = UnparsableWorkItem(),
+            queueId = "queue-1"
+        )!!
+
+        processor.processSingleItem(workItem.queueId, typeHandlerMap)
+
+        val unitOfWorkCaptor = argumentCaptor<UnitOfWork>()
+
+        verify(workItemsDAO).markInProgressItemAsFailed(
+            queueId = eq(workItem.queueId),
+            itemId = eq(workItem.itemId),
+            expiresAt = eq(now.plus(config.failedItemExpirationDelay)),
+            watchdogId = eq(watchdogId),
+            now = eq(now),
+            unitOfWork = unitOfWorkCaptor.capture()
+        )
+
+        verify(workItemFailuresDAO).insertFailure(
+            failure = argWhere {
+                it.id.isNotEmpty() &&
+                        it.itemUid == workItem.uid &&
+                        it.timestamp == now &&
+                        it.errorType == "UnableToTransformWorkItemException" &&
+                        it.errorMessage.isNotEmpty() &&
+                        it.errorStackTrace.contains("unable to parse item") // The inner error
+            },
+            unitOfWork = unitOfWorkCaptor.capture(),
+        )
+
+        assertThat(unitOfWorkCaptor.allValues.distinct()).hasSize(1)
+
+        verify(unitOfWorkCaptor.firstValue).commit()
+    }
+
+    @Test
+    fun `processSingleItem - Shall not commit UnitOfWork in handling context on failure`(): Unit = runBlocking {
+        val workItem = stubNextWorkItem(
+            item = TestWorkItem1(shouldFail = true),
+            queueId = "queue-1"
+        )!!
+
+        processor.processSingleItem(workItem.queueId, typeHandlerMap)
+
+        verify(TestWorkItem1Handler.successContextUnitOfWork!!, never()).commit()
+        verify(TestWorkItem1Handler.failureContextUnitOfWork!!).commit()
+    }
+
+    @Test
+    fun `processSingleItem - Shall not commit UnitOfWork in failure context on success`(): Unit = runBlocking {
+        val workItem = stubNextWorkItem(
+            item = TestWorkItem1(shouldFail = false),
+            queueId = "queue-1"
+        )!!
+
+        processor.processSingleItem(workItem.queueId, typeHandlerMap)
+
+        assertThat(TestWorkItem1Handler.failureContextUnitOfWork).isNull()
+        verify(TestWorkItem1Handler.successContextUnitOfWork!!).commit()
+    }
+
     private suspend fun <T> stubNextWorkItem(item: T, queueId: String): WorkItemDbEntity? {
         val workItemDbEntity = item?.let {
             createWorkItemDbEntity(
@@ -285,7 +346,8 @@ internal class SingleWorkItemProcessorTest {
     }
 
     private val typeHandlerMap = mapOf<String, WorkItemHandler<*>>(
-        TestWorkItem1::class.simpleName!! to TestWorkItem1Handler()
+        TestWorkItem1::class.simpleName!! to TestWorkItem1Handler(),
+        UnparsableWorkItem::class.simpleName!! to UnparsableWorkItemHandler(),
     )
 
     private fun <T : Any> createWorkItemDbEntity(
@@ -320,18 +382,26 @@ internal class SingleWorkItemProcessorTest {
         val hello: String = "World!",
     )
 
+    data class UnparsableWorkItem(
+        val hello: String = "World!",
+    )
+
     class TestWorkItem1Handler : WorkItemHandler<TestWorkItem1> {
         companion object {
             var failureAction: FailureAction = FailureAction.GiveUp
             var failureContext: WorkItemFailureContext? = null
             var failureError: Exception? = null
             var failureItem: TestWorkItem1? = null
+            var successContextUnitOfWork: UnitOfWork? = null
+            var failureContextUnitOfWork: UnitOfWork? = null
 
             fun reset() {
                 failureAction = FailureAction.GiveUp
                 failureItem = null
                 failureError = null
                 failureContext = null
+                successContextUnitOfWork = null
+                failureContextUnitOfWork = null
             }
         }
 
@@ -344,16 +414,37 @@ internal class SingleWorkItemProcessorTest {
             error: Exception,
             context: WorkItemFailureContext
         ): FailureAction {
+            failureContextUnitOfWork = context.unitOfWork
             failureItem = item
             failureContext = context
             failureError = error
             return failureAction
         }
 
-        override suspend fun handle(item: TestWorkItem1) {
+        override suspend fun handle(item: TestWorkItem1, context: WorkItemContext) {
+            successContextUnitOfWork = context.unitOfWork
+
             if (item.shouldFail) {
                 error("fail")
             }
+        }
+    }
+
+    class UnparsableWorkItemHandler : WorkItemHandler<UnparsableWorkItem> {
+        override fun transformItem(rawItem: WorkItemDbEntity): UnparsableWorkItem {
+            error("unable to parse item")
+        }
+
+        override suspend fun onFailure(
+            item: UnparsableWorkItem,
+            error: Exception,
+            context: WorkItemFailureContext
+        ): FailureAction {
+            TODO() // Not called
+        }
+
+        override suspend fun handle(item: UnparsableWorkItem, context: WorkItemContext) {
+            TODO() // Not called
         }
     }
 }

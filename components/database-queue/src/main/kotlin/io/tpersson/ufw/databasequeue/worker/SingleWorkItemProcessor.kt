@@ -3,10 +3,7 @@ package io.tpersson.ufw.databasequeue.worker
 import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
-import io.tpersson.ufw.databasequeue.DatabaseQueueConfig
-import io.tpersson.ufw.databasequeue.FailureAction
-import io.tpersson.ufw.databasequeue.WorkItemFailureContext
-import io.tpersson.ufw.databasequeue.WorkItemHandler
+import io.tpersson.ufw.databasequeue.*
 import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
 import io.tpersson.ufw.databasequeue.internal.WorkItemFailureDbEntity
 import io.tpersson.ufw.databasequeue.internal.WorkItemFailuresDAO
@@ -30,38 +27,81 @@ public class SingleWorkItemProcessor(
         queueId: String,
         typeHandlerMappings: Map<String, WorkItemHandler<*>>
     ): Boolean {
-        // TODO extract to more easily tested class
         // TODO setup MDC
 
         val workItem = workItemsDAO.takeNext(queueId, watchdogId, clock.instant())
             ?: return false
 
-        val unitOfWork = unitOfWorkFactory.create()
-
-        val handler = typeHandlerMappings[workItem.type] as WorkItemHandler<Any>?
-        if (handler == null) {
-            logger.warn("No handler found for type ${workItem.type}")
-        } else {
-            val transformedItem = handler.transformItem(workItem) // TODO handle transformation errors
-
-            try {
-                handler.handle(transformedItem)
-
-                handleSuccess(workItem, transformedItem, handler, unitOfWork)
-            } catch (e: Exception) {
-                handleFailure(e, workItem, transformedItem, handler, unitOfWork)
-            } finally {
-                unitOfWork.commit()
-            }
-        }
+        invokeHandlerFor(workItem, typeHandlerMappings)
 
         return true
     }
 
+    private suspend fun invokeHandlerFor(
+        workItem: WorkItemDbEntity,
+        typeHandlerMappings: Map<String, WorkItemHandler<*>>,
+    ) {
+        val handler = typeHandlerMappings[workItem.type] as WorkItemHandler<Any>?
+        if (handler == null) {
+            logger.warn("No handler found for type ${workItem.type}")
+            return
+        }
+
+        val successUnitOfWork = unitOfWorkFactory.create()
+        val failureUnitOfWork = unitOfWorkFactory.create()
+
+        val transformedItem = try {
+            transformItem(handler, workItem)
+        } catch (e: Exception) {
+            handleFailure(
+                error = e,
+                workItem = workItem,
+                transformedItem = null,
+                handler = handler,
+                unitOfWork = failureUnitOfWork
+            )
+
+            failureUnitOfWork.commit()
+            return
+        }
+
+        try {
+            val context = createHandleContext(workItem, successUnitOfWork)
+
+            handler.handle(transformedItem, context)
+
+            handleSuccess(
+                workItem = workItem,
+                unitOfWork = successUnitOfWork
+            )
+
+            successUnitOfWork.commit()
+        } catch (e: Exception) {
+            handleFailure(
+                error = e,
+                workItem = workItem,
+                transformedItem = transformedItem,
+                handler = handler,
+                unitOfWork = failureUnitOfWork
+            )
+
+            failureUnitOfWork.commit()
+        }
+    }
+
+    private fun transformItem(
+        handler: WorkItemHandler<Any>,
+        workItem: WorkItemDbEntity
+    ): Any {
+        return try {
+            handler.transformItem(workItem)
+        } catch (e: Throwable) {
+            throw UnableToTransformWorkItemException("Unable to transform work item of type: ${workItem.type}", e)
+        }
+    }
+
     private suspend fun handleSuccess(
         workItem: WorkItemDbEntity,
-        transformedItem: Any,
-        handler: WorkItemHandler<Any>,
         unitOfWork: UnitOfWork
     ) {
         workItemsDAO.markInProgressItemAsSuccessful(
@@ -77,7 +117,7 @@ public class SingleWorkItemProcessor(
     private suspend fun handleFailure(
         error: Exception,
         workItem: WorkItemDbEntity,
-        transformedItem: Any,
+        transformedItem: Any?,
         handler: WorkItemHandler<Any>,
         unitOfWork: UnitOfWork
     ) {
@@ -89,9 +129,12 @@ public class SingleWorkItemProcessor(
             override val clock: InstantSource = this@SingleWorkItemProcessor.clock
             override val timestamp: Instant = now
             override val failureCount: Int = failureCount
+            override val unitOfWork: UnitOfWork = unitOfWork
         }
 
-        val failureAction = handler.onFailure(transformedItem, error, context)
+        val failureAction = if (transformedItem != null) {
+            handler.onFailure(transformedItem, error, context)
+        } else FailureAction.GiveUp
 
         val rescheduleAt: Instant? = when (failureAction) {
             FailureAction.GiveUp -> null
@@ -130,4 +173,16 @@ public class SingleWorkItemProcessor(
             )
         }
     }
+
+
+    private fun createHandleContext(
+        workItem: WorkItemDbEntity,
+        unitOfWork: UnitOfWork
+    ) = object : WorkItemContext {
+        override val clock: InstantSource = this@SingleWorkItemProcessor.clock
+        override val timestamp: Instant = this@SingleWorkItemProcessor.clock.instant()
+        override val failureCount: Int = workItem.numFailures
+        override val unitOfWork: UnitOfWork = unitOfWork
+    }
 }
+

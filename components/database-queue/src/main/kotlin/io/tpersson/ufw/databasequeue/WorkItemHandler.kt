@@ -6,7 +6,10 @@ public interface WorkItemHandler<TItem> {
 
     public fun transformItem(rawItem: WorkItemDbEntity): TItem & Any
 
-    public suspend fun handle(item: TItem)
+    public suspend fun handle(
+        item: TItem,
+        context: WorkItemContext,
+    )
 
     public suspend fun onFailure(
         item: TItem,
