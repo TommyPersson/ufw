@@ -9,6 +9,8 @@ import io.tpersson.ufw.databasequeue.NewWorkItem
 import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
 import io.tpersson.ufw.jobqueue.*
 import io.tpersson.ufw.jobqueue.v2.DurableJob
+import io.tpersson.ufw.jobqueue.v2.internal.jobDefinition
+import io.tpersson.ufw.jobqueue.v2.internal.jobDefinition2
 import jakarta.inject.Inject
 import jakarta.inject.Named
 import jakarta.inject.Singleton
@@ -70,8 +72,10 @@ public class JobQueueImpl @Inject constructor(
     ) {
         val jobOptions = JobOptionsBuilder().apply(builder)
 
-        val type = job::class.simpleName!!
-        val queueId = type
+        val jobDefinition = job::class.jobDefinition2
+
+        val queueId = jobDefinition.queueId
+        val type = jobDefinition.type
 
         workItemsDAO.scheduleNewItem(
             newItem = NewWorkItem(

@@ -7,13 +7,14 @@ import io.tpersson.ufw.databasequeue.WorkItemContext
 import io.tpersson.ufw.databasequeue.WorkItemFailureContext
 import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
 import io.tpersson.ufw.databasequeue.WorkItemHandler
+import io.tpersson.ufw.jobqueue.v2.DurableJob
 import io.tpersson.ufw.jobqueue.v2.DurableJobHandler
 import io.tpersson.ufw.jobqueue.v2.JobContext
 import io.tpersson.ufw.jobqueue.v2.JobFailureContext
 import java.time.Instant
 import java.time.InstantSource
 
-public class DurableJobHandlerAdapter<TJob : Any>(
+public class DurableJobHandlerAdapter<TJob : DurableJob>(
     private val jobDefinition: DurableJobDefinition<out TJob>,
     private val handler: DurableJobHandler<TJob>,
     private val objectMapper: ObjectMapper,

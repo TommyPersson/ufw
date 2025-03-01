@@ -6,14 +6,12 @@ import io.tpersson.ufw.core.dsl.UFW
 import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.databasequeue.FailureAction
-import io.tpersson.ufw.databasequeue.NewWorkItem
 import io.tpersson.ufw.databasequeue.WorkItemState
 import io.tpersson.ufw.databasequeue.dsl.databaseQueue
-import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
-import io.tpersson.ufw.databasequeue.internal.WorkItemsDAOImpl
 import io.tpersson.ufw.jobqueue.IntegrationTests.TestInstantSource
 import io.tpersson.ufw.jobqueue.dsl.jobQueue
 import io.tpersson.ufw.managed.dsl.managed
+import io.tpersson.ufw.test.suspendingUntil
 import kotlinx.coroutines.runBlocking
 import org.awaitility.kotlin.await
 import org.junit.jupiter.api.AfterEach
@@ -71,21 +69,15 @@ internal class DurableJobsIntegrationTests {
 
         val database = ufw.database.database
         val unitOfWorkFactory = ufw.database.unitOfWorkFactory
+        val workItemsDAO = ufw.databaseQueue.workItemsDAO
 
         init {
             ufw.database.migrator.run()
         }
     }
 
-    private lateinit var workItemsDAO: WorkItemsDAO
-
     @BeforeEach
     fun setup(): Unit = runBlocking {
-        workItemsDAO = WorkItemsDAOImpl(
-            database = ufw.database.database,
-            objectMapper = ufw.core.objectMapper,
-        )
-
         ufw.managed.managedRunner.startAll()
 
         workItemsDAO.debugTruncate()
@@ -100,25 +92,12 @@ internal class DurableJobsIntegrationTests {
     fun test1(): Unit = runBlocking {
         val uow = unitOfWorkFactory.create()
 
-        workItemsDAO.scheduleNewItem(
-            NewWorkItem(
-                itemId = "the-id",
-                queueId = "MyJobs",
-                type = "MyJob",
-                dataJson =  """{"id": "the-id", "greeting": "Hello"}""",
-                metadataJson = "{}",
-                scheduleFor = ufw.core.clock.instant(),
-            ),
-            unitOfWork = uow,
-            now = ufw.core.clock.instant()
-        )
+        ufw.jobQueue.jobQueue.enqueue(MyJob(id = "the-id", greeting = "Hello"), unitOfWork = uow)
 
         uow.commit()
 
-        await.until {
-            runBlocking {
-                workItemsDAO.getById("MyJobs", "the-id")?.state == WorkItemState.SUCCESSFUL
-            }
+        await.suspendingUntil {
+            workItemsDAO.getById("jq__MyJobs", "the-id")?.state == WorkItemState.SUCCESSFUL.dbOrdinal
         }
     }
 }
@@ -134,7 +113,7 @@ public data class MyJob(
 
 
 public class MyJobHandler : DurableJobHandler<MyJob> {
-    override suspend fun handle(job: MyJob) {
+    override suspend fun handle(job: MyJob, context: JobContext) {
         println("${job.greeting}, World!")
     }
 

@@ -140,7 +140,7 @@ internal class WorkItemFailuresDAOImplTest {
                 queueId = "queue-1",
                 itemId = "item-1",
                 type = "type-1",
-                state = WorkItemState.FAILED,
+                state = WorkItemState.FAILED.dbOrdinal,
                 dataJson = "{}",
                 metadataJson = "{}",
                 concurrencyKey = null,

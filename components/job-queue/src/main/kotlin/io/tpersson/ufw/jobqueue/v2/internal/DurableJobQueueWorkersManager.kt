@@ -5,6 +5,7 @@ import io.tpersson.ufw.core.NamedBindings
 import io.tpersson.ufw.databasequeue.WorkItemHandler
 import io.tpersson.ufw.databasequeue.worker.AbstractWorkQueueManager
 import io.tpersson.ufw.databasequeue.worker.DatabaseQueueWorkerFactory
+import io.tpersson.ufw.jobqueue.v2.DurableJob
 import io.tpersson.ufw.jobqueue.v2.DurableJobHandler
 import jakarta.inject.Inject
 import jakarta.inject.Named
@@ -27,7 +28,7 @@ public class DurableJobQueueWorkersManager @Inject constructor(
                     valueTransform = { handler ->
                         DurableJobHandlerAdapter(
                             handler.jobDefinition,
-                            handler as DurableJobHandler<Any>,
+                            handler as DurableJobHandler<DurableJob>,
                             objectMapper
                         )
                     }

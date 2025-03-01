@@ -107,7 +107,7 @@ internal class WorkItemsDAOImplTest {
         assertThat(item.queueId).isEqualTo("testQueueId")
         assertThat(item.type).isEqualTo("testType")
         assertThat(item.dataJson).isEqualTo("dataJson")
-        assertThat(item.state).isEqualTo(WorkItemState.SCHEDULED)
+        assertThat(item.state).isEqualTo(WorkItemState.SCHEDULED.dbOrdinal)
         assertThat(item.metadataJson).isEqualTo("metadataJson")
         assertThat(item.concurrencyKey).isEqualTo("concurrencyKey")
         assertThat(item.createdAt).isEqualTo(now)
@@ -160,7 +160,7 @@ internal class WorkItemsDAOImplTest {
         run {
             val item = dao.takeNext(queueId = "testQueueId", watchdogId = "testWatchdog", now = now)
 
-            assertThat(item?.state).isEqualTo(WorkItemState.IN_PROGRESS)
+            assertThat(item?.state).isEqualTo(WorkItemState.IN_PROGRESS.dbOrdinal)
             assertThat(item?.stateChangedAt).isEqualTo(now)
             assertThat(item?.watchdogOwner).isEqualTo("testWatchdog")
             assertThat(item?.watchdogTimestamp).isEqualTo(now)
@@ -169,7 +169,7 @@ internal class WorkItemsDAOImplTest {
         run {
             val item = dao.listAllItems().first { it.itemId == "testId" }
 
-            assertThat(item.state).isEqualTo(WorkItemState.IN_PROGRESS)
+            assertThat(item.state).isEqualTo(WorkItemState.IN_PROGRESS.dbOrdinal)
             assertThat(item.stateChangedAt).isEqualTo(now)
             assertThat(item.watchdogOwner).isEqualTo("testWatchdog")
             assertThat(item.watchdogTimestamp).isEqualTo(now)
@@ -285,7 +285,7 @@ internal class WorkItemsDAOImplTest {
 
         val item2 = dao.listAllItems().first { it.itemId == "testId1" }
 
-        assertThat(item2.state).isEqualTo(WorkItemState.SUCCESSFUL)
+        assertThat(item2.state).isEqualTo(WorkItemState.SUCCESSFUL.dbOrdinal)
         assertThat(item2.watchdogOwner).isNull()
         assertThat(item2.watchdogTimestamp).isNull()
         assertThat(item2.expiresAt).isEqualTo(expiresAt)
@@ -386,7 +386,7 @@ internal class WorkItemsDAOImplTest {
 
         val item2 = dao.listAllItems().first { it.itemId == "testId1" }
 
-        assertThat(item2.state).isEqualTo(WorkItemState.FAILED)
+        assertThat(item2.state).isEqualTo(WorkItemState.FAILED.dbOrdinal)
         assertThat(item2.watchdogOwner).isNull()
         assertThat(item2.watchdogTimestamp).isNull()
         assertThat(item2.expiresAt).isEqualTo(expiresAt)
@@ -556,7 +556,7 @@ internal class WorkItemsDAOImplTest {
 
         val item2 = dao.listAllItems().first { it.itemId == "testId1" }
 
-        assertThat(item2.state).isEqualTo(WorkItemState.SCHEDULED)
+        assertThat(item2.state).isEqualTo(WorkItemState.SCHEDULED.dbOrdinal)
         assertThat(item2.watchdogOwner).isNull()
         assertThat(item2.watchdogTimestamp).isNull()
         assertThat(item2.expiresAt).isNull()
@@ -701,7 +701,7 @@ internal class WorkItemsDAOImplTest {
         val insertedItem = makeWorkItem(
             itemId = "testId",
             queueId = "testQueueId",
-            state = WorkItemState.FAILED,
+            state = WorkItemState.FAILED.dbOrdinal,
             nextScheduledFor = null,
         )
 
@@ -726,7 +726,7 @@ internal class WorkItemsDAOImplTest {
 
         val item = dao.getById(queueId = insertedItem.queueId, itemId = insertedItem.itemId)!!
 
-        assertThat(item.state).isEqualTo(WorkItemState.SCHEDULED)
+        assertThat(item.state).isEqualTo(WorkItemState.SCHEDULED.dbOrdinal)
         assertThat(item.stateChangedAt).isEqualTo(now)
         assertThat(item.nextScheduledFor).isEqualTo(scheduleFor)
         assertThat(item.expiresAt).isNull()
@@ -737,7 +737,7 @@ internal class WorkItemsDAOImplTest {
         val insertedItem = makeWorkItem(
             itemId = "testId",
             queueId = "testQueueId",
-            state = WorkItemState.FAILED,
+            state = WorkItemState.FAILED.dbOrdinal,
             nextScheduledFor = null,
         )
 
@@ -803,7 +803,7 @@ internal class WorkItemsDAOImplTest {
         val insertedItem = makeWorkItem(
             itemId = "testId",
             queueId = "testQueueId",
-            state = WorkItemState.IN_PROGRESS,
+            state = WorkItemState.IN_PROGRESS.dbOrdinal,
             nextScheduledFor = null,
             watchdogOwner = "watchdog",
             watchdogTimestamp = testClock.dbNow
@@ -830,7 +830,7 @@ internal class WorkItemsDAOImplTest {
 
         val item = dao.getById(queueId = insertedItem.queueId, itemId = insertedItem.itemId)!!
 
-        assertThat(item.state).isEqualTo(WorkItemState.CANCELLED)
+        assertThat(item.state).isEqualTo(WorkItemState.CANCELLED.dbOrdinal)
         assertThat(item.stateChangedAt).isEqualTo(now)
         assertThat(item.nextScheduledFor).isNull()
         assertThat(item.expiresAt).isEqualTo(expireAt)
@@ -844,7 +844,7 @@ internal class WorkItemsDAOImplTest {
         val insertedItem = makeWorkItem(
             itemId = "testId",
             queueId = "testQueueId",
-            state = WorkItemState.IN_PROGRESS,
+            state = WorkItemState.IN_PROGRESS.dbOrdinal,
             nextScheduledFor = testClock.dbNow,
             watchdogOwner = "watchdog",
             watchdogTimestamp = testClock.dbNow
@@ -882,7 +882,7 @@ internal class WorkItemsDAOImplTest {
         val insertedItem = makeWorkItem(
             itemId = "testId",
             queueId = "testQueueId",
-            state = WorkItemState.IN_PROGRESS,
+            state = WorkItemState.IN_PROGRESS.dbOrdinal,
             nextScheduledFor = null,
             watchdogOwner = "watchdog",
             watchdogTimestamp = testClock.dbNow
@@ -917,7 +917,7 @@ internal class WorkItemsDAOImplTest {
         val insertedItem = makeWorkItem(
             itemId = "testId",
             queueId = "testQueueId",
-            state = WorkItemState.IN_PROGRESS,
+            state = WorkItemState.IN_PROGRESS.dbOrdinal,
             nextScheduledFor = null,
             watchdogOwner = "watchdog",
             watchdogTimestamp = testClock.dbNow
@@ -955,7 +955,7 @@ internal class WorkItemsDAOImplTest {
     private fun makeWorkItem(
         itemId: String = "testId",
         queueId: String = "testQueueId",
-        state: Int = WorkItemState.SCHEDULED,
+        state: Int = WorkItemState.SCHEDULED.dbOrdinal,
         concurrencyKey: String? = null,
         createdAt: Instant = testClock.instant(),
         firstScheduledFor: Instant = testClock.instant(),

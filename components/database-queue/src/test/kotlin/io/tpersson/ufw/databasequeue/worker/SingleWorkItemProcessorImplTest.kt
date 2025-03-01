@@ -356,7 +356,7 @@ internal class SingleWorkItemProcessorImplTest {
             itemId = "2",
             queueId = queueId,
             type = item::class.simpleName!!,
-            state = WorkItemState.IN_PROGRESS,
+            state = WorkItemState.IN_PROGRESS.dbOrdinal,
             dataJson = CoreComponent.defaultObjectMapper.writeValueAsString(item),
             metadataJson = "{}",
             concurrencyKey = null,
