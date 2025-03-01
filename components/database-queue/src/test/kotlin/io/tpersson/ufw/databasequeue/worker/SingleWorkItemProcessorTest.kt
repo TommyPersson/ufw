@@ -60,31 +60,27 @@ internal class SingleWorkItemProcessorTest {
 
     @Test
     fun `processSingleItem - Returns false if no item was taken from the queue`(): Unit = runBlocking {
-        val queueId = "queue-1"
-
         stubNextWorkItem(
             item = null,
-            queueId = queueId
+            queueId = "queue-1"
         )
 
-        val result = processor.processSingleItem(queueId, emptyMap())
+        val result = processor.processSingleItem("queue-1", emptyMap())
 
         assertThat(result).isFalse()
 
-        verify(workItemsDAO).takeNext(eq(queueId), eq(watchdogId), eq(now))
+        verify(workItemsDAO).takeNext(eq("queue-1"), eq(watchdogId), eq(now))
     }
 
     @Test
     fun `processSingleItem - Returns true if an item was taken from the queue but no mapping was found`(): Unit =
         runBlocking {
-            val queueId = "queue-1"
-
-            stubNextWorkItem(
+            val stubbedWorkItem = stubNextWorkItem(
                 item = UnmappedTestWorkItem(),
-                queueId = queueId
-            )
+                queueId = "queue-1"
+            )!!
 
-            val result = processor.processSingleItem(queueId, typeHandlerMap)
+            val result = processor.processSingleItem(stubbedWorkItem.queueId, typeHandlerMap)
 
             assertThat(result).isTrue()
 
@@ -95,14 +91,12 @@ internal class SingleWorkItemProcessorTest {
     @Test
     fun `processSingleItem - Returns true if an item was taken from the queue and successfully processed`(): Unit =
         runBlocking {
-            val queueId = "queue-1"
-
-            stubNextWorkItem(
+            val stubbedWorkItem = stubNextWorkItem(
                 item = TestWorkItem1(shouldFail = false),
-                queueId = queueId
-            )
+                queueId = "queue-1"
+            )!!
 
-            val result = processor.processSingleItem(queueId, typeHandlerMap)
+            val result = processor.processSingleItem(stubbedWorkItem.queueId, typeHandlerMap)
 
             assertThat(result).isTrue()
         }
@@ -110,32 +104,28 @@ internal class SingleWorkItemProcessorTest {
     @Test
     fun `processSingleItem - Returns true if an item was taken from the queue and failing processed`(): Unit =
         runBlocking {
-            val queueId = "queue-1"
-
-            stubNextWorkItem(
+            val stubbedWorkItem = stubNextWorkItem(
                 item = TestWorkItem1(shouldFail = true),
-                queueId = queueId
-            )
+                queueId = "queue-1"
+            )!!
 
-            val result = processor.processSingleItem(queueId, typeHandlerMap)
+            val result = processor.processSingleItem(stubbedWorkItem.queueId, typeHandlerMap)
 
             assertThat(result).isTrue()
         }
 
     @Test
     fun `processSingleItem - Returns mark item as successful on successful processing`(): Unit = runBlocking {
-        val queueId = "queue-1"
-
-        val workItem = stubNextWorkItem(
+        val stubbedWorkItem = stubNextWorkItem(
             item = TestWorkItem1(),
-            queueId = queueId
+            queueId = "queue-1"
         )!!
 
-        processor.processSingleItem(queueId, typeHandlerMap)
+        processor.processSingleItem(stubbedWorkItem.queueId, typeHandlerMap)
 
         verify(workItemsDAO).markInProgressItemAsSuccessful(
-            queueId = eq(queueId),
-            itemId = eq(workItem.itemId),
+            queueId = eq(stubbedWorkItem.queueId),
+            itemId = eq(stubbedWorkItem.itemId),
             expiresAt = eq(now.plus(config.successfulItemExpirationDelay)),
             watchdogId = eq(watchdogId),
             now = eq(now),
@@ -147,18 +137,16 @@ internal class SingleWorkItemProcessorTest {
 
     @Test
     fun `processSingleItem - Returns mark item as failed on failed processing`(): Unit = runBlocking {
-        val queueId = "queue-1"
-
-        val workItem = stubNextWorkItem(
+        val stubbedWorkItem = stubNextWorkItem(
             item = TestWorkItem1(shouldFail = true),
-            queueId = queueId
+            queueId = "queue-1"
         )!!
 
-        processor.processSingleItem(queueId, typeHandlerMap)
+        processor.processSingleItem(stubbedWorkItem.queueId, typeHandlerMap)
 
         verify(workItemsDAO).markInProgressItemAsFailed(
-            queueId = eq(queueId),
-            itemId = eq(workItem.itemId),
+            queueId = eq(stubbedWorkItem.queueId),
+            itemId = eq(stubbedWorkItem.itemId),
             expiresAt = eq(now.plus(config.failedItemExpirationDelay)),
             watchdogId = eq(watchdogId),
             now = eq(now),
@@ -171,20 +159,18 @@ internal class SingleWorkItemProcessorTest {
     @Test
     fun `processSingleItem - Shall reschedule failed items according to FailureAction_RescheduleNow`(): Unit =
         runBlocking {
-            val queueId = "queue-1"
-
-            val workItem = stubNextWorkItem(
+            val stubbedWorkItem = stubNextWorkItem(
                 item = TestWorkItem1(shouldFail = true),
-                queueId = queueId
+                queueId = "queue-1"
             )!!
 
             TestWorkItem1Handler.failureAction = FailureAction.RescheduleNow
 
-            processor.processSingleItem(queueId, typeHandlerMap)
+            processor.processSingleItem(stubbedWorkItem.queueId, typeHandlerMap)
 
             verify(workItemsDAO).rescheduleInProgressItem(
-                queueId = eq(queueId),
-                itemId = eq(workItem.itemId),
+                queueId = eq(stubbedWorkItem.queueId),
+                itemId = eq(stubbedWorkItem.itemId),
                 watchdogId = eq(watchdogId),
                 scheduleFor = same(now),
                 now = eq(now),
@@ -195,22 +181,20 @@ internal class SingleWorkItemProcessorTest {
     @Test
     fun `processSingleItem - Shall reschedule failed items according to FailureAction_RescheduleAt`(): Unit =
         runBlocking {
-            val queueId = "queue-1"
-
-            val workItem = stubNextWorkItem(
+            val stubbedWorkItem = stubNextWorkItem(
                 item = TestWorkItem1(shouldFail = true),
-                queueId = queueId
+                queueId = "queue-1"
             )!!
 
             val rescheduleAt = Instant.now()
 
             TestWorkItem1Handler.failureAction = FailureAction.RescheduleAt(rescheduleAt)
 
-            processor.processSingleItem(queueId, typeHandlerMap)
+            processor.processSingleItem(stubbedWorkItem.queueId, typeHandlerMap)
 
             verify(workItemsDAO).rescheduleInProgressItem(
-                queueId = eq(queueId),
-                itemId = eq(workItem.itemId),
+                queueId = eq(stubbedWorkItem.queueId),
+                itemId = eq(stubbedWorkItem.itemId),
                 watchdogId = eq(watchdogId),
                 scheduleFor = same(rescheduleAt),
                 now = eq(now),
@@ -220,23 +204,21 @@ internal class SingleWorkItemProcessorTest {
 
     @Test
     fun `processSingleItem - Shall store a failure entry whenever an item fails processing`(): Unit = runBlocking {
-        val queueId = "queue-1"
-
-        val workItem = stubNextWorkItem(
+        val stubbedWorkItem = stubNextWorkItem(
             item = TestWorkItem1(shouldFail = true),
-            queueId = queueId
+            queueId = "queue-1"
         )!!
 
         val rescheduleAt = Instant.now()
 
         TestWorkItem1Handler.failureAction = FailureAction.RescheduleAt(rescheduleAt)
 
-        processor.processSingleItem(queueId, typeHandlerMap)
+        processor.processSingleItem(stubbedWorkItem.queueId, typeHandlerMap)
 
         verify(workItemFailuresDAO).insertFailure(
             failure = argWhere {
                 it.id.isNotEmpty() &&
-                        it.itemUid == workItem.uid &&
+                        it.itemUid == stubbedWorkItem.uid &&
                         it.timestamp == now &&
                         it.errorType == "IllegalStateException" &&
                         it.errorMessage == "fail" &&
@@ -248,16 +230,14 @@ internal class SingleWorkItemProcessorTest {
 
     @Test
     fun `processSingleItem - Shall provide a data to the failure handler`(): Unit = runBlocking {
-        val queueId = "queue-1"
-
         val workItem = TestWorkItem1(shouldFail = true)
 
-        stubNextWorkItem(
+        val stubbedWorkItem = stubNextWorkItem(
             item = workItem,
-            queueId = queueId
+            queueId = "queue-1"
         )!!
 
-        processor.processSingleItem(queueId, typeHandlerMap)
+        processor.processSingleItem(stubbedWorkItem.queueId, typeHandlerMap)
 
         assertThat(TestWorkItem1Handler.failureItem).isEqualTo(workItem)
 
@@ -270,18 +250,18 @@ internal class SingleWorkItemProcessorTest {
 
     @Test
     fun `processSingleItem - Shall store a failure when item transformation fails`(): Unit = runBlocking {
-        val workItem = stubNextWorkItem(
+        val stubbedWorkItem = stubNextWorkItem(
             item = UnparsableWorkItem(),
             queueId = "queue-1"
         )!!
 
-        processor.processSingleItem(workItem.queueId, typeHandlerMap)
+        processor.processSingleItem(stubbedWorkItem.queueId, typeHandlerMap)
 
         val unitOfWorkCaptor = argumentCaptor<UnitOfWork>()
 
         verify(workItemsDAO).markInProgressItemAsFailed(
-            queueId = eq(workItem.queueId),
-            itemId = eq(workItem.itemId),
+            queueId = eq(stubbedWorkItem.queueId),
+            itemId = eq(stubbedWorkItem.itemId),
             expiresAt = eq(now.plus(config.failedItemExpirationDelay)),
             watchdogId = eq(watchdogId),
             now = eq(now),
@@ -291,7 +271,7 @@ internal class SingleWorkItemProcessorTest {
         verify(workItemFailuresDAO).insertFailure(
             failure = argWhere {
                 it.id.isNotEmpty() &&
-                        it.itemUid == workItem.uid &&
+                        it.itemUid == stubbedWorkItem.uid &&
                         it.timestamp == now &&
                         it.errorType == "UnableToTransformWorkItemException" &&
                         it.errorMessage.isNotEmpty() &&
@@ -307,12 +287,12 @@ internal class SingleWorkItemProcessorTest {
 
     @Test
     fun `processSingleItem - Shall not commit UnitOfWork in handling context on failure`(): Unit = runBlocking {
-        val workItem = stubNextWorkItem(
+        val stubbedWorkItem = stubNextWorkItem(
             item = TestWorkItem1(shouldFail = true),
             queueId = "queue-1"
         )!!
 
-        processor.processSingleItem(workItem.queueId, typeHandlerMap)
+        processor.processSingleItem(stubbedWorkItem.queueId, typeHandlerMap)
 
         verify(TestWorkItem1Handler.successContextUnitOfWork!!, never()).commit()
         verify(TestWorkItem1Handler.failureContextUnitOfWork!!).commit()
@@ -320,19 +300,19 @@ internal class SingleWorkItemProcessorTest {
 
     @Test
     fun `processSingleItem - Shall not commit UnitOfWork in failure context on success`(): Unit = runBlocking {
-        val workItem = stubNextWorkItem(
+        val stubbedWorkItem = stubNextWorkItem(
             item = TestWorkItem1(shouldFail = false),
             queueId = "queue-1"
         )!!
 
-        processor.processSingleItem(workItem.queueId, typeHandlerMap)
+        processor.processSingleItem(stubbedWorkItem.queueId, typeHandlerMap)
 
         assertThat(TestWorkItem1Handler.failureContextUnitOfWork).isNull()
         verify(TestWorkItem1Handler.successContextUnitOfWork!!).commit()
     }
 
     private suspend fun <T> stubNextWorkItem(item: T, queueId: String): WorkItemDbEntity? {
-        val workItemDbEntity = item?.let {
+        val stubbedWorkItem = item?.let {
             createWorkItemDbEntity(
                 item = it,
                 queueId = "queue-1"
@@ -340,9 +320,9 @@ internal class SingleWorkItemProcessorTest {
         }
 
         whenever(workItemsDAO.takeNext(eq(queueId), any(), any()))
-            .thenReturn(workItemDbEntity)
+            .thenReturn(stubbedWorkItem)
 
-        return workItemDbEntity
+        return stubbedWorkItem
     }
 
     private val typeHandlerMap = mapOf<String, WorkItemHandler<*>>(
