@@ -75,8 +75,8 @@ public class JobQueueImpl @Inject constructor(
 
         workItemsDAO.scheduleNewItem(
             newItem = NewWorkItem(
-                queueId = queueId, // TODO
-                type = type, // TODO
+                queueId = queueId, // TODO prefix?
+                type = type, // TODO prefix?
                 itemId = job.id,
                 dataJson = objectMapper.writeValueAsString(job), // TODO move to new 'WorkItemsQueue'?
                 metadataJson = "{}",
