@@ -1,11 +1,14 @@
 package io.tpersson.ufw.jobqueue.v2.internal
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.databasequeue.FailureAction
+import io.tpersson.ufw.databasequeue.WorkItemContext
 import io.tpersson.ufw.databasequeue.WorkItemFailureContext
 import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
 import io.tpersson.ufw.databasequeue.WorkItemHandler
 import io.tpersson.ufw.jobqueue.v2.DurableJobHandler
+import io.tpersson.ufw.jobqueue.v2.JobContext
 import io.tpersson.ufw.jobqueue.v2.JobFailureContext
 import java.time.Instant
 import java.time.InstantSource
@@ -16,8 +19,17 @@ public class DurableJobHandlerAdapter<TJob : Any>(
     private val objectMapper: ObjectMapper,
 ) : WorkItemHandler<TJob> {
 
-    public override suspend fun handle(item: TJob) {
-        handler.handle(item)
+    override val handlerClassName: String = handler::class.simpleName!!
+
+    public override suspend fun handle(item: TJob, context: WorkItemContext) {
+        val jobContext = object : JobContext {
+            override val clock: InstantSource = context.clock
+            override val timestamp: Instant = context.timestamp
+            override val failureCount: Int = context.failureCount
+            override val unitOfWork: UnitOfWork = context.unitOfWork
+        }
+
+        handler.handle(item, jobContext)
     }
 
     override fun transformItem(rawItem: WorkItemDbEntity): TJob {
@@ -35,6 +47,7 @@ public class DurableJobHandlerAdapter<TJob : Any>(
             override val clock: InstantSource = context.clock
             override val timestamp: Instant = context.timestamp
             override val failureCount: Int = context.failureCount
+            override val unitOfWork: UnitOfWork = context.unitOfWork
         }
 
         return handler.onFailure(item, error, jobFailureContext)

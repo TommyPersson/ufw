@@ -23,6 +23,8 @@ public class Migrator @Inject constructor(
     public data class MigrationScript(val componentName: String, val scriptLocation: String)
 
     public fun run() {
+        System.setProperty("liquibase.analytics.enabled", "false")
+
         val jdbcConnection = JdbcConnection(connectionProvider.get())
 
         for (script in scripts) {

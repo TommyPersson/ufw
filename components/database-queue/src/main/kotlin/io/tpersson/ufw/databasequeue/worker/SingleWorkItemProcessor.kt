@@ -8,6 +8,9 @@ import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
 import io.tpersson.ufw.databasequeue.internal.WorkItemFailureDbEntity
 import io.tpersson.ufw.databasequeue.internal.WorkItemFailuresDAO
 import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
+import kotlinx.coroutines.slf4j.MDCContext
+import kotlinx.coroutines.withContext
+import org.slf4j.MDC
 import java.time.Instant
 import java.time.InstantSource
 import java.util.*
@@ -19,6 +22,7 @@ public class SingleWorkItemProcessor(
     private val workItemFailuresDAO: WorkItemFailuresDAO,
     private val unitOfWorkFactory: UnitOfWorkFactory,
     private val clock: InstantSource,
+    private val mdcLabels: DatabaseQueueMdcLabels,
     private val config: DatabaseQueueConfig,
 ) {
     private val logger = createLogger()
@@ -27,12 +31,16 @@ public class SingleWorkItemProcessor(
         queueId: String,
         typeHandlerMappings: Map<String, WorkItemHandler<*>>
     ): Boolean {
-        // TODO setup MDC
-
         val workItem = workItemsDAO.takeNext(queueId, watchdogId, clock.instant())
             ?: return false
 
-        invokeHandlerFor(workItem, typeHandlerMappings)
+        MDC.put(mdcLabels.queueIdLabel, workItem.queueId)
+        MDC.put(mdcLabels.itemIdLabel, workItem.itemId)
+        MDC.put(mdcLabels.itemTypeLabel, workItem.type)
+
+        withContext(MDCContext()) {
+            invokeHandlerFor(workItem, typeHandlerMappings)
+        }
 
         return true
     }
@@ -47,45 +55,49 @@ public class SingleWorkItemProcessor(
             return
         }
 
-        val successUnitOfWork = unitOfWorkFactory.create()
-        val failureUnitOfWork = unitOfWorkFactory.create()
+        MDC.put(mdcLabels.handlerClassLabel, handler.handlerClassName)
 
-        val transformedItem = try {
-            transformItem(handler, workItem)
-        } catch (e: Exception) {
-            handleFailure(
-                error = e,
-                workItem = workItem,
-                transformedItem = null,
-                handler = handler,
-                unitOfWork = failureUnitOfWork
-            )
+        withContext(MDCContext()) {
+            val successUnitOfWork = unitOfWorkFactory.create()
+            val failureUnitOfWork = unitOfWorkFactory.create()
 
-            failureUnitOfWork.commit()
-            return
-        }
+            val transformedItem = try {
+                transformItem(handler, workItem)
+            } catch (e: Exception) {
+                handleFailure(
+                    error = e,
+                    workItem = workItem,
+                    transformedItem = null,
+                    handler = handler,
+                    unitOfWork = failureUnitOfWork
+                )
 
-        try {
-            val context = createHandleContext(workItem, successUnitOfWork)
+                failureUnitOfWork.commit()
+                return@withContext
+            }
 
-            handler.handle(transformedItem, context)
+            try {
+                val context = createHandleContext(workItem, successUnitOfWork)
 
-            handleSuccess(
-                workItem = workItem,
-                unitOfWork = successUnitOfWork
-            )
+                handler.handle(transformedItem, context)
 
-            successUnitOfWork.commit()
-        } catch (e: Exception) {
-            handleFailure(
-                error = e,
-                workItem = workItem,
-                transformedItem = transformedItem,
-                handler = handler,
-                unitOfWork = failureUnitOfWork
-            )
+                handleSuccess(
+                    workItem = workItem,
+                    unitOfWork = successUnitOfWork
+                )
 
-            failureUnitOfWork.commit()
+                successUnitOfWork.commit()
+            } catch (e: Exception) {
+                handleFailure(
+                    error = e,
+                    workItem = workItem,
+                    transformedItem = transformedItem,
+                    handler = handler,
+                    unitOfWork = failureUnitOfWork
+                )
+
+                failureUnitOfWork.commit()
+            }
         }
     }
 

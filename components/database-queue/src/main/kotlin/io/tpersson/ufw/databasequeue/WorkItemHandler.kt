@@ -4,6 +4,8 @@ import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
 
 public interface WorkItemHandler<TItem> {
 
+    public val handlerClassName: String
+
     public fun transformItem(rawItem: WorkItemDbEntity): TItem & Any
 
     public suspend fun handle(

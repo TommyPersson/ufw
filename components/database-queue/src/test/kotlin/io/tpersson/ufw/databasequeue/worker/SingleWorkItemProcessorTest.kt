@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.*
+import org.slf4j.MDC
 import java.time.Instant
 import java.time.InstantSource
 import java.util.*
@@ -54,7 +55,8 @@ internal class SingleWorkItemProcessorTest {
             workItemFailuresDAO = workItemFailuresDAO,
             unitOfWorkFactory = unitOfWorkFactory,
             clock = clock,
-            config = config
+            mdcLabels = TestMdcLabels,
+            config = config,
         )
     }
 
@@ -311,6 +313,21 @@ internal class SingleWorkItemProcessorTest {
         verify(TestWorkItem1Handler.successContextUnitOfWork!!).commit()
     }
 
+    @Test
+    fun `processSingleItem - Shall set MDC values during handling`(): Unit = runBlocking {
+        val stubbedWorkItem = stubNextWorkItem(
+            item = TestWorkItem1(shouldFail = false),
+            queueId = "queue-1"
+        )!!
+
+        processor.processSingleItem(stubbedWorkItem.queueId, typeHandlerMap)
+
+        assertThat(TestWorkItem1Handler.mdc?.get(TestMdcLabels.queueIdLabel)).isEqualTo(stubbedWorkItem.queueId)
+        assertThat(TestWorkItem1Handler.mdc?.get(TestMdcLabels.itemIdLabel)).isEqualTo(stubbedWorkItem.itemId)
+        assertThat(TestWorkItem1Handler.mdc?.get(TestMdcLabels.itemTypeLabel)).isEqualTo(stubbedWorkItem.type)
+        assertThat(TestWorkItem1Handler.mdc?.get(TestMdcLabels.handlerClassLabel)).isEqualTo(TestWorkItem1Handler::class.simpleName)
+    }
+
     private suspend fun <T> stubNextWorkItem(item: T, queueId: String): WorkItemDbEntity? {
         val stubbedWorkItem = item?.let {
             createWorkItemDbEntity(
@@ -374,6 +391,7 @@ internal class SingleWorkItemProcessorTest {
             var failureItem: TestWorkItem1? = null
             var successContextUnitOfWork: UnitOfWork? = null
             var failureContextUnitOfWork: UnitOfWork? = null
+            var mdc: Map<String, String>? = null
 
             fun reset() {
                 failureAction = FailureAction.GiveUp
@@ -382,8 +400,11 @@ internal class SingleWorkItemProcessorTest {
                 failureContext = null
                 successContextUnitOfWork = null
                 failureContextUnitOfWork = null
+                mdc = null
             }
         }
+
+        override val handlerClassName: String = this::class.simpleName!!
 
         override fun transformItem(rawItem: WorkItemDbEntity): TestWorkItem1 {
             return CoreComponent.defaultObjectMapper.readValue<TestWorkItem1>(rawItem.dataJson)
@@ -403,6 +424,7 @@ internal class SingleWorkItemProcessorTest {
 
         override suspend fun handle(item: TestWorkItem1, context: WorkItemContext) {
             successContextUnitOfWork = context.unitOfWork
+            mdc = MDC.getCopyOfContextMap()
 
             if (item.shouldFail) {
                 error("fail")
@@ -411,6 +433,8 @@ internal class SingleWorkItemProcessorTest {
     }
 
     class UnparsableWorkItemHandler : WorkItemHandler<UnparsableWorkItem> {
+        override val handlerClassName: String = this::class.simpleName!!
+
         override fun transformItem(rawItem: WorkItemDbEntity): UnparsableWorkItem {
             error("unable to parse item")
         }
@@ -426,5 +450,12 @@ internal class SingleWorkItemProcessorTest {
         override suspend fun handle(item: UnparsableWorkItem, context: WorkItemContext) {
             TODO() // Not called
         }
+    }
+
+    object TestMdcLabels : DatabaseQueueMdcLabels {
+        override val queueIdLabel: String = "testQueueId"
+        override val itemIdLabel: String = "testItemId"
+        override val itemTypeLabel: String = "testType"
+        override val handlerClassLabel: String = "testClass"
     }
 }

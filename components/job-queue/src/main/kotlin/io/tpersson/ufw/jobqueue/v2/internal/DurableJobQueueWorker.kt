@@ -26,8 +26,9 @@ public class DurableJobQueueWorker @Inject constructor(
 
     private val queueWorker = workerFactory.create(
         queueId = queueId,
-        handlersByType = adaptersByType
-        )
+        handlersByType = adaptersByType,
+        mdcLabels = DurableJobsMdcLabels,
+    )
 
     public fun start(): Job {
         return queueWorker.start()

@@ -2,11 +2,10 @@ package io.tpersson.ufw.examples.common.jobs
 
 import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.databasequeue.FailureAction
-import io.tpersson.ufw.jobqueue.*
-import io.tpersson.ufw.jobqueue.v2.DurableJob
-import io.tpersson.ufw.jobqueue.v2.DurableJobHandler
-import io.tpersson.ufw.jobqueue.v2.JobFailureContext
+import io.tpersson.ufw.jobqueue.JobId
+import io.tpersson.ufw.jobqueue.v2.*
 import jakarta.inject.Inject
+import org.slf4j.MDC
 
 public data class PrintJob2(
     val text: String,
@@ -17,7 +16,9 @@ public class PrintJob2Handler @Inject constructor() : DurableJobHandler<PrintJob
 
     private val logger = createLogger()
 
-    override suspend fun handle(job: PrintJob2) {
+    override suspend fun handle(job: PrintJob2, context: JobContext) {
+        println(MDC.getCopyOfContextMap())
+
         if (job.text.contains("2")) {
             error("oh no, there was a 2!")
         }

@@ -4,6 +4,7 @@ import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.core.utils.forever
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.databasequeue.DatabaseQueueConfig
+import io.tpersson.ufw.databasequeue.DatabaseQueueMdcLabels
 import io.tpersson.ufw.databasequeue.WorkItemHandler
 import io.tpersson.ufw.databasequeue.internal.WorkItemFailuresDAO
 import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
@@ -20,6 +21,7 @@ public class DatabaseQueueWorker @Inject constructor(
     workItemFailuresDAO: WorkItemFailuresDAO,
     unitOfWorkFactory: UnitOfWorkFactory,
     clock: InstantSource,
+    mdcLabels: DatabaseQueueMdcLabels,
     config: DatabaseQueueConfig,
 ) {
     private val logger = createLogger<DatabaseQueueWorker>()
@@ -36,6 +38,7 @@ public class DatabaseQueueWorker @Inject constructor(
         workItemFailuresDAO = workItemFailuresDAO,
         unitOfWorkFactory = unitOfWorkFactory,
         clock = clock,
+        mdcLabels = mdcLabels,
         config = config,
     )
 
