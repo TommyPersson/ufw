@@ -3,6 +3,7 @@ package io.tpersson.ufw.databasequeue.worker
 import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
+import io.tpersson.ufw.databasequeue.DatabaseQueueConfig
 import io.tpersson.ufw.databasequeue.FailureAction
 import io.tpersson.ufw.databasequeue.WorkItemFailureContext
 import io.tpersson.ufw.databasequeue.WorkItemHandler
@@ -10,10 +11,9 @@ import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
 import io.tpersson.ufw.databasequeue.internal.WorkItemFailureDbEntity
 import io.tpersson.ufw.databasequeue.internal.WorkItemFailuresDAO
 import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
-import java.time.Duration
 import java.time.Instant
 import java.time.InstantSource
-import java.util.UUID
+import java.util.*
 
 @Suppress("UNCHECKED_CAST")
 public class SingleWorkItemProcessor(
@@ -22,11 +22,9 @@ public class SingleWorkItemProcessor(
     private val workItemFailuresDAO: WorkItemFailuresDAO,
     private val unitOfWorkFactory: UnitOfWorkFactory,
     private val clock: InstantSource,
+    private val config: DatabaseQueueConfig,
 ) {
     private val logger = createLogger()
-
-    private val successfulItemExpirationDelay = Duration.ofDays(1)
-    private val failedItemExpirationDelay = Duration.ofDays(14)
 
     public suspend fun processSingleItem(
         queueId: String,
@@ -69,7 +67,7 @@ public class SingleWorkItemProcessor(
         workItemsDAO.markInProgressItemAsSuccessful(
             queueId = workItem.queueId,
             itemId = workItem.itemId,
-            expiresAt = clock.instant().plus(successfulItemExpirationDelay),
+            expiresAt = clock.instant().plus(config.successfulItemExpirationDelay),
             watchdogId = watchdogId,
             now = clock.instant(),
             unitOfWork = unitOfWork,
@@ -125,7 +123,7 @@ public class SingleWorkItemProcessor(
             workItemsDAO.markInProgressItemAsFailed(
                 queueId = workItem.queueId,
                 itemId = workItem.itemId,
-                expiresAt = now.plus(failedItemExpirationDelay),
+                expiresAt = now.plus(config.failedItemExpirationDelay),
                 watchdogId = watchdogId,
                 now = now,
                 unitOfWork = unitOfWork,

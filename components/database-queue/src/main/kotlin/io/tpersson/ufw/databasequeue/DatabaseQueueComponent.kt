@@ -13,6 +13,7 @@ import jakarta.inject.Inject
 public class DatabaseQueueComponent @Inject constructor(
     public val databaseQueueWorkerFactory: DatabaseQueueWorkerFactory,
     public val workItemsDAO: WorkItemsDAO, // TODO cleaner queue interface
+    public val config: DatabaseQueueConfig,
 ) {
     init {
         Migrator.registerMigrationScript(
@@ -25,6 +26,7 @@ public class DatabaseQueueComponent @Inject constructor(
         public fun create(
             coreComponent: CoreComponent,
             databaseComponent: DatabaseComponent,
+            config: DatabaseQueueConfig,
         ): DatabaseQueueComponent {
             val workItemsDAO = WorkItemsDAOImpl(
                 database = databaseComponent.database,
@@ -40,9 +42,10 @@ public class DatabaseQueueComponent @Inject constructor(
                 workItemFailuresDAO = workItemFailuresDAO,
                 unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
                 clock = coreComponent.clock,
+                config = config,
             )
 
-            return DatabaseQueueComponent(databaseQueueWorkerFactory, workItemsDAO)
+            return DatabaseQueueComponent(databaseQueueWorkerFactory, workItemsDAO, config)
         }
     }
 }

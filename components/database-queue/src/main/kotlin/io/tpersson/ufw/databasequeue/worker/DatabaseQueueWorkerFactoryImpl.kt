@@ -1,6 +1,7 @@
 package io.tpersson.ufw.databasequeue.worker
 
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
+import io.tpersson.ufw.databasequeue.DatabaseQueueConfig
 import io.tpersson.ufw.databasequeue.WorkItemHandler
 import io.tpersson.ufw.databasequeue.internal.WorkItemFailuresDAO
 import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
@@ -12,6 +13,7 @@ public class DatabaseQueueWorkerFactoryImpl @Inject constructor(
     private val workItemFailuresDAO: WorkItemFailuresDAO,
     private val unitOfWorkFactory: UnitOfWorkFactory,
     private val clock: InstantSource,
+    private val config: DatabaseQueueConfig,
 ) : DatabaseQueueWorkerFactory {
 
     override fun create(
@@ -24,7 +26,8 @@ public class DatabaseQueueWorkerFactoryImpl @Inject constructor(
             workItemsDAO = workItemsDAO,
             workItemFailuresDAO = workItemFailuresDAO,
             unitOfWorkFactory = unitOfWorkFactory,
-            clock = clock
+            clock = clock,
+            config = config,
         )
     }
 }
