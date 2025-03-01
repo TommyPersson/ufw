@@ -19,7 +19,7 @@ import java.time.Instant
 import java.time.InstantSource
 import java.util.*
 
-internal class SingleWorkItemProcessorTest {
+internal class SingleWorkItemProcessorImplTest {
 
     private lateinit var unitOfWorkFactory: UnitOfWorkFactory
     private lateinit var workItemFailuresDAO: WorkItemFailuresDAO
@@ -29,7 +29,7 @@ internal class SingleWorkItemProcessorTest {
     private lateinit var clock: InstantSource
     private lateinit var now: Instant
 
-    private lateinit var processor: SingleWorkItemProcessor
+    private lateinit var processor: SingleWorkItemProcessorImpl
 
     private val config = DatabaseQueueConfig()
 
@@ -49,7 +49,7 @@ internal class SingleWorkItemProcessorTest {
 
         TestWorkItem1Handler.reset()
 
-        processor = SingleWorkItemProcessor(
+        processor = SingleWorkItemProcessorImpl(
             watchdogId = watchdogId,
             workItemsDAO = workItemsDAO,
             workItemFailuresDAO = workItemFailuresDAO,
@@ -444,11 +444,11 @@ internal class SingleWorkItemProcessorTest {
             error: Exception,
             context: WorkItemFailureContext
         ): FailureAction {
-            TODO() // Not called
+            error("not called")
         }
 
         override suspend fun handle(item: UnparsableWorkItem, context: WorkItemContext) {
-            TODO() // Not called
+            error("not called")
         }
     }
 

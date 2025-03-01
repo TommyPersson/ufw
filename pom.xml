@@ -209,6 +209,11 @@
                 <artifactId>kotlinx-coroutines-slf4j</artifactId>
                 <version>${kotlinx-coroutines.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.jetbrains.kotlinx</groupId>
+                <artifactId>kotlinx-coroutines-test-jvm</artifactId>
+                <version>${kotlinx-coroutines.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>org.junit</groupId>

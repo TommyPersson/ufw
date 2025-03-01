@@ -8,6 +8,7 @@ import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
 import io.tpersson.ufw.databasequeue.internal.WorkItemsDAOImpl
 import io.tpersson.ufw.databasequeue.worker.DatabaseQueueWorkerFactory
 import io.tpersson.ufw.databasequeue.worker.DatabaseQueueWorkerFactoryImpl
+import io.tpersson.ufw.databasequeue.worker.SingleWorkItemProcessorFactoryImpl
 import jakarta.inject.Inject
 
 public class DatabaseQueueComponent @Inject constructor(
@@ -37,12 +38,16 @@ public class DatabaseQueueComponent @Inject constructor(
                 database = databaseComponent.database,
             )
 
-            val databaseQueueWorkerFactory = DatabaseQueueWorkerFactoryImpl(
+            val processorFactory = SingleWorkItemProcessorFactoryImpl(
                 workItemsDAO = workItemsDAO,
                 workItemFailuresDAO = workItemFailuresDAO,
                 unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
                 clock = coreComponent.clock,
                 config = config,
+            )
+
+            val databaseQueueWorkerFactory = DatabaseQueueWorkerFactoryImpl(
+                processorFactory = processorFactory
             )
 
             return DatabaseQueueComponent(databaseQueueWorkerFactory, workItemsDAO, config)
