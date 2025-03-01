@@ -26,7 +26,7 @@ public class WorkItemsDAOImpl @Inject constructor(
             itemId = newItem.itemId,
             queueId = newItem.queueId,
             type = newItem.type,
-            state = WorkItemState.SCHEDULED,
+            state = WorkItemState.SCHEDULED.dbOrdinal,
             dataJson = newItem.dataJson,
             metadataJson = newItem.metadataJson,
             concurrencyKey = newItem.concurrencyKey,
@@ -198,6 +198,21 @@ public class WorkItemsDAOImpl @Inject constructor(
             .map { objectMapper.readValue<WorkItemEvent>(it.event) }
     }
 
+    override suspend fun getQueueStatistics(queueId: String): WorkItemQueueStatistics {
+        val data = database.select(Queries.Selects.GetStatistics(queueId))
+
+        val map = data.associateBy { WorkItemState.fromDbOrdinal(it.stateId) }
+
+        return WorkItemQueueStatistics(
+            queueId = queueId,
+            numScheduled = map[WorkItemState.SCHEDULED]?.count ?: 0,
+            numInProgress = map[WorkItemState.IN_PROGRESS]?.count ?: 0,
+            numSuccessful = map[WorkItemState.SUCCESSFUL]?.count ?: 0,
+            numFailed = map[WorkItemState.FAILED]?.count ?: 0,
+            numPending = 0 // TODO pending = state == scheduled + next_scheduled_time <= now
+        )
+    }
+
     override suspend fun debugInsert(item: WorkItemDbEntity, unitOfWork: UnitOfWork?) {
         if (unitOfWork != null) {
             unitOfWork.add(
@@ -276,6 +291,17 @@ public class WorkItemsDAOImpl @Inject constructor(
                   AND item_id = :itemId
                 """.trimIndent()
             )
+
+            data class GetStatistics(
+                val queueId: String
+            ) : TypedSelectList<StatisticsData>(
+                """
+                SELECT count(*) as count, state as state_id
+                FROM $TableName
+                WHERE queue_id = :queueId
+                GROUP BY state
+                """.trimIndent()
+            )
         }
 
         object Updates {
@@ -333,12 +359,12 @@ public class WorkItemsDAOImpl @Inject constructor(
                 WITH in_progress_jobs AS (
                     SELECT uid, concurrency_key
                     FROM $TableName
-                    WHERE state = ${WorkItemState.IN_PROGRESS}
+                    WHERE state = ${WorkItemState.IN_PROGRESS.dbOrdinal}
                       AND queue_id = :queueId
                 ), next_job AS (
                     SELECT uid 
                     FROM $TableName nj
-                    WHERE state = ${WorkItemState.SCHEDULED}
+                    WHERE state = ${WorkItemState.SCHEDULED.dbOrdinal}
                       AND (nj.concurrency_key IS NULL OR 0 = (
                         SELECT count(ipj.*)
                         FROM in_progress_jobs ipj
@@ -349,7 +375,7 @@ public class WorkItemsDAOImpl @Inject constructor(
                     FOR UPDATE SKIP LOCKED 
                 )   
                 UPDATE $TableName queue SET
-                   state = ${WorkItemState.IN_PROGRESS},
+                   state = ${WorkItemState.IN_PROGRESS.dbOrdinal},
                    state_changed_at = :now,
                    watchdog_timestamp = :now,
                    watchdog_owner = :watchdogOwner,
@@ -372,7 +398,7 @@ public class WorkItemsDAOImpl @Inject constructor(
             ) : TypedUpdate(
                 """
                 UPDATE $TableName SET
-                   state = ${WorkItemState.SUCCESSFUL},
+                   state = ${WorkItemState.SUCCESSFUL.dbOrdinal},
                    state_changed_at = :now,
                    next_scheduled_for = NULL,
                    watchdog_timestamp = NULL,
@@ -382,7 +408,7 @@ public class WorkItemsDAOImpl @Inject constructor(
                 WHERE queue_id = :queueId
                   AND item_id = :itemId
                   AND watchdog_owner = :watchdogOwner
-                  AND state = ${WorkItemState.IN_PROGRESS}                     
+                  AND state = ${WorkItemState.IN_PROGRESS.dbOrdinal}                     
                 """.trimIndent(),
                 minimumAffectedRows = 1
             )
@@ -397,7 +423,7 @@ public class WorkItemsDAOImpl @Inject constructor(
             ) : TypedUpdate(
                 """
                 UPDATE $TableName SET
-                   state = ${WorkItemState.FAILED},
+                   state = ${WorkItemState.FAILED.dbOrdinal},
                    state_changed_at = :now,
                    next_scheduled_for = NULL,
                    watchdog_timestamp = NULL,
@@ -408,7 +434,7 @@ public class WorkItemsDAOImpl @Inject constructor(
                 WHERE queue_id = :queueId
                   AND item_id = :itemId
                   AND watchdog_owner = :watchdogOwner
-                  AND state = ${WorkItemState.IN_PROGRESS}             
+                  AND state = ${WorkItemState.IN_PROGRESS.dbOrdinal}             
                 """.trimIndent(),
                 minimumAffectedRows = 1
             )
@@ -423,7 +449,7 @@ public class WorkItemsDAOImpl @Inject constructor(
             ) : TypedUpdate(
                 """
                 UPDATE $TableName SET
-                   state = ${WorkItemState.SCHEDULED},
+                   state = ${WorkItemState.SCHEDULED.dbOrdinal},
                    state_changed_at = :now,
                    next_scheduled_for = :scheduleFor,
                    watchdog_timestamp = NULL,
@@ -434,7 +460,7 @@ public class WorkItemsDAOImpl @Inject constructor(
                 WHERE queue_id = :queueId
                   AND item_id = :itemId
                   AND watchdog_owner = :watchdogOwner
-                  AND state = ${WorkItemState.IN_PROGRESS}                 
+                  AND state = ${WorkItemState.IN_PROGRESS.dbOrdinal}                 
                 """.trimIndent(),
                 minimumAffectedRows = 1
             )
@@ -448,14 +474,14 @@ public class WorkItemsDAOImpl @Inject constructor(
             ) : TypedUpdate(
                 """
                 UPDATE $TableName SET
-                   state = ${WorkItemState.SCHEDULED},
+                   state = ${WorkItemState.SCHEDULED.dbOrdinal},
                    state_changed_at = :now,
                    next_scheduled_for = :scheduleFor,
                    expires_at = NULL,
                    events = events || :eventJson::jsonb    
                 WHERE queue_id = :queueId
                   AND item_id = :itemId
-                  AND state = ${WorkItemState.FAILED}
+                  AND state = ${WorkItemState.FAILED.dbOrdinal}
                 """.trimIndent(),
                 minimumAffectedRows = 1
             )
@@ -469,7 +495,7 @@ public class WorkItemsDAOImpl @Inject constructor(
             ) : TypedUpdate(
                 """
                 UPDATE $TableName SET
-                   state = ${WorkItemState.CANCELLED},
+                   state = ${WorkItemState.CANCELLED.dbOrdinal},
                    state_changed_at = :now,
                    next_scheduled_for = null,
                    expires_at = :expireAt,
@@ -506,4 +532,9 @@ public class WorkItemsDAOImpl @Inject constructor(
             )
         }
     }
+
+    internal class StatisticsData(
+        val count: Int,
+        val stateId: Int
+    )
 }

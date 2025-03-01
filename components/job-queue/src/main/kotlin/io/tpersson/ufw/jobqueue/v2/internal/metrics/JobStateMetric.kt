@@ -1,12 +1,12 @@
-package io.tpersson.ufw.jobqueue.internal.metrics
+package io.tpersson.ufw.jobqueue.v2.internal.metrics
 
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tag
+import io.tpersson.ufw.databasequeue.WorkItemState
+import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
 import io.tpersson.ufw.jobqueue.JobQueueConfig
-import io.tpersson.ufw.jobqueue.JobQueueId
-import io.tpersson.ufw.jobqueue.JobState
-import io.tpersson.ufw.jobqueue.internal.JobHandlersProvider
-import io.tpersson.ufw.jobqueue.internal.JobsDAO
+import io.tpersson.ufw.jobqueue.v2.internal.DurableJobHandlersProvider
+import io.tpersson.ufw.jobqueue.v2.internal.jobDefinition
 import io.tpersson.ufw.managed.ManagedJob
 import jakarta.inject.Inject
 import kotlinx.coroutines.delay
@@ -15,14 +15,14 @@ import java.util.concurrent.atomic.AtomicInteger
 
 public class JobStateMetric @Inject constructor(
     private val meterRegistry: MeterRegistry,
-    private val jobHandlersProvider: JobHandlersProvider,
-    private val jobsDAO: JobsDAO,
+    private val jobHandlersProvider: DurableJobHandlersProvider,
+    private val workItemsDAO: WorkItemsDAO,
     private val config: JobQueueConfig,
 ) : ManagedJob() {
 
     private val jobHandlers = jobHandlersProvider.get()
 
-    private val gauges = ConcurrentHashMap<Pair<JobQueueId<*>, JobState>, AtomicInteger>()
+    private val gauges = ConcurrentHashMap<Pair<String, WorkItemState>, AtomicInteger>()
 
     override suspend fun launch(): Unit {
         do {
@@ -33,23 +33,23 @@ public class JobStateMetric @Inject constructor(
 
     private suspend fun performMeasurement() {
         for (handler in jobHandlers) {
-            val queueId = handler.queueId
+            val queueId = handler.jobDefinition.queueId
 
-            val queueStatistics = jobsDAO.getQueueStatistics(queueId)
+            val queueStatistics = workItemsDAO.getQueueStatistics("jq__$queueId")
 
-            getGauge(queueId, JobState.Scheduled).set(queueStatistics.numScheduled)
-            getGauge(queueId, JobState.InProgress).set(queueStatistics.numInProgress)
-            getGauge(queueId, JobState.Successful).set(queueStatistics.numSuccessful)
-            getGauge(queueId, JobState.Failed).set(queueStatistics.numFailed)
+            getGauge(queueId, WorkItemState.SCHEDULED).set(queueStatistics.numScheduled)
+            getGauge(queueId, WorkItemState.IN_PROGRESS).set(queueStatistics.numInProgress)
+            getGauge(queueId, WorkItemState.SUCCESSFUL).set(queueStatistics.numSuccessful)
+            getGauge(queueId, WorkItemState.FAILED).set(queueStatistics.numFailed)
         }
     }
 
-    private fun getGauge(queueId: JobQueueId<*>, state: JobState): AtomicInteger {
+    private fun getGauge(queueId: String, state: WorkItemState): AtomicInteger {
         return gauges.getOrPut(queueId to state) {
             meterRegistry.gauge(
                 "ufw.job_queue.size",
                 listOf(
-                    Tag.of("queueId", queueId.typeName),
+                    Tag.of("queueId", queueId),
                     Tag.of("state", state.name)
                 ),
                 AtomicInteger(0)

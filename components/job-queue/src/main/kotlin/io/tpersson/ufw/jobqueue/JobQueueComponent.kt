@@ -5,7 +5,7 @@ import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.databasequeue.DatabaseQueueComponent
 import io.tpersson.ufw.jobqueue.internal.*
-import io.tpersson.ufw.jobqueue.internal.metrics.JobStateMetric
+import io.tpersson.ufw.jobqueue.v2.internal.metrics.JobStateMetric
 import io.tpersson.ufw.jobqueue.v2.DurableJobHandler
 import io.tpersson.ufw.jobqueue.v2.internal.DurableJobQueueWorkersManager
 import io.tpersson.ufw.jobqueue.v2.internal.SimpleDurableJobHandlersProvider
@@ -88,8 +88,8 @@ public class JobQueueComponent @Inject constructor(
 
             val jobStateMetric = JobStateMetric(
                 meterRegistry = coreComponent.meterRegistry,
-                jobHandlersProvider = jobHandlersProvider,
-                jobsDAO = jobRepository,
+                jobHandlersProvider = durableJobHandlersProvider,
+                workItemsDAO = databaseQueueComponent.workItemsDAO,
                 config = config,
             )
 

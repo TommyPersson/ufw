@@ -95,6 +95,10 @@ public interface WorkItemsDAO {
         itemId: String
     ): List<WorkItemEvent>
 
+    public suspend fun getQueueStatistics(
+        queueId: String,
+    ): WorkItemQueueStatistics
+
     public suspend fun debugInsert(
         item: WorkItemDbEntity,
         unitOfWork: UnitOfWork? = null

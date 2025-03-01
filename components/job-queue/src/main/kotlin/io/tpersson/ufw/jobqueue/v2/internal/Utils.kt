@@ -5,14 +5,6 @@ import io.tpersson.ufw.jobqueue.v2.WithDurableJobDefinition
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
 
-
-///
-
-///
-
-///
-
-
 public val <TJob : Any> KClass<out DurableJobHandler<TJob>>.jobDefinition: DurableJobDefinition<TJob>
     get() {
         val jobClass = this.supertypes
