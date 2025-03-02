@@ -55,7 +55,7 @@ internal class SingleWorkItemProcessorImplTest {
             workItemFailuresDAO = workItemFailuresDAO,
             unitOfWorkFactory = unitOfWorkFactory,
             clock = clock,
-            mdcLabels = TestMdcLabels,
+            adapterSettings = TestAdapterSettings,
             config = config,
         )
     }
@@ -322,10 +322,14 @@ internal class SingleWorkItemProcessorImplTest {
 
         processor.processSingleItem(stubbedWorkItem.queueId, typeHandlerMap)
 
-        assertThat(TestWorkItem1Handler.mdc?.get(TestMdcLabels.queueIdLabel)).isEqualTo(stubbedWorkItem.queueId)
-        assertThat(TestWorkItem1Handler.mdc?.get(TestMdcLabels.itemIdLabel)).isEqualTo(stubbedWorkItem.itemId)
-        assertThat(TestWorkItem1Handler.mdc?.get(TestMdcLabels.itemTypeLabel)).isEqualTo(stubbedWorkItem.type)
-        assertThat(TestWorkItem1Handler.mdc?.get(TestMdcLabels.handlerClassLabel)).isEqualTo(TestWorkItem1Handler::class.simpleName)
+        assertThat(TestWorkItem1Handler.mdc?.get(TestAdapterSettings.mdcQueueIdLabel))
+            .isEqualTo(stubbedWorkItem.queueId)
+        assertThat(TestWorkItem1Handler.mdc?.get(TestAdapterSettings.mdcItemIdLabel))
+            .isEqualTo(stubbedWorkItem.itemId)
+        assertThat(TestWorkItem1Handler.mdc?.get(TestAdapterSettings.mdcItemTypeLabel))
+            .isEqualTo(stubbedWorkItem.type)
+        assertThat(TestWorkItem1Handler.mdc?.get(TestAdapterSettings.mdcHandlerClassLabel))
+            .isEqualTo(TestWorkItem1Handler::class.simpleName)
     }
 
     private suspend fun <T> stubNextWorkItem(item: T, queueId: String): WorkItemDbEntity? {
@@ -452,10 +456,13 @@ internal class SingleWorkItemProcessorImplTest {
         }
     }
 
-    object TestMdcLabels : DatabaseQueueMdcLabels {
-        override val queueIdLabel: String = "testQueueId"
-        override val itemIdLabel: String = "testItemId"
-        override val itemTypeLabel: String = "testType"
-        override val handlerClassLabel: String = "testClass"
+    object TestAdapterSettings : DatabaseQueueAdapterSettings {
+        override val queueStateMetricName: String = "test"
+        override val queueIdPrefix: String = "test__"
+
+        override val mdcQueueIdLabel: String = "testQueueId"
+        override val mdcItemIdLabel: String = "testItemId"
+        override val mdcItemTypeLabel: String = "testType"
+        override val mdcHandlerClassLabel: String = "testClass"
     }
 }

@@ -2,7 +2,7 @@ package io.tpersson.ufw.databasequeue.worker
 
 import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.core.utils.forever
-import io.tpersson.ufw.databasequeue.DatabaseQueueMdcLabels
+import io.tpersson.ufw.databasequeue.DatabaseQueueAdapterSettings
 import io.tpersson.ufw.databasequeue.WorkItemHandler
 import kotlinx.coroutines.*
 import java.time.Duration
@@ -12,7 +12,7 @@ public class DatabaseQueueWorker(
     private val queueId: String,
     private val handlersByType: Map<String, WorkItemHandler<*>>,
     processorFactory: SingleWorkItemProcessorFactory,
-    mdcLabels: DatabaseQueueMdcLabels,
+    adapterSettings: DatabaseQueueAdapterSettings,
 ) {
     private val logger = createLogger()
 
@@ -24,7 +24,7 @@ public class DatabaseQueueWorker(
 
     private val singleItemProcessor = processorFactory.create(
         watchdogId = watchdogId,
-        mdcLabels = mdcLabels,
+        adapterSettings = adapterSettings,
     )
 
     public fun start(): Job {

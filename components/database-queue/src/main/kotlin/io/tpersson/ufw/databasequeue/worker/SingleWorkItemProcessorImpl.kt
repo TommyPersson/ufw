@@ -22,7 +22,7 @@ public class SingleWorkItemProcessorImpl(
     private val workItemFailuresDAO: WorkItemFailuresDAO,
     private val unitOfWorkFactory: UnitOfWorkFactory,
     private val clock: InstantSource,
-    private val mdcLabels: DatabaseQueueMdcLabels,
+    private val adapterSettings: DatabaseQueueAdapterSettings,
     private val config: DatabaseQueueConfig,
 ) : SingleWorkItemProcessor {
 
@@ -35,9 +35,9 @@ public class SingleWorkItemProcessorImpl(
         val workItem = workItemsDAO.takeNext(queueId, watchdogId, clock.instant())
             ?: return false
 
-        MDC.put(mdcLabels.queueIdLabel, workItem.queueId)
-        MDC.put(mdcLabels.itemIdLabel, workItem.itemId)
-        MDC.put(mdcLabels.itemTypeLabel, workItem.type)
+        MDC.put(adapterSettings.mdcQueueIdLabel, workItem.queueId)
+        MDC.put(adapterSettings.mdcItemIdLabel, workItem.itemId)
+        MDC.put(adapterSettings.mdcItemTypeLabel, workItem.type)
 
         withContext(MDCContext()) {
             invokeHandlerFor(workItem, typeHandlerMappings)
@@ -56,7 +56,7 @@ public class SingleWorkItemProcessorImpl(
             return
         }
 
-        MDC.put(mdcLabels.handlerClassLabel, handler.handlerClassName)
+        MDC.put(adapterSettings.mdcHandlerClassLabel, handler.handlerClassName)
 
         withContext(MDCContext()) {
             val successUnitOfWork = unitOfWorkFactory.create()

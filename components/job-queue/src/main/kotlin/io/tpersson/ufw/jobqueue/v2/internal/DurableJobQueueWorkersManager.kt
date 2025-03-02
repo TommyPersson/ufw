@@ -16,12 +16,12 @@ public class DurableJobQueueWorkersManager @Inject constructor(
     private val durableJobHandlersProvider: DurableJobHandlersProvider,
     @Named(NamedBindings.ObjectMapper) private val objectMapper: ObjectMapper,
 ) : AbstractWorkQueueManager(
-    workerFactory,
-    DurableJobsMdcLabels,
+    workerFactory = workerFactory,
+    adapterSettings = DurableJobsDatabaseQueueAdapterSettings
 ) {
     protected override val handlersByTypeByQueueId: Map<String, Map<String, WorkItemHandler<*>>> =
         durableJobHandlersProvider.get()
-            .groupBy { "jq__" + it.jobDefinition.queueId }
+            .groupBy { it.jobDefinition.queueId }
             .mapValues {
                 it.value.associateBy(
                     keySelector = { handler -> handler.jobDefinition.type },

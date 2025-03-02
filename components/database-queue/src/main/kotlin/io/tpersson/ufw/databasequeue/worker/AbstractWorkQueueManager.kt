@@ -1,13 +1,13 @@
 package io.tpersson.ufw.databasequeue.worker
 
-import io.tpersson.ufw.databasequeue.DatabaseQueueMdcLabels
+import io.tpersson.ufw.databasequeue.DatabaseQueueAdapterSettings
 import io.tpersson.ufw.databasequeue.WorkItemHandler
 import io.tpersson.ufw.managed.Managed
 import kotlinx.coroutines.*
 
 public abstract class AbstractWorkQueueManager(
     private val workerFactory: DatabaseQueueWorkerFactory,
-    private val mdcLabels: DatabaseQueueMdcLabels,
+    private val adapterSettings: DatabaseQueueAdapterSettings,
 ) : Managed() {
 
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
@@ -25,7 +25,8 @@ public abstract class AbstractWorkQueueManager(
     public fun startAll(): Job {
         return scope.launch {
             handlersByTypeByQueueId.forEach { (queueId, handlersByType) ->
-                val worker = workerFactory.create(queueId, handlersByType, mdcLabels)
+                val fullQueueId = adapterSettings.queueIdPrefix + queueId
+                val worker = workerFactory.create(fullQueueId, handlersByType, adapterSettings)
                 launch {
                     worker.start()
                 }

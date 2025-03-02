@@ -1,10 +1,10 @@
 package io.tpersson.ufw.databasequeue.worker
 
-import io.tpersson.ufw.databasequeue.DatabaseQueueMdcLabels
+import io.tpersson.ufw.databasequeue.DatabaseQueueAdapterSettings
 
 public interface SingleWorkItemProcessorFactory {
     public fun create(
         watchdogId: String,
-        mdcLabels: DatabaseQueueMdcLabels,
+        adapterSettings: DatabaseQueueAdapterSettings,
     ): SingleWorkItemProcessor
 }

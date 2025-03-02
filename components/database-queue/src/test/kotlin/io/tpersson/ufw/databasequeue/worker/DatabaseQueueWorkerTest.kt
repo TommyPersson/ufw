@@ -33,7 +33,7 @@ internal class DatabaseQueueWorkerTest {
             queueId = "queue-1",
             handlersByType = emptyMap(),
             processorFactory = processorFactoryMock,
-            mdcLabels = mock()
+            adapterSettings = mock()
         )
     }
 
@@ -78,7 +78,7 @@ internal class DatabaseQueueWorkerTest {
             queueId = "queue-1",
             handlersByType = emptyMap(),
             processorFactory = processorFactoryMock,
-            mdcLabels = mock()
+            adapterSettings = mock()
         )
 
         val coroutine = worker.start()

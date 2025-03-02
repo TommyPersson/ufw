@@ -1,8 +1,8 @@
 package io.tpersson.ufw.databasequeue.worker
 
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
+import io.tpersson.ufw.databasequeue.DatabaseQueueAdapterSettings
 import io.tpersson.ufw.databasequeue.DatabaseQueueConfig
-import io.tpersson.ufw.databasequeue.DatabaseQueueMdcLabels
 import io.tpersson.ufw.databasequeue.internal.WorkItemFailuresDAO
 import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
 import jakarta.inject.Inject
@@ -18,7 +18,7 @@ public class SingleWorkItemProcessorFactoryImpl @Inject constructor(
 
     override fun create(
         watchdogId: String,
-        mdcLabels: DatabaseQueueMdcLabels,
+        adapterSettings: DatabaseQueueAdapterSettings,
     ): SingleWorkItemProcessorImpl {
         return SingleWorkItemProcessorImpl(
             watchdogId = watchdogId,
@@ -26,7 +26,7 @@ public class SingleWorkItemProcessorFactoryImpl @Inject constructor(
             workItemFailuresDAO = workItemFailuresDAO,
             unitOfWorkFactory = unitOfWorkFactory,
             clock = clock,
-            mdcLabels = mdcLabels,
+            adapterSettings = adapterSettings,
             config = config,
         )
     }
