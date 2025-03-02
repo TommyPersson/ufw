@@ -42,6 +42,7 @@ public class DatabaseQueueComponent @Inject constructor(
                 workItemsDAO = workItemsDAO,
                 workItemFailuresDAO = workItemFailuresDAO,
                 unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
+                meterRegistry = coreComponent.meterRegistry,
                 clock = coreComponent.clock,
                 config = config,
             )

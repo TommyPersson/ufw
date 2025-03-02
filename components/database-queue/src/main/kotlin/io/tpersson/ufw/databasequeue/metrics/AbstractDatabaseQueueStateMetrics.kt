@@ -43,7 +43,7 @@ public abstract class AbstractDatabaseQueueStateMetrics(
     private fun getGauge(queueId: String, state: WorkItemState): AtomicInteger {
         return gauges.getOrPut(queueId to state) {
             meterRegistry.gauge(
-                adapterSettings.queueStateMetricName,
+                adapterSettings.metricsQueueStateMetricName,
                 listOf(
                     Tag.of("queueId", queueId.substringAfter(adapterSettings.queueIdPrefix)),
                     Tag.of("state", state.name)

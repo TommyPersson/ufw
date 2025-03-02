@@ -1,6 +1,7 @@
 package io.tpersson.ufw.databasequeue.worker
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
@@ -54,6 +55,7 @@ internal class SingleWorkItemProcessorImplTest {
             workItemsDAO = workItemsDAO,
             workItemFailuresDAO = workItemFailuresDAO,
             unitOfWorkFactory = unitOfWorkFactory,
+            meterRegistry = SimpleMeterRegistry(),
             clock = clock,
             adapterSettings = TestAdapterSettings,
             config = config,
@@ -457,7 +459,9 @@ internal class SingleWorkItemProcessorImplTest {
     }
 
     object TestAdapterSettings : DatabaseQueueAdapterSettings {
-        override val queueStateMetricName: String = "test"
+        override val metricsQueueStateMetricName: String = "test.queue.size"
+        override val metricsProcessingDurationMetricName: String = "test.queue.duration.seconds"
+
         override val queueIdPrefix: String = "test__"
 
         override val mdcQueueIdLabel: String = "testQueueId"

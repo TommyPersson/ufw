@@ -3,7 +3,9 @@ package io.tpersson.ufw.jobqueue.v2.internal
 import io.tpersson.ufw.databasequeue.DatabaseQueueAdapterSettings
 
 public object DurableJobsDatabaseQueueAdapterSettings : DatabaseQueueAdapterSettings {
-    override val queueStateMetricName: String = "ufw.job_queue.size"
+    override val metricsQueueStateMetricName: String = "ufw.job_queue.size"
+    override val metricsProcessingDurationMetricName: String = "ufw.job_queue.duration.seconds"
+
     override val queueIdPrefix: String = "jq__"
 
     override val mdcQueueIdLabel: String = "jobQueueId"

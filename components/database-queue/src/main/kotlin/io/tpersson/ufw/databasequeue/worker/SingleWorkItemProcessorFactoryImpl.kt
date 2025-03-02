@@ -1,5 +1,6 @@
 package io.tpersson.ufw.databasequeue.worker
 
+import io.micrometer.core.instrument.MeterRegistry
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.databasequeue.DatabaseQueueAdapterSettings
 import io.tpersson.ufw.databasequeue.DatabaseQueueConfig
@@ -12,6 +13,7 @@ public class SingleWorkItemProcessorFactoryImpl @Inject constructor(
     private val workItemsDAO: WorkItemsDAO,
     private val workItemFailuresDAO: WorkItemFailuresDAO,
     private val unitOfWorkFactory: UnitOfWorkFactory,
+    private val meterRegistry: MeterRegistry,
     private val clock: InstantSource,
     private val config: DatabaseQueueConfig,
 ) : SingleWorkItemProcessorFactory {
@@ -25,6 +27,7 @@ public class SingleWorkItemProcessorFactoryImpl @Inject constructor(
             workItemsDAO = workItemsDAO,
             workItemFailuresDAO = workItemFailuresDAO,
             unitOfWorkFactory = unitOfWorkFactory,
+            meterRegistry = meterRegistry,
             clock = clock,
             adapterSettings = adapterSettings,
             config = config,

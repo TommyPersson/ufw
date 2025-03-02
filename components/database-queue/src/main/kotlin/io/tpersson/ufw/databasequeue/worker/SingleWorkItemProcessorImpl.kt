@@ -1,5 +1,7 @@
 package io.tpersson.ufw.databasequeue.worker
 
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Timer
 import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
@@ -14,6 +16,8 @@ import org.slf4j.MDC
 import java.time.Instant
 import java.time.InstantSource
 import java.util.*
+import kotlin.time.measureTime
+import kotlin.time.toJavaDuration
 
 @Suppress("UNCHECKED_CAST")
 public class SingleWorkItemProcessorImpl(
@@ -21,12 +25,15 @@ public class SingleWorkItemProcessorImpl(
     private val workItemsDAO: WorkItemsDAO,
     private val workItemFailuresDAO: WorkItemFailuresDAO,
     private val unitOfWorkFactory: UnitOfWorkFactory,
+    private val meterRegistry: MeterRegistry,
     private val clock: InstantSource,
     private val adapterSettings: DatabaseQueueAdapterSettings,
     private val config: DatabaseQueueConfig,
 ) : SingleWorkItemProcessor {
 
     private val logger = createLogger()
+
+    private val timers = Collections.synchronizedMap(mutableMapOf<String, Timer>())
 
     override suspend fun processSingleItem(
         queueId: String,
@@ -40,7 +47,13 @@ public class SingleWorkItemProcessorImpl(
         MDC.put(adapterSettings.mdcItemTypeLabel, workItem.type)
 
         withContext(MDCContext()) {
-            invokeHandlerFor(workItem, typeHandlerMappings)
+            val timer = timers.getOrPut(queueId, { createTimer(queueId) })
+
+            val duration = measureTime {
+                invokeHandlerFor(workItem, typeHandlerMappings)
+            }
+
+            timer.record(duration.toJavaDuration())
         }
 
         return true
@@ -187,7 +200,6 @@ public class SingleWorkItemProcessorImpl(
         }
     }
 
-
     private fun createHandleContext(
         workItem: WorkItemDbEntity,
         unitOfWork: UnitOfWork
@@ -196,6 +208,13 @@ public class SingleWorkItemProcessorImpl(
         override val timestamp: Instant = this@SingleWorkItemProcessorImpl.clock.instant()
         override val failureCount: Int = workItem.numFailures
         override val unitOfWork: UnitOfWork = unitOfWork
+    }
+
+    private fun createTimer(queueId: String): Timer {
+        return Timer.builder(adapterSettings.metricsProcessingDurationMetricName)
+            .tag("queueId", queueId.substringAfter(adapterSettings.queueIdPrefix))
+            .publishPercentiles(0.5, 0.75, 0.90, 0.99, 0.999)
+            .register(meterRegistry)
     }
 }
 

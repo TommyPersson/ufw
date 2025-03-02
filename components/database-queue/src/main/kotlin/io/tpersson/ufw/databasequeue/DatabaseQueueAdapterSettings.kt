@@ -1,7 +1,9 @@
 package io.tpersson.ufw.databasequeue
 
 public interface DatabaseQueueAdapterSettings {
-    public val queueStateMetricName: String
+    public val metricsQueueStateMetricName: String
+    public val metricsProcessingDurationMetricName: String
+
     public val queueIdPrefix: String
 
     public val mdcQueueIdLabel: String
