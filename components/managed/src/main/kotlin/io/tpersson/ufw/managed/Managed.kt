@@ -1,12 +1,13 @@
 package io.tpersson.ufw.managed
 
-import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.core.utils.shortQualifiedName
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicBoolean
 
 public abstract class Managed {
 
-    private val logger = createLogger()
+    protected val logger: Logger = LoggerFactory.getLogger(this::class.qualifiedName!!)
 
     private val _isRunning: AtomicBoolean = AtomicBoolean(false)
     public val isRunning: Boolean get() = _isRunning.get()

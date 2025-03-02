@@ -14,8 +14,6 @@ public class StaleJobRescheduler @Inject constructor(
     private val config: JobQueueConfig,
 ) : ManagedJob() {
 
-    private val logger = createLogger()
-
     private val interval = config.stalenessDetectionInterval
     private val staleAfter = config.stalenessAge
 

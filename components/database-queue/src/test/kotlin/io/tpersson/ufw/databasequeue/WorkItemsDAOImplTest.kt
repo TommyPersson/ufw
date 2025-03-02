@@ -7,6 +7,7 @@ import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.database.exceptions.MinimumAffectedRowsException
 import io.tpersson.ufw.database.unitofwork.use
+import io.tpersson.ufw.databasequeue.WorkItemsDAOImplTest.Companion.testClock
 import io.tpersson.ufw.databasequeue.dsl.databaseQueue
 import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
 import io.tpersson.ufw.databasequeue.internal.WorkItemEvent
@@ -944,6 +945,24 @@ internal class WorkItemsDAOImplTest {
                 unitOfWork.commit()
             }
         }.isInstanceOf(MinimumAffectedRowsException::class.java)
+    }
+
+
+    @Test
+    fun `deleteExpiredItems - Shall delete all items with an expiration time equal to or less than now`(): Unit = runBlocking {
+        debugInsertItem(makeWorkItem("1", expiresAt = Instant.parse("2025-03-02T09:59:59Z")))
+        debugInsertItem(makeWorkItem("2", expiresAt = Instant.parse("2025-03-02T10:00:00Z")))
+        debugInsertItem(makeWorkItem("3", expiresAt = Instant.parse("2025-03-02T10:00:01Z")))
+
+        testClock.reset(Instant.parse("2025-03-02T10:00:00Z"))
+
+        val numDeleted = dao.deleteExpiredItems(testClock.dbNow)
+
+        assertThat(numDeleted).isEqualTo(2)
+
+        val allItems = dao.listAllItems()
+        assertThat(allItems).hasSize(1)
+        assertThat(allItems[0].itemId).isEqualTo("3")
     }
 
     private suspend fun debugInsertItem(item: WorkItemDbEntity) {

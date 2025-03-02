@@ -16,5 +16,9 @@ public class TestInstantSource : InstantSource {
         now += duration
     }
 
+    public fun reset(instant: Instant) {
+        now = instant
+    }
+
     public val dbNow: Instant get() = instant().truncatedTo(ChronoUnit.MILLIS)
 }

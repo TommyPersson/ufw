@@ -1,16 +1,17 @@
 package io.tpersson.ufw.examples.common.managed
 
 import io.tpersson.ufw.core.utils.forever
-import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.database.unitofwork.use
 import io.tpersson.ufw.examples.common.events.ExampleEventV1
 import io.tpersson.ufw.managed.ManagedJob
 import io.tpersson.ufw.transactionalevents.EventId
-import io.tpersson.ufw.transactionalevents.eventDefinition
 import io.tpersson.ufw.transactionalevents.publisher.TransactionalEventPublisher
 import jakarta.inject.Inject
-import kotlinx.coroutines.*
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import java.time.InstantSource
 
 public class PeriodicEventPublisher @Inject constructor(
@@ -18,7 +19,6 @@ public class PeriodicEventPublisher @Inject constructor(
     private val transactionalEventPublisher: TransactionalEventPublisher,
     private val clock: InstantSource
 ) : ManagedJob() {
-    private val logger = createLogger()
 
     override suspend fun launch(): Unit = coroutineScope {
         var i = 0

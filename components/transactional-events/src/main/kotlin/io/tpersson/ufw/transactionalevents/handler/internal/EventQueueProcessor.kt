@@ -44,8 +44,6 @@ public class EventQueueProcessor @Inject constructor(
     private val config: TransactionalEventsConfig,
 ) : ManagedJob() {
 
-    private val logger = createLogger()
-
     override suspend fun launch(): Unit = coroutineScope {
         val handlers = eventHandlersProvider.get()
         for (handler in handlers) {

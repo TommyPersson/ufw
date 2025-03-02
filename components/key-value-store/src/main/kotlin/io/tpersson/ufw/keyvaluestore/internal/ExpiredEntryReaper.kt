@@ -15,8 +15,6 @@ public class ExpiredEntryReaper @Inject constructor(
     private val config: KeyValueStoreConfig,
 ) : ManagedJob() {
 
-    private val logger = createLogger()
-
     private val interval = config.expiredEntryReapingInterval
 
     override suspend fun launch() {

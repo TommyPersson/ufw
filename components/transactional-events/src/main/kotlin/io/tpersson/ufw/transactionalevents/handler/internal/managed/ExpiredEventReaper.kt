@@ -1,6 +1,5 @@
 package io.tpersson.ufw.transactionalevents.handler.internal.managed
 
-import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.core.utils.forever
 import io.tpersson.ufw.managed.ManagedJob
 import io.tpersson.ufw.transactionalevents.TransactionalEventsConfig
@@ -13,8 +12,6 @@ public class ExpiredEventReaper @Inject constructor(
     private val clock: InstantSource,
     private val config: TransactionalEventsConfig,
 ) : ManagedJob() {
-
-    private val logger = createLogger()
 
     private val interval = config.expiredEventReapingInterval
 

@@ -1,7 +1,6 @@
 package io.tpersson.ufw.transactionalevents.publisher.internal.managed
 
 import io.tpersson.ufw.core.utils.forever
-import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.database.locks.DatabaseLocks
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.database.unitofwork.use
@@ -24,8 +23,6 @@ public class EventOutboxWorker @Inject constructor(
     private val unitOfWorkFactory: UnitOfWorkFactory,
     private val databaseLocks: DatabaseLocks
 ) : ManagedJob() {
-
-    private val logger = createLogger()
 
     private val pollInterval = Duration.ofSeconds(10)
     private val batchSize = 50

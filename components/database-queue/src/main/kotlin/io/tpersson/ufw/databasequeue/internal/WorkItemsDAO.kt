@@ -99,6 +99,8 @@ public interface WorkItemsDAO {
         queueId: String,
     ): WorkItemQueueStatistics
 
+    public suspend fun deleteExpiredItems(now: Instant): Int
+
     public suspend fun debugInsert(
         item: WorkItemDbEntity,
         unitOfWork: UnitOfWork? = null

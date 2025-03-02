@@ -3,7 +3,6 @@ package io.tpersson.ufw.examples.common.managed
 import com.sun.net.httpserver.HttpServer
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.prometheus.PrometheusMeterRegistry
-import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.managed.Managed
 import jakarta.inject.Inject
 import java.net.InetSocketAddress
@@ -12,8 +11,6 @@ import kotlin.concurrent.thread
 public class PrometheusServer @Inject constructor(
     private val meterRegistry: MeterRegistry,
 ) : Managed() {
-
-    private val logger = createLogger()
 
     private var server: HttpServer? = null
 

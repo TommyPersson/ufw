@@ -2,7 +2,6 @@ package io.tpersson.ufw.transactionalevents.handler.internal.metrics
 
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tag
-import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.core.utils.forever
 import io.tpersson.ufw.managed.ManagedJob
 import io.tpersson.ufw.transactionalevents.TransactionalEventsConfig
@@ -18,8 +17,6 @@ public class EventStateMetric @Inject constructor(
     private val eventQueueProvider: EventQueueProvider,
     private val config: TransactionalEventsConfig,
 ) : ManagedJob() {
-
-    private val logger = createLogger()
 
     private val gauges = ConcurrentHashMap<Pair<EventQueueId, EventState>, AtomicInteger>()
 

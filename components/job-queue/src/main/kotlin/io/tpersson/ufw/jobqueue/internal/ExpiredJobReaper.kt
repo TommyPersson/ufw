@@ -14,8 +14,6 @@ public class ExpiredJobReaper @Inject constructor(
     private val config: JobQueueConfig,
 ) : ManagedJob() {
 
-    private val logger = createLogger()
-
     private val interval = config.expiredJobReapingInterval
 
     override suspend fun launch() {

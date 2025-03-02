@@ -213,6 +213,10 @@ public class WorkItemsDAOImpl @Inject constructor(
         )
     }
 
+    override suspend fun deleteExpiredItems(now: Instant): Int {
+        return database.update(Queries.Updates.DeleteExpiredItems(now))
+    }
+
     override suspend fun debugInsert(item: WorkItemDbEntity, unitOfWork: UnitOfWork?) {
         if (unitOfWork != null) {
             unitOfWork.add(
@@ -522,6 +526,16 @@ public class WorkItemsDAOImpl @Inject constructor(
                   AND watchdog_owner = :watchdogId
                 """.trimIndent(),
                 minimumAffectedRows = 1
+            )
+
+            data class DeleteExpiredItems(
+                val now: Instant,
+            ) : TypedUpdate(
+                """
+                DELETE FROM $TableName 
+                WHERE expires_at <= :now
+                """.trimIndent(),
+                minimumAffectedRows = 0
             )
 
             object Truncate : TypedUpdate(

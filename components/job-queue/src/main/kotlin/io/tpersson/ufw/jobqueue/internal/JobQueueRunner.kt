@@ -34,8 +34,6 @@ public class JobQueueRunner @Inject constructor(
     private val meterRegistry: MeterRegistry,
 ) : ManagedJob() {
 
-    private val logger = createLogger()
-
     override suspend fun launch(): Unit = coroutineScope {
         val handlers = jobHandlersProvider.get()
         for (handler in handlers) {
