@@ -1,16 +1,19 @@
-import { Box } from "@mui/material"
+import { Box, Typography } from "@mui/material"
 import classNames from "classnames"
 
 import classes from "./Page.module.css"
 
 export type PageProps = {
+  heading?: any
   fill?: boolean
   children: any
 }
 
 export const Page = (props: PageProps) => {
   const {
+    heading,
     fill = false,
+    children
   } = props
 
   const className = classNames(
@@ -20,7 +23,8 @@ export const Page = (props: PageProps) => {
 
   return (
     <Box className={className}>
-      {props.children}
+      {heading && <Typography variant={"h4"} component={"h2"} sx={{ mb: 2 }}>{heading}</Typography>}
+      {children}
     </Box>
   )
 }

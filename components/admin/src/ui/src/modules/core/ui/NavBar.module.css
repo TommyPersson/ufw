@@ -1,0 +1,17 @@
+
+.NavBar {
+    display: flex;
+    flex-direction: row !important; /* override MUI */
+}
+
+.HeadingToolbar {
+    width: 300px; /* Matches drawer */
+
+    a {
+        color: inherit;
+    }
+}
+
+.AppInfoToolbar {
+
+}

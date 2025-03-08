@@ -102,7 +102,7 @@ public class JobQueueComponent @Inject constructor(
             managedComponent.register(jobStateMetric)
             managedComponent.register(durableJobQueueWorkersManager)
 
-            adminComponent?.register(JobQueueAdminModule())
+            adminComponent?.register(JobQueueAdminModule(durableJobHandlersProvider))
 
             return JobQueueComponent(
                 jobQueue = jobQueue,

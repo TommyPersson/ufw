@@ -1,6 +1,5 @@
 import { Divider, Drawer, List, ListItem, ListItemButton, ListItemText, ListSubheader, Toolbar } from "@mui/material"
-import { useCallback } from "react"
-import { NavLink, useMatch, useNavigate } from "react-router"
+import { NavLink, useMatch } from "react-router"
 import { allModuleDefinitions } from "../../modules"
 import { ApplicationMetadata } from "../models/ApplicationMetadata"
 
@@ -48,21 +47,16 @@ export const NavDrawer = (props: {
 }
 
 const NavItem = (props: { link: string, title: string }) => {
-  const isSelected = !!useMatch(props.link)
-  const navigate = useNavigate()
-  const link = props.link
+  const { link, title } = props
 
-  const handleClick = useCallback(() => {
-    navigate(link)
-  }, [navigate, link])
-
+  const isSelected = !!useMatch(link)
 
   return (
     <ListItem disablePadding className={classes.NavItem}>
       <NavLink to={link}>
-        <ListItemButton onClick={handleClick} selected={isSelected}>
+        <ListItemButton selected={isSelected}>
           <ListItemText>
-            {props.title}
+            {title}
           </ListItemText>
         </ListItemButton>
       </NavLink>

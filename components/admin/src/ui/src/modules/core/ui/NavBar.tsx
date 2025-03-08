@@ -1,7 +1,10 @@
 import HomeIcon from "@mui/icons-material/Home"
 import { AppBar, IconButton, Toolbar, Typography } from "@mui/material"
+import { Link } from "react-router"
 import { PropertyText } from "../../../common/components"
 import { ApplicationMetadata } from "../models/ApplicationMetadata"
+
+import classes from "./NavBar.module.css"
 
 export const NavBar = (props: {
   applicationMetadata: ApplicationMetadata
@@ -10,30 +13,35 @@ export const NavBar = (props: {
     <AppBar
       position={"fixed"}
       sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
+      className={classes.NavBar}
     >
-      <Toolbar>
-        <IconButton
-          size={"large"}
-          edge={"start"}
-          color={"inherit"}
-          children={<HomeIcon />}
-          sx={{ mr: 2 }}
-        />
+      <Toolbar className={classes.HeadingToolbar}>
+        <Link to={"/"}>
+          <IconButton
+            size={"large"}
+            edge={"start"}
+            color={"inherit"}
+            children={<HomeIcon />}
+            sx={{ mr: 2 }}
+          />
+        </Link>
         <Typography
           variant={"h6"}
           component={"div"}
           children={"UFW Admin"}
           sx={{ mr: 2 }}
         />
+      </Toolbar>
+      <Toolbar className={classes.AppInfoToolbar}>
         <PropertyText
           title={"Application"}
           subtitle={props.applicationMetadata.name}
-          sx={{ mr: 2 }}
+          sx={{ mr: 4 }}
         />
         <PropertyText
           title={"Version"}
           subtitle={props.applicationMetadata.version}
-          sx={{ mr: 2 }}
+          sx={{ mr: 4 }}
         />
       </Toolbar>
     </AppBar>
