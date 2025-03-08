@@ -31,6 +31,8 @@
         <module>components/aggregates-guice</module>
         <module>components/transactional-events</module>
         <module>components/transactional-events-guice</module>
+        <module>components/admin</module>
+        <module>components/admin-guice</module>
         <module>components/test</module>
         <module>examples/common</module>
         <module>examples/guice-app</module>
@@ -42,8 +44,10 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <kotlin.code.style>official</kotlin.code.style>
         <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
+
         <kotlin.version>2.1.10</kotlin.version>
         <kotlinx-coroutines.version>1.10.1</kotlinx-coroutines.version>
+        <ktor.version>2.3.12</ktor.version>
 
         <jackson.version>2.16.0</jackson.version>
         <micrometer.version>1.12.0</micrometer.version>
@@ -78,118 +82,128 @@
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>ufw-all</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>ufw-all-guice</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>ufw-core</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>ufw-core-guice</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>ufw-database</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>ufw-database-guice</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>ufw-database-queue</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>ufw-database-queue-guice</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>ufw-managed</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>ufw-managed-guice</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>ufw-job-queue</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>ufw-job-queue-guice</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>ufw-mediator</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>ufw-mediator-guice</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>ufw-mediator-middleware-transactional</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>ufw-key-value-store</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>ufw-key-value-store-guice</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>ufw-aggregates</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>ufw-aggregates-guice</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>ufw-transactional-events</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>ufw-transactional-events-guice</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.tpersson.ufw</groupId>
+                <artifactId>ufw-admin</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.tpersson.ufw</groupId>
+                <artifactId>ufw-admin-guice</artifactId>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>ufw-test</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>example-common</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
 
             <dependency>
@@ -213,6 +227,14 @@
                 <groupId>org.jetbrains.kotlinx</groupId>
                 <artifactId>kotlinx-coroutines-test-jvm</artifactId>
                 <version>${kotlinx-coroutines.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.ktor</groupId>
+                <artifactId>ktor-bom</artifactId>
+                <version>${ktor.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
             <dependency>

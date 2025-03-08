@@ -1,6 +1,7 @@
 package io.tpersson.ufw.examples.plainapp
 
 import com.fasterxml.jackson.databind.SerializationFeature
+import io.tpersson.ufw.admin.dsl.admin
 import io.tpersson.ufw.aggregates.dsl.aggregates
 import io.tpersson.ufw.core.dsl.UFW
 import io.tpersson.ufw.core.dsl.UFWRegistry
@@ -55,6 +56,9 @@ public fun main(): Unit = runBlocking(MDCContext()) {
                 PeriodicLogger(),
                 PrometheusServer(Globals.meterRegistry),
             )
+        }
+        admin {
+            port = 8081
         }
         database {
             dataSource = Globals.dataSource

@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="MainKt (Guice)" type="JetRunConfigurationType">
+    <option name="MAIN_CLASS_NAME" value="io.tpersson.ufw.examples.guiceapp.MainKt" />
+    <module name="example-guice-app" />
+    <shortenClasspath name="NONE" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

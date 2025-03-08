@@ -6,6 +6,8 @@ import com.google.inject.Injector
 import com.google.inject.Module
 import com.google.inject.multibindings.OptionalBinder
 import io.micrometer.core.instrument.MeterRegistry
+import io.tpersson.ufw.admin.AdminComponentConfig
+import io.tpersson.ufw.admin.guice.AdminGuiceModule
 import io.tpersson.ufw.aggregates.guice.AggregatesGuiceModule
 import io.tpersson.ufw.core.CoreGuiceModule
 import io.tpersson.ufw.database.DatabaseComponent
@@ -66,6 +68,11 @@ public fun main(): Unit = runBlocking(MDCContext()) {
             configureObjectMapper = {
                 enable(SerializationFeature.INDENT_OUTPUT)
             }
+        ),
+        AdminGuiceModule(
+            config = AdminComponentConfig(
+                port = 8081
+            )
         ),
         DatabaseGuiceModule(),
         DatabaseQueueGuiceModule(),

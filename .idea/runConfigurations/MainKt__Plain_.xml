@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="MainKt (Plain)" type="JetRunConfigurationType">
+    <option name="MAIN_CLASS_NAME" value="io.tpersson.ufw.examples.plainapp.MainKt" />
+    <module name="example-plain-app" />
+    <shortenClasspath name="NONE" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
