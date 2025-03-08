@@ -29,7 +29,7 @@ public class AdminComponent @Inject constructor(
         ): AdminComponent {
 
             val adminModulesProvider = SimpleAdminModulesProvider().also {
-                it.add(CoreAdminModule())
+                it.add(CoreAdminModule(it))
             }
 
             val managedAdminServer = ManagedAdminServer(config, adminModulesProvider)

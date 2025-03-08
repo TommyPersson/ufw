@@ -1,0 +1,17 @@
+.Page {
+
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+
+
+}
+
+.NonFilled {
+    width: 1200px;
+    align-self: center;
+}
+
+.Filled {
+    width: 100%;
+}

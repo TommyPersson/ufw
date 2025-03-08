@@ -5,10 +5,13 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.tpersson.ufw.admin.AdminModule
-import jakarta.inject.Inject
 
-public class CoreAdminModule @Inject constructor(
+public class CoreAdminModule(
+    private val modulesProvider: AdminModulesProvider,
 ) : AdminModule {
+
+    override val moduleId: String = "core"
+
     override fun configure(application: Application) {
         application.routing {
             get("/admin/api/ping") {
@@ -20,6 +23,7 @@ public class CoreAdminModule @Inject constructor(
                     ApplicationMetadata(
                         name = "Example",
                         version = "2",
+                        availableModuleIds = modulesProvider.get().map { it.moduleId }
                     )
                 )
             }

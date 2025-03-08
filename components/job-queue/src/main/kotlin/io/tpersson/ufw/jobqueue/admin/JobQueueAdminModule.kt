@@ -8,6 +8,9 @@ import jakarta.inject.Inject
 
 public class JobQueueAdminModule @Inject constructor(
 ) : AdminModule {
+
+    public override val moduleId: String = "job-queue"
+
     override fun configure(application: Application) {
         application.routing {
             get("/admin/api/job-queue/hello") {
