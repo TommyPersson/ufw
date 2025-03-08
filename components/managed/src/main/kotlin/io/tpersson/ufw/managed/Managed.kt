@@ -49,5 +49,4 @@ public abstract class Managed {
     protected abstract suspend fun onStarted()
 
     protected abstract suspend fun onStopped()
-
 }

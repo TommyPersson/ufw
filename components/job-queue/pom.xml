@@ -30,6 +30,10 @@
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
+            <artifactId>ufw-admin</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.tpersson.ufw</groupId>
             <artifactId>ufw-database</artifactId>
         </dependency>
         <dependency>

@@ -12,21 +12,21 @@ import io.ktor.server.plugins.callloging.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.routing.*
 import io.tpersson.ufw.admin.AdminComponentConfig
-import io.tpersson.ufw.admin.AdminModule
 import io.tpersson.ufw.managed.Managed
 import jakarta.inject.Inject
+import jakarta.inject.Singleton
 import org.slf4j.event.Level
 import java.text.SimpleDateFormat
 
+@Singleton
 public class ManagedAdminServer @Inject constructor(
-    private val config: AdminComponentConfig
+    private val config: AdminComponentConfig,
+    private val adminModulesProvider: AdminModulesProvider,
 ) : Managed() {
 
     private var server: ApplicationEngine? = null
 
     override suspend fun onStarted() {
-        val modules: List<AdminModule> = listOf(CoreAdminModule())
-
         val server = embeddedServer(Netty, port = config.port) {
             install(ContentNegotiation) {
                 jackson {
@@ -38,7 +38,8 @@ public class ManagedAdminServer @Inject constructor(
                 level = Level.INFO
             }
 
-            modules.forEach {
+            adminModulesProvider.get().forEach {
+                logger.info("Configuring AdminModule: ${it::class.simpleName}")
                 it.configure(this)
             }
 

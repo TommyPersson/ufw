@@ -1,5 +1,8 @@
 package io.tpersson.ufw.jobqueue.dsl
 
+import io.tpersson.ufw.admin.AdminComponent
+import io.tpersson.ufw.admin.AdminComponentConfig
+import io.tpersson.ufw.admin.dsl.admin
 import io.tpersson.ufw.core.dsl.UFWBuilder
 import io.tpersson.ufw.core.dsl.UFWRegistry
 import io.tpersson.ufw.core.dsl.UfwDslMarker
@@ -34,6 +37,7 @@ public class JobQueueComponentBuilder(private val components: UFWRegistry) {
             managedComponent = components.managed,
             databaseComponent = components.database,
             databaseQueueComponent = components.databaseQueue,
+            adminComponent = components._components["Admin"] as? AdminComponent?,
             config = config,
             jobHandlers = handlers,
             durableJobHandlers = durableJobHandlers,

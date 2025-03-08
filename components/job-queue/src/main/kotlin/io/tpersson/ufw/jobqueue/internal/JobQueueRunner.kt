@@ -56,6 +56,7 @@ public class JobQueueRunner @Inject constructor(
     }
 }
 
+@OptIn(kotlin.time.ExperimentalTime::class)
 public class SingleJobHandlerRunner<TJob : Job>(
     private val jobQueue: JobQueueInternal,
     private val jobsDAO: JobsDAO,

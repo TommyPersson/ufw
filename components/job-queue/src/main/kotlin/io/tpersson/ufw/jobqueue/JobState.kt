@@ -8,6 +8,7 @@ public enum class JobState(public val id: Int) {
     Cancelled(5);
 
     public companion object {
+        @OptIn(ExperimentalStdlibApi::class)
         public fun fromId(id: Int): JobState {
             return entries.first { it.id == id }
         }

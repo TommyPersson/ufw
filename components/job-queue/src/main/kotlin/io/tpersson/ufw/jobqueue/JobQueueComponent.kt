@@ -1,9 +1,11 @@
 package io.tpersson.ufw.jobqueue
 
+import io.tpersson.ufw.admin.AdminComponent
 import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.databasequeue.DatabaseQueueComponent
+import io.tpersson.ufw.jobqueue.admin.JobQueueAdminModule
 import io.tpersson.ufw.jobqueue.internal.*
 import io.tpersson.ufw.jobqueue.v2.internal.metrics.JobStateMetric
 import io.tpersson.ufw.jobqueue.v2.DurableJobHandler
@@ -31,6 +33,7 @@ public class JobQueueComponent @Inject constructor(
             managedComponent: ManagedComponent,
             databaseComponent: DatabaseComponent,
             databaseQueueComponent: DatabaseQueueComponent,
+            adminComponent: AdminComponent?,
             config: JobQueueConfig,
             jobHandlers: Set<JobHandler<*>>,
             durableJobHandlers: Set<DurableJobHandler<*>>,
@@ -98,6 +101,8 @@ public class JobQueueComponent @Inject constructor(
             managedComponent.register(expiredJobReaper)
             managedComponent.register(jobStateMetric)
             managedComponent.register(durableJobQueueWorkersManager)
+
+            adminComponent?.register(JobQueueAdminModule())
 
             return JobQueueComponent(
                 jobQueue = jobQueue,
