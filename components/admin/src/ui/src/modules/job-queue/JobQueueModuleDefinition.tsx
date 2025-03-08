@@ -1,5 +1,6 @@
 import { JobQueueIndexPage } from "./ui/pages/JobQueueIndexPage.tsx"
 import { ModuleDefinition } from "../ModuleDefinition.tsx"
+import { JobQueueDetailsPage } from "./ui/pages/JobQueueDetailsPage"
 
 export const JobQueueModuleDefinition: ModuleDefinition = {
   moduleId: "job-queue",
@@ -12,6 +13,10 @@ export const JobQueueModuleDefinition: ModuleDefinition = {
         {
           index: true,
           Component: JobQueueIndexPage,
+        },
+        {
+          path: "queues/:queueId/details",
+          Component: JobQueueDetailsPage,
         }
       ]
     }

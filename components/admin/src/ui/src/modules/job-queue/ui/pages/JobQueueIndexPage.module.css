@@ -1,0 +1,13 @@
+.Table {
+    td:first-child {
+        width: 0;
+    }
+
+    td:nth-child(n+3) {
+        text-align: right;
+    }
+
+    th:nth-child(n+3) {
+        text-align: right;
+    }
+}

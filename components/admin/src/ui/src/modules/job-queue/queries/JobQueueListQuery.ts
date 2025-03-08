@@ -10,7 +10,11 @@ export const JobQueueListQuery: UseQueryOptions<JobQueueListItem[]> = {
 }
 
 const itemSchema = z.object({
-  queueId: z.string()
+  queueId: z.string(),
+  numScheduled: z.number(),
+  numPending: z.number(),
+  numInProgress: z.number(),
+  numFailed: z.number(),
 })
 
 const responseSchema = z.array(

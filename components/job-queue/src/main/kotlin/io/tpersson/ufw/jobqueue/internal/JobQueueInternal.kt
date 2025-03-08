@@ -42,4 +42,14 @@ public interface JobQueueInternal : JobQueue {
     )
 
     public suspend fun <TJob : Job> getNumberOfFailuresFor(job: InternalJob<TJob>): Int
+
+    public suspend fun getQueueStatistics(queueId: String): JobQueueStatistics
 }
+
+public data class JobQueueStatistics(
+    val queueId: String,
+    val numScheduled: Int,
+    val numPending: Int,
+    val numInProgress: Int,
+    val numFailed: Int,
+)

@@ -49,7 +49,7 @@ export const NavDrawer = (props: {
 const NavItem = (props: { link: string, title: string }) => {
   const { link, title } = props
 
-  const isSelected = !!useMatch(link)
+  const isSelected = !!useMatch(`${link}/*`)
 
   return (
     <ListItem disablePadding className={classes.NavItem}>

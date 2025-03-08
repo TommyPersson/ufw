@@ -9,7 +9,6 @@ import io.tpersson.ufw.databasequeue.NewWorkItem
 import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
 import io.tpersson.ufw.jobqueue.*
 import io.tpersson.ufw.jobqueue.v2.DurableJob
-import io.tpersson.ufw.jobqueue.v2.internal.jobDefinition
 import io.tpersson.ufw.jobqueue.v2.internal.jobDefinition2
 import jakarta.inject.Inject
 import jakarta.inject.Named
@@ -162,6 +161,17 @@ public class JobQueueImpl @Inject constructor(
 
     override suspend fun <TJob : Job> getNumberOfFailuresFor(job: InternalJob<TJob>): Int {
         return jobFailureRepository.getNumberOfFailuresFor(job)
+    }
+
+    override suspend fun getQueueStatistics(queueId: String): JobQueueStatistics {
+        val workItemQueueStatistics = workItemsDAO.getQueueStatistics("jq__$queueId") // where to add prefix?
+        return JobQueueStatistics(
+            queueId = queueId,
+            numScheduled = workItemQueueStatistics.numScheduled,
+            numPending = workItemQueueStatistics.numPending,
+            numInProgress = workItemQueueStatistics.numInProgress,
+            numFailed = workItemQueueStatistics.numFailed,
+        )
     }
 
     private fun getSignal(queueId: JobQueueId<*>): ConsumerSignal {

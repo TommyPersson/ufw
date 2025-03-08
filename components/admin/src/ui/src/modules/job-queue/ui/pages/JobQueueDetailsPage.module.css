@@ -1,0 +1,13 @@
+
+.StatCardBox {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 24px;
+}
+
+.StatCard {
+    a {
+        color: inherit;
+        text-decoration: inherit;
+    }
+}
