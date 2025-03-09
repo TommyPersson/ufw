@@ -72,4 +72,8 @@ public class JobQueueImpl @Inject constructor(
             numFailed = workItemQueueStatistics.numFailed,
         )
     }
+
+    override suspend fun rescheduleAllFailedJobs(queueId: JobQueueId) {
+        workItemsDAO.rescheduleAllFailedItems(queueId.toWorkItemQueueId(), clock.instant())
+    }
 }

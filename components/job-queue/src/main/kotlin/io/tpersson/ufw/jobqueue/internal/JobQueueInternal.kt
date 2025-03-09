@@ -5,6 +5,7 @@ import io.tpersson.ufw.jobqueue.JobQueueId
 
 public interface JobQueueInternal : JobQueue {
     public suspend fun getQueueStatistics(queueId: JobQueueId): JobQueueStatistics
+    public suspend fun rescheduleAllFailedJobs(queueId: JobQueueId)
 }
 
 public data class JobQueueStatistics(

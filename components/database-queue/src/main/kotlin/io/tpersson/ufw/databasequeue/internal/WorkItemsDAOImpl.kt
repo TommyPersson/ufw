@@ -170,7 +170,12 @@ public class WorkItemsDAOImpl @Inject constructor(
         )
     }
 
-    override suspend fun forcePauseItem(queueId: WorkItemQueueId, itemId: WorkItemId, now: Instant, unitOfWork: UnitOfWork) {
+    override suspend fun forcePauseItem(
+        queueId: WorkItemQueueId,
+        itemId: WorkItemId,
+        now: Instant,
+        unitOfWork: UnitOfWork
+    ) {
         TODO("Not yet implemented")
     }
 
@@ -191,6 +196,16 @@ public class WorkItemsDAOImpl @Inject constructor(
                 itemId = itemId.value,
                 watchdogId = watchdogId,
                 now = now
+            )
+        )
+    }
+
+    override suspend fun rescheduleAllFailedItems(queueId: WorkItemQueueId, now: Instant) {
+        database.update(
+            Queries.Updates.RescheduleAllFailedItems(
+                queueId = queueId.value,
+                now = now,
+                eventJson = """{ "@type": "MANUALLY_RESCHEDULED", "timestamp": "$now", "scheduledFor": "$now" }"""
             )
         )
     }
@@ -513,6 +528,24 @@ public class WorkItemsDAOImpl @Inject constructor(
                   AND item_id = :itemId
                 """.trimIndent(),
                 minimumAffectedRows = 1
+            )
+
+            data class RescheduleAllFailedItems(
+                val queueId: String,
+                val now: Instant,
+                val eventJson: String,
+            ) : TypedUpdate(
+                """
+                UPDATE $TableName SET
+                   state = ${WorkItemState.SCHEDULED.dbOrdinal},
+                   state_changed_at = :now,
+                   next_scheduled_for = :now,
+                   expires_at = NULL,
+                   events = events || :eventJson::jsonb
+                WHERE queue_id = :queueId
+                  AND state = ${WorkItemState.FAILED.dbOrdinal}
+                """.trimIndent(),
+                minimumAffectedRows = 0
             )
 
             data class RefreshWatchdog(

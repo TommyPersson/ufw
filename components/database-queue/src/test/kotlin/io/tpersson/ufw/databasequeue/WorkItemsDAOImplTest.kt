@@ -7,7 +7,6 @@ import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.database.exceptions.MinimumAffectedRowsException
 import io.tpersson.ufw.database.unitofwork.use
-import io.tpersson.ufw.databasequeue.WorkItemsDAOImplTest.Companion.testClock
 import io.tpersson.ufw.databasequeue.dsl.databaseQueue
 import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
 import io.tpersson.ufw.databasequeue.internal.WorkItemEvent
@@ -153,7 +152,7 @@ internal class WorkItemsDAOImplTest {
 
     @Test
     fun `takeNext - Takes a SCHEDULED item and moves it to IN_PROGRESS`(): Unit = runBlocking {
-        debugInsertItem(makeWorkItem(itemId = "testId", queueId = "testQueueId"))
+        debugInsertItems(makeWorkItem(itemId = "testId", queueId = "testQueueId"))
         testClock.advance(Duration.ofMinutes(2))
 
         val now = testClock.instant().truncatedTo(ChronoUnit.MILLIS)
@@ -180,9 +179,9 @@ internal class WorkItemsDAOImplTest {
     @Test
     fun `takeNext - Shall not take an item with the same concurrency as an already IN_PROGRESS item`(): Unit =
         runBlocking {
-            debugInsertItem(makeWorkItem(itemId = "testId1", concurrencyKey = "concurrencyKey"))
+            debugInsertItems(makeWorkItem(itemId = "testId1", concurrencyKey = "concurrencyKey"))
             testClock.advance(Duration.ofMinutes(2))
-            debugInsertItem(makeWorkItem(itemId = "testId2", concurrencyKey = "concurrencyKey"))
+            debugInsertItems(makeWorkItem(itemId = "testId2", concurrencyKey = "concurrencyKey"))
             testClock.advance(Duration.ofMinutes(2))
 
             val now = testClock.instant().truncatedTo(ChronoUnit.MILLIS)
@@ -203,7 +202,7 @@ internal class WorkItemsDAOImplTest {
     @Test
     fun `takeNext - Shall record state transition event`(): Unit = runBlocking {
         // Arrange
-        debugInsertItem(makeWorkItem(itemId = "testId1", concurrencyKey = "concurrencyKey"))
+        debugInsertItems(makeWorkItem(itemId = "testId1", concurrencyKey = "concurrencyKey"))
 
         testClock.advance(Duration.ofMinutes(2))
         val now = testClock.dbNow
@@ -221,7 +220,7 @@ internal class WorkItemsDAOImplTest {
 
     @Test
     fun `markInProgressItemAsSuccessful - Shall record state transition events`(): Unit = runBlocking {
-        debugInsertItem(makeWorkItem(itemId = "testId1"))
+        debugInsertItems(makeWorkItem(itemId = "testId1"))
         testClock.advance(Duration.ofMinutes(2))
 
         val item = dao.takeNext(
@@ -257,7 +256,7 @@ internal class WorkItemsDAOImplTest {
 
     @Test
     fun `markInProgressItemAsSuccessful - Shall move an IN_PROGRESS item to SUCCESSFUL`(): Unit = runBlocking {
-        debugInsertItem(makeWorkItem(itemId = "testId1"))
+        debugInsertItems(makeWorkItem(itemId = "testId1"))
         testClock.advance(Duration.ofMinutes(2))
 
         val item = dao.takeNext(
@@ -296,7 +295,7 @@ internal class WorkItemsDAOImplTest {
 
     @Test
     fun `markInProgressItemAsSuccessful - Shall fail UnitOfWork if the watchdog is incorrect`(): Unit = runBlocking {
-        debugInsertItem(makeWorkItem(itemId = "testId1"))
+        debugInsertItems(makeWorkItem(itemId = "testId1"))
         testClock.advance(Duration.ofMinutes(2))
 
         val item = dao.takeNext(
@@ -330,7 +329,7 @@ internal class WorkItemsDAOImplTest {
 
     @Test
     fun `markInProgressItemAsSuccessful - Shall fail UnitOfWork if the item is not IN_PROGRESS`(): Unit = runBlocking {
-        debugInsertItem(makeWorkItem(itemId = "testId1", queueId = "testQueueId", watchdogOwner = "watchdog"))
+        debugInsertItems(makeWorkItem(itemId = "testId1", queueId = "testQueueId", watchdogOwner = "watchdog"))
         testClock.advance(Duration.ofMinutes(2))
 
         val unitOfWork = unitOfWorkFactory.create()
@@ -356,7 +355,7 @@ internal class WorkItemsDAOImplTest {
 
     @Test
     fun `markInProgressItemAsFailed - Shall move an IN_PROGRESS item to FAILED`(): Unit = runBlocking {
-        debugInsertItem(makeWorkItem(itemId = "testId1"))
+        debugInsertItems(makeWorkItem(itemId = "testId1"))
         testClock.advance(Duration.ofMinutes(2))
 
         val item = dao.takeNext(
@@ -395,7 +394,7 @@ internal class WorkItemsDAOImplTest {
 
     @Test
     fun `markInProgressItemAsFailed - Shall record state transition events`(): Unit = runBlocking {
-        debugInsertItem(makeWorkItem(itemId = "testId1"))
+        debugInsertItems(makeWorkItem(itemId = "testId1"))
         testClock.advance(Duration.ofMinutes(2))
 
         val item = dao.takeNext(
@@ -432,7 +431,7 @@ internal class WorkItemsDAOImplTest {
 
     @Test
     fun `markInProgressItemAsFailed - Shall increment the number of failures`(): Unit = runBlocking {
-        debugInsertItem(makeWorkItem(itemId = "testId1", numFailures = 2))
+        debugInsertItems(makeWorkItem(itemId = "testId1", numFailures = 2))
         testClock.advance(Duration.ofMinutes(2))
 
         val item = dao.takeNext(
@@ -466,7 +465,7 @@ internal class WorkItemsDAOImplTest {
 
     @Test
     fun `markInProgressItemAsFailed - Shall fail UnitOfWork if the watchdog is incorrect`(): Unit = runBlocking {
-        debugInsertItem(makeWorkItem(itemId = "testId1"))
+        debugInsertItems(makeWorkItem(itemId = "testId1"))
         testClock.advance(Duration.ofMinutes(2))
 
         val item = dao.takeNext(
@@ -500,7 +499,7 @@ internal class WorkItemsDAOImplTest {
 
     @Test
     fun `markInProgressItemAsFailed - Shall fail UnitOfWork if the item is not IN_PROGRESS`(): Unit = runBlocking {
-        debugInsertItem(makeWorkItem(itemId = "testId1", queueId = "testQueueId", watchdogOwner = "watchdog"))
+        debugInsertItems(makeWorkItem(itemId = "testId1", queueId = "testQueueId", watchdogOwner = "watchdog"))
         testClock.advance(Duration.ofMinutes(2))
 
         val unitOfWork = unitOfWorkFactory.create()
@@ -526,7 +525,7 @@ internal class WorkItemsDAOImplTest {
 
     @Test
     fun `rescheduleInProgressItem - Shall move an IN_PROGRESS item to SCHEDULED`(): Unit = runBlocking {
-        debugInsertItem(makeWorkItem(itemId = "testId1"))
+        debugInsertItems(makeWorkItem(itemId = "testId1"))
         testClock.advance(Duration.ofMinutes(2))
 
         val item = dao.takeNext(
@@ -565,7 +564,7 @@ internal class WorkItemsDAOImplTest {
 
     @Test
     fun `rescheduleInProgressItem - Shall increment the number of failures`(): Unit = runBlocking {
-        debugInsertItem(makeWorkItem(itemId = "testId1", numFailures = 2))
+        debugInsertItems(makeWorkItem(itemId = "testId1", numFailures = 2))
         testClock.advance(Duration.ofMinutes(2))
 
         val item = dao.takeNext(
@@ -599,7 +598,7 @@ internal class WorkItemsDAOImplTest {
 
     @Test
     fun `rescheduleInProgressItem - Shall record state transition events`(): Unit = runBlocking {
-        debugInsertItem(makeWorkItem(itemId = "testId1"))
+        debugInsertItems(makeWorkItem(itemId = "testId1"))
         testClock.advance(Duration.ofMinutes(2))
 
         val item = dao.takeNext(
@@ -635,7 +634,7 @@ internal class WorkItemsDAOImplTest {
 
     @Test
     fun `rescheduleInProgressItem - Shall fail UnitOfWork if the watchdog is incorrect`(): Unit = runBlocking {
-        debugInsertItem(makeWorkItem(itemId = "testId1"))
+        debugInsertItems(makeWorkItem(itemId = "testId1"))
         testClock.advance(Duration.ofMinutes(2))
 
         val item = dao.takeNext(
@@ -669,7 +668,7 @@ internal class WorkItemsDAOImplTest {
 
     @Test
     fun `rescheduleInProgressItem - Shall fail UnitOfWork if the item is not IN_PROGRESS`(): Unit = runBlocking {
-        debugInsertItem(makeWorkItem(itemId = "testId1", queueId = "testQueueId", watchdogOwner = "watchdog"))
+        debugInsertItems(makeWorkItem(itemId = "testId1", queueId = "testQueueId", watchdogOwner = "watchdog"))
         testClock.advance(Duration.ofMinutes(2))
 
         val unitOfWork = unitOfWorkFactory.create()
@@ -702,7 +701,7 @@ internal class WorkItemsDAOImplTest {
             nextScheduledFor = null,
         )
 
-        debugInsertItem(insertedItem)
+        debugInsertItems(insertedItem)
 
         testClock.advance(Duration.ofDays(1))
 
@@ -741,7 +740,7 @@ internal class WorkItemsDAOImplTest {
             nextScheduledFor = null,
         )
 
-        debugInsertItem(insertedItem)
+        debugInsertItems(insertedItem)
 
         testClock.advance(Duration.ofDays(1))
 
@@ -774,7 +773,7 @@ internal class WorkItemsDAOImplTest {
             queueId = "testQueueId"
         )
 
-        debugInsertItem(insertedItem)
+        debugInsertItems(insertedItem)
 
         testClock.advance(Duration.ofDays(1))
 
@@ -809,7 +808,7 @@ internal class WorkItemsDAOImplTest {
             watchdogTimestamp = testClock.dbNow
         )
 
-        debugInsertItem(insertedItem)
+        debugInsertItems(insertedItem)
 
         testClock.advance(Duration.ofDays(1))
 
@@ -853,7 +852,7 @@ internal class WorkItemsDAOImplTest {
             watchdogTimestamp = testClock.dbNow
         )
 
-        debugInsertItem(insertedItem)
+        debugInsertItems(insertedItem)
 
         testClock.advance(Duration.ofDays(1))
 
@@ -891,7 +890,7 @@ internal class WorkItemsDAOImplTest {
             watchdogTimestamp = testClock.dbNow
         )
 
-        debugInsertItem(insertedItem)
+        debugInsertItems(insertedItem)
 
         testClock.advance(Duration.ofDays(1))
 
@@ -929,7 +928,7 @@ internal class WorkItemsDAOImplTest {
             watchdogTimestamp = testClock.dbNow
         )
 
-        debugInsertItem(insertedItem)
+        debugInsertItems(insertedItem)
 
         testClock.advance(Duration.ofDays(1))
 
@@ -952,13 +951,57 @@ internal class WorkItemsDAOImplTest {
         }.isInstanceOf(MinimumAffectedRowsException::class.java)
     }
 
+    @Test
+    fun `rescheduleAllFailedItems - Shall reschedule all failed items`(): Unit = runBlocking {
+        val queueId = "testQueueId".toWorkItemQueueId()
+
+        debugInsertItems(
+            makeWorkItem("1", state = WorkItemState.FAILED.dbOrdinal),
+            makeWorkItem("2", state = WorkItemState.FAILED.dbOrdinal),
+            makeWorkItem("3", state = WorkItemState.SUCCESSFUL.dbOrdinal),
+        )
+
+        val now = testClock.dbNow
+
+        dao.rescheduleAllFailedItems(queueId, now)
+
+        val item1 = dao.getById(queueId, "1".toWorkItemId())!!
+        val item2 = dao.getById(queueId, "2".toWorkItemId())!!
+        val item3 = dao.getById(queueId, "3".toWorkItemId())!!
+
+        assertThat(item1.state).isEqualTo(WorkItemState.SCHEDULED.dbOrdinal)
+        assertThat(item1.nextScheduledFor).isEqualTo(now)
+
+        assertThat(item2.state).isEqualTo(WorkItemState.SCHEDULED.dbOrdinal)
+        assertThat(item2.nextScheduledFor).isEqualTo(now)
+
+        assertThat(item3.state).isEqualTo(WorkItemState.SUCCESSFUL.dbOrdinal)
+    }
+
+    @Test
+    fun `rescheduleAllFailedItems - Shall record state transition events`(): Unit = runBlocking {
+        // Arrange
+        val insertedItem = makeWorkItem("1", state = WorkItemState.FAILED.dbOrdinal)
+        debugInsertItems(insertedItem)
+
+        val now = testClock.dbNow
+
+        // Act
+        dao.rescheduleAllFailedItems(insertedItem.queueId.toWorkItemQueueId(), now)
+
+        // Assert
+        assertTransitionEvents(
+            insertedItem,
+            { it is WorkItemEvent.ManuallyRescheduled && it.timestamp == now && it.scheduledFor == now }
+        )
+    }
 
     @Test
     fun `deleteExpiredItems - Shall delete all items with an expiration time equal to or less than now`(): Unit =
         runBlocking {
-            debugInsertItem(makeWorkItem("1", expiresAt = Instant.parse("2025-03-02T09:59:59Z")))
-            debugInsertItem(makeWorkItem("2", expiresAt = Instant.parse("2025-03-02T10:00:00Z")))
-            debugInsertItem(makeWorkItem("3", expiresAt = Instant.parse("2025-03-02T10:00:01Z")))
+            debugInsertItems(makeWorkItem("1", expiresAt = Instant.parse("2025-03-02T09:59:59Z")))
+            debugInsertItems(makeWorkItem("2", expiresAt = Instant.parse("2025-03-02T10:00:00Z")))
+            debugInsertItems(makeWorkItem("3", expiresAt = Instant.parse("2025-03-02T10:00:01Z")))
 
             testClock.reset(Instant.parse("2025-03-02T10:00:00Z"))
 
@@ -971,9 +1014,11 @@ internal class WorkItemsDAOImplTest {
             assertThat(allItems[0].itemId).isEqualTo("3")
         }
 
-    private suspend fun debugInsertItem(item: WorkItemDbEntity) {
+    private suspend fun debugInsertItems(vararg items: WorkItemDbEntity) {
         ufw.database.unitOfWorkFactory.use {
-            dao.debugInsert(item, unitOfWork = it)
+            for (item in items) {
+                dao.debugInsert(item, unitOfWork = it)
+            }
         }
     }
 

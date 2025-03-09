@@ -1,13 +1,14 @@
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline"
+import PlaylistPlayIcon from "@mui/icons-material/PlaylistPlay"
 import { Box, Button, Card, CardActionArea, CardContent, Skeleton, Typography } from "@mui/material"
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import * as React from "react"
 import Markdown from "react-markdown"
 import { Link, LinkProps, useParams } from "react-router"
 import { Page, PropertyText } from "../../../../common/components"
+import { RescheduleAllFailedJobsCommand } from "../../commands/RescheduleAllJobsCommand"
 import { JobQueueDetails, JobType } from "../../models/JobQueueDetails"
 import { JobQueueDetailsQuery } from "../../queries/JobQueueDetailsQuery"
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline"
-import PlaylistPlayIcon from "@mui/icons-material/PlaylistPlay"
 
 import classes from "./JobQueueDetailsPage.module.css"
 
@@ -94,23 +95,33 @@ const StatCard = (props: {
 }
 
 const QueueActionsSection = (props: { queueId: string }) => {
-  const {  } = props
+  const { queueId } = props
+
+  const rescheduleAllFailedJobsCommand = useMutation(RescheduleAllFailedJobsCommand)
+
+  const handleRescheduleAllFailedJobsClick = () => {
+    rescheduleAllFailedJobsCommand.mutate({ queueId })
+  }
+
+  // TODO show errors
+
   return (
     <>
       <PageSectionHeader>Actions</PageSectionHeader>
       <Box sx={{ display: "flex", gap: 2, flexDirection: "column" }}>
         <Button
           variant={"contained"}
-          children={"Rescheduled all failed jobs"}
-          startIcon={<PlaylistPlayIcon />}
           sx={{ alignSelf: "flex-start" }}
+          startIcon={<PlaylistPlayIcon />}
+          onClick={handleRescheduleAllFailedJobsClick}
+          children={"Rescheduled all failed jobs"}
         />
         <Button
           color={"error"}
           variant={"contained"}
-          children={"Delete all failed jobs"}
-          startIcon={<DeleteOutlineIcon />}
           sx={{ alignSelf: "flex-start" }}
+          startIcon={<DeleteOutlineIcon />}
+          children={"Delete all failed jobs"}
         />
       </Box>
     </>

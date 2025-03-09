@@ -1,9 +1,11 @@
 package io.tpersson.ufw.jobqueue.admin
 
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.tpersson.ufw.admin.AdminModule
+import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.jobqueue.internal.JobQueueInternal
 import io.tpersson.ufw.jobqueue.JobQueueId
 import io.tpersson.ufw.jobqueue.internal.DurableJobDefinition
@@ -18,6 +20,8 @@ public class JobQueueAdminModule @Inject constructor(
     private val durableJobHandlersProvider: DurableJobHandlersProvider,
     private val jobQueue: JobQueueInternal
 ) : AdminModule {
+
+    private val logger = createLogger()
 
     public override val moduleId: String = "job-queue"
 
@@ -76,6 +80,16 @@ public class JobQueueAdminModule @Inject constructor(
                 )
 
                 call.respond(details)
+            }
+
+            post("/admin/api/job-queue/queues/{queueId}/actions/reschedule-all-failed-jobs") {
+                val queueId = JobQueueId.fromString(call.parameters["queueId"]!!)
+
+                jobQueue.rescheduleAllFailedJobs(queueId)
+
+                logger.info("Rescheduled all failed jobs for queue: $queueId")
+
+                call.respond(HttpStatusCode.NoContent)
             }
         }
     }

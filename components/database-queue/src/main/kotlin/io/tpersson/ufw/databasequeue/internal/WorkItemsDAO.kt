@@ -92,6 +92,11 @@ public interface WorkItemsDAO {
         unitOfWork: UnitOfWork,
     )
 
+    public suspend fun rescheduleAllFailedItems(
+        queueId: WorkItemQueueId,
+        now: Instant,
+    )
+
     public suspend fun getEventsForItem(
         queueId: WorkItemQueueId,
         itemId: WorkItemId
@@ -109,4 +114,6 @@ public interface WorkItemsDAO {
     )
 
     public suspend fun debugTruncate()
+
+
 }
