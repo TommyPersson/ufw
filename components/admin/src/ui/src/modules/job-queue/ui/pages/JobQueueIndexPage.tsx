@@ -44,7 +44,7 @@ export const JobQueueIndexPage = () => {
                 const hasFailures = it.numFailed > 0
 
                 return (
-                  <TableRow hover>
+                  <TableRow hover key={it.queueId}>
                     <TableCell>
                       <WarningIcon
                         color={"warning"}

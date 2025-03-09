@@ -6,3 +6,4 @@ export type JobQueueListItem = {
   numInProgress: number
   numFailed: number
 }
+

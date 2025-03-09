@@ -6,6 +6,7 @@ import io.ktor.server.routing.*
 import io.tpersson.ufw.admin.AdminModule
 import io.tpersson.ufw.jobqueue.internal.JobQueueInternal
 import io.tpersson.ufw.jobqueue.v2.JobQueueId
+import io.tpersson.ufw.jobqueue.v2.internal.DurableJobDefinition
 import io.tpersson.ufw.jobqueue.v2.internal.DurableJobHandlersProvider
 import io.tpersson.ufw.jobqueue.v2.internal.jobDefinition
 import jakarta.inject.Inject
@@ -20,6 +21,12 @@ public class JobQueueAdminModule @Inject constructor(
 
     public override val moduleId: String = "job-queue"
 
+    private val jobHandlerDefinitions: List<DurableJobDefinition<*>> by lazy {
+        durableJobHandlersProvider.get()
+            .map { it.jobDefinition }
+            .sortedBy { it.queueId }
+    }
+
     override fun configure(application: Application) {
         application.routing {
             get("/admin/api/job-queue/hello") {
@@ -28,7 +35,7 @@ public class JobQueueAdminModule @Inject constructor(
 
             get("/admin/api/job-queue/queues") {
                 coroutineScope {
-                    val queueIds = durableJobHandlersProvider.get().map { it.jobDefinition.queueId }
+                    val queueIds = jobHandlerDefinitions.map { it.queueId }
                     val listItems = queueIds.map { queueId ->
                         async {
                             val stats = jobQueue.getQueueStatistics(queueId)
@@ -44,7 +51,31 @@ public class JobQueueAdminModule @Inject constructor(
 
                     call.respond(listItems)
                 }
+            }
 
+            get("/admin/api/job-queue/queues/{queueId}/details") {
+                val queueId = JobQueueId.fromString(call.parameters["queueId"]!!)
+
+                val handlers = jobHandlerDefinitions.filter { it.queueId == queueId }
+
+                val stats = jobQueue.getQueueStatistics(queueId)
+
+                val details = QueueDetailsDTO(
+                    queueId = queueId,
+                    numScheduled = stats.numScheduled,
+                    numPending = stats.numPending,
+                    numInProgress = stats.numInProgress,
+                    numFailed = stats.numFailed,
+                    jobTypes = handlers.map {
+                        QueueDetailsDTO.JobType(
+                            type = it.type,
+                            jobClassName = it.jobClass.simpleName!!,
+                            description = it.description
+                        )
+                    }
+                )
+
+                call.respond(details)
             }
         }
     }
@@ -57,3 +88,18 @@ public data class QueueListItemDTO(
     val numInProgress: Int,
     val numFailed: Int,
 )
+
+public data class QueueDetailsDTO(
+    val queueId: JobQueueId,
+    val numScheduled: Int,
+    val numPending: Int,
+    val numInProgress: Int,
+    val numFailed: Int,
+    val jobTypes: List<JobType>,
+) {
+    public data class JobType(
+        val type: String,
+        val jobClassName: String,
+        val description: String?,
+    )
+}

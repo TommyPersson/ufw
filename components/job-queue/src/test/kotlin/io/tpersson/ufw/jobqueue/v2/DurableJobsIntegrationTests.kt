@@ -108,7 +108,7 @@ internal class DurableJobsIntegrationTests {
 )
 public data class MyJob(
     val greeting: String,
-    override val id: String = UUID.randomUUID().toString(),
+    override val id: JobId = JobId.new(),
 ) : DurableJob
 
 

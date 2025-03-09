@@ -6,6 +6,11 @@ import io.tpersson.ufw.jobqueue.v2.*
 import jakarta.inject.Inject
 import org.slf4j.MDC
 
+@WithDurableJobDefinition(
+    description = """
+This is a very **cool** job that prints *things*!
+    """
+)
 public data class PrintJob2(
     val text: String,
     override val id: JobId = JobId.new()

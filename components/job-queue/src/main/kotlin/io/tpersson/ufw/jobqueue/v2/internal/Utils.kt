@@ -27,9 +27,10 @@ public val <TJob : DurableJob> DurableJobHandler<TJob>.jobDefinition: DurableJob
 public val <TJob : DurableJob> KClass<TJob>.jobDefinition2: DurableJobDefinition<TJob>
     get() = findAnnotation<WithDurableJobDefinition>().let { annotation ->
         DurableJobDefinition(
-            queueId = JobQueueId.fromString(annotation?.queueId ?: simpleName!!),
-            type = annotation?.type ?: simpleName!!,
+            queueId = JobQueueId.fromString(annotation?.queueId.ifNullOrBlank { simpleName!!}),
+            type = annotation?.type.ifNullOrBlank { simpleName!! },
             jobClass = this,
+            description = annotation?.description?.trim(),
         )
     }
 
@@ -40,4 +41,8 @@ public fun JobQueueId.toWorkItemQueueId(): WorkItemQueueId {
 
 public fun JobId.toWorkItemId(): WorkItemId {
     return WorkItemId(this.value)
+}
+
+public fun String?.ifNullOrBlank(default: () -> String): String {
+    return if (this.isNullOrBlank()) default() else this
 }

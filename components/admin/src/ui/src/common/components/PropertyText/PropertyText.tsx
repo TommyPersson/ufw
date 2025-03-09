@@ -4,13 +4,18 @@ import { SxProps } from "@mui/system"
 
 export const PropertyText = (props: {
   title: string,
-  subtitle: string,
+  subtitle: any,
+  noSubtitleStyling?: boolean
   sx?: SxProps<Theme>
 }) => {
+  const subtitle = props.noSubtitleStyling
+    ? props.subtitle
+    : <Typography variant={"subtitle2"}>{props.subtitle}</Typography>
+
   return (
     <Box sx={props.sx}>
       <Typography variant={"caption"}>{props.title}</Typography>
-      <Typography variant={"subtitle2"}>{props.subtitle}</Typography>
+      {subtitle}
     </Box>
   )
 }
