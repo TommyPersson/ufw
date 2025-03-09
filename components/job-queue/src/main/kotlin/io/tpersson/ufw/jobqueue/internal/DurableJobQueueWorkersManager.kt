@@ -1,4 +1,4 @@
-package io.tpersson.ufw.jobqueue.v2.internal
+package io.tpersson.ufw.jobqueue.internal
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.tpersson.ufw.core.NamedBindings
@@ -6,8 +6,8 @@ import io.tpersson.ufw.databasequeue.WorkItemHandler
 import io.tpersson.ufw.databasequeue.WorkItemQueueId
 import io.tpersson.ufw.databasequeue.worker.AbstractWorkQueueManager
 import io.tpersson.ufw.databasequeue.worker.DatabaseQueueWorkerFactory
-import io.tpersson.ufw.jobqueue.v2.DurableJob
-import io.tpersson.ufw.jobqueue.v2.DurableJobHandler
+import io.tpersson.ufw.jobqueue.DurableJob
+import io.tpersson.ufw.jobqueue.DurableJobHandler
 import jakarta.inject.Inject
 import jakarta.inject.Named
 

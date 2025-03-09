@@ -1,9 +1,9 @@
-package io.tpersson.ufw.jobqueue.v2.internal
+package io.tpersson.ufw.jobqueue.internal
 
 import io.tpersson.ufw.databasequeue.WorkItemId
 import io.tpersson.ufw.databasequeue.WorkItemQueueId
 import io.tpersson.ufw.databasequeue.convertQueueId
-import io.tpersson.ufw.jobqueue.v2.*
+import io.tpersson.ufw.jobqueue.*
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
 

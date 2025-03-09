@@ -1,4 +1,4 @@
-package io.tpersson.ufw.jobqueue.v2.internal
+package io.tpersson.ufw.jobqueue.internal
 
 import io.tpersson.ufw.databasequeue.DatabaseQueueAdapterSettings
 

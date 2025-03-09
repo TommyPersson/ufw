@@ -6,11 +6,14 @@ import io.tpersson.ufw.core.dsl.UFW
 import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.databasequeue.FailureAction
+import io.tpersson.ufw.databasequeue.WorkItemId
 import io.tpersson.ufw.databasequeue.WorkItemState
 import io.tpersson.ufw.databasequeue.dsl.databaseQueue
-import io.tpersson.ufw.jobqueue.IntegrationTests.TestInstantSource
+import io.tpersson.ufw.jobqueue.*
 import io.tpersson.ufw.jobqueue.dsl.jobQueue
+import io.tpersson.ufw.jobqueue.internal.toWorkItemQueueId
 import io.tpersson.ufw.managed.dsl.managed
+import io.tpersson.ufw.test.TestInstantSource
 import io.tpersson.ufw.test.suspendingUntil
 import kotlinx.coroutines.runBlocking
 import org.awaitility.kotlin.await
@@ -21,7 +24,6 @@ import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.lifecycle.Startables
 import org.testcontainers.utility.DockerImageName
 import java.time.Duration
-import java.util.*
 
 internal class DurableJobsIntegrationTests {
 
@@ -92,12 +94,15 @@ internal class DurableJobsIntegrationTests {
     fun test1(): Unit = runBlocking {
         val uow = unitOfWorkFactory.create()
 
-        ufw.jobQueue.jobQueue.enqueue(MyJob(id = "the-id", greeting = "Hello"), unitOfWork = uow)
+        ufw.jobQueue.jobQueue.enqueue(MyJob(id = JobId("the-id"), greeting = "Hello"), unitOfWork = uow)
 
         uow.commit()
 
         await.suspendingUntil {
-            workItemsDAO.getById("jq__MyJobs", "the-id")?.state == WorkItemState.SUCCESSFUL.dbOrdinal
+            workItemsDAO.getById(
+                queueId = JobQueueId("MyJobs").toWorkItemQueueId(),
+                itemId = WorkItemId("the-id")
+            )?.state == WorkItemState.SUCCESSFUL.dbOrdinal
         }
     }
 }

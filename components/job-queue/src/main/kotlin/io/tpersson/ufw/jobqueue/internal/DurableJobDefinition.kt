@@ -1,6 +1,6 @@
-package io.tpersson.ufw.jobqueue.v2.internal
+package io.tpersson.ufw.jobqueue.internal
 
-import io.tpersson.ufw.jobqueue.v2.JobQueueId
+import io.tpersson.ufw.jobqueue.JobQueueId
 import kotlin.reflect.KClass
 
 public data class DurableJobDefinition<TJob : Any>(

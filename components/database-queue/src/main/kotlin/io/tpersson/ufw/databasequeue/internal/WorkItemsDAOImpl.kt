@@ -371,6 +371,7 @@ public class WorkItemsDAOImpl @Inject constructor(
                     SELECT uid 
                     FROM $TableName nj
                     WHERE state = ${WorkItemState.SCHEDULED.dbOrdinal}
+                      AND queue_id = :queueId
                       AND (nj.concurrency_key IS NULL OR 0 = (
                         SELECT count(ipj.*)
                         FROM in_progress_jobs ipj

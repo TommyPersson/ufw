@@ -1,6 +1,8 @@
 package io.tpersson.ufw.databasequeue.worker
 
 import io.tpersson.ufw.databasequeue.WorkItemHandler
+import io.tpersson.ufw.databasequeue.WorkItemQueueId
+import io.tpersson.ufw.databasequeue.toWorkItemQueueId
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.isActive
@@ -30,7 +32,7 @@ internal class DatabaseQueueWorkerTest {
         whenever(processorFactoryMock.create(any(), any())).thenReturn(processorMock)
 
         worker = DatabaseQueueWorker(
-            queueId = "queue-1",
+            queueId = "queue-1".toWorkItemQueueId(),
             handlersByType = emptyMap(),
             processorFactory = processorFactoryMock,
             adapterSettings = mock()
@@ -64,7 +66,7 @@ internal class DatabaseQueueWorkerTest {
 
         whenever(processorFactoryMock.create(any(), any())).thenReturn(object : SingleWorkItemProcessor {
             override suspend fun processSingleItem(
-                queueId: String,
+                queueId: WorkItemQueueId,
                 typeHandlerMappings: Map<String, WorkItemHandler<*>>
             ): Boolean {
                 startedProcessingLatch.complete(Unit)
@@ -75,7 +77,7 @@ internal class DatabaseQueueWorkerTest {
         })
 
         worker = DatabaseQueueWorker(
-            queueId = "queue-1",
+            queueId = "queue-1".toWorkItemQueueId(),
             handlersByType = emptyMap(),
             processorFactory = processorFactoryMock,
             adapterSettings = mock()

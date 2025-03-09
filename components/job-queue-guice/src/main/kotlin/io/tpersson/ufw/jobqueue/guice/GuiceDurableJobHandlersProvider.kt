@@ -3,8 +3,8 @@ package io.tpersson.ufw.jobqueue.guice
 import com.google.inject.Injector
 import io.github.classgraph.ScanResult
 import io.tpersson.ufw.core.NamedBindings
-import io.tpersson.ufw.jobqueue.v2.DurableJobHandler
-import io.tpersson.ufw.jobqueue.v2.internal.DurableJobHandlersProvider
+import io.tpersson.ufw.jobqueue.DurableJobHandler
+import io.tpersson.ufw.jobqueue.internal.DurableJobHandlersProvider
 import jakarta.inject.Inject
 import jakarta.inject.Named
 

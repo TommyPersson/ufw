@@ -1,18 +1,14 @@
 package io.tpersson.ufw.jobqueue.dsl
 
 import io.tpersson.ufw.admin.AdminComponent
-import io.tpersson.ufw.admin.AdminComponentConfig
-import io.tpersson.ufw.admin.dsl.admin
 import io.tpersson.ufw.core.dsl.UFWBuilder
 import io.tpersson.ufw.core.dsl.UFWRegistry
 import io.tpersson.ufw.core.dsl.UfwDslMarker
 import io.tpersson.ufw.core.dsl.core
-import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.databasequeue.dsl.databaseQueue
-import io.tpersson.ufw.jobqueue.JobHandler
+import io.tpersson.ufw.jobqueue.DurableJobHandler
 import io.tpersson.ufw.jobqueue.JobQueueComponent
 import io.tpersson.ufw.jobqueue.JobQueueConfig
-import io.tpersson.ufw.jobqueue.v2.DurableJobHandler
 import io.tpersson.ufw.managed.dsl.managed
 import java.time.Duration
 
@@ -23,7 +19,6 @@ public fun UFWBuilder.RootBuilder.jobQueue(builder: JobQueueComponentBuilder.() 
 
 @UfwDslMarker
 public class JobQueueComponentBuilder(private val components: UFWRegistry) {
-    public var handlers: Set<JobHandler<*>> = emptySet()
     public var durableJobHandlers: Set<DurableJobHandler<*>> = emptySet()
     public var config: JobQueueConfig = JobQueueConfig()
 
@@ -35,11 +30,9 @@ public class JobQueueComponentBuilder(private val components: UFWRegistry) {
         return JobQueueComponent.create(
             coreComponent = components.core,
             managedComponent = components.managed,
-            databaseComponent = components.database,
             databaseQueueComponent = components.databaseQueue,
             adminComponent = components._components["Admin"] as? AdminComponent?,
             config = config,
-            jobHandlers = handlers,
             durableJobHandlers = durableJobHandlers,
         )
     }

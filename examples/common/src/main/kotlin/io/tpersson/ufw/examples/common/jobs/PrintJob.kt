@@ -1,15 +1,16 @@
 package io.tpersson.ufw.examples.common.jobs
 
 import io.tpersson.ufw.core.logging.createLogger
+import io.tpersson.ufw.databasequeue.FailureAction
 import io.tpersson.ufw.jobqueue.*
 import jakarta.inject.Inject
 
 public data class PrintJob(
     val text: String,
-    override val jobId: JobId = JobId.new()
-) : Job
+    override val id: JobId = JobId.new()
+) : DurableJob
 
-public class PrintJobHandler @Inject constructor() : JobHandler<PrintJob>() {
+public class PrintJobHandler @Inject constructor() : DurableJobHandler<PrintJob> {
 
     private val logger = createLogger()
 

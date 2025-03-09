@@ -7,18 +7,14 @@ import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.databasequeue.DatabaseQueueComponent
 import io.tpersson.ufw.jobqueue.admin.JobQueueAdminModule
 import io.tpersson.ufw.jobqueue.internal.*
-import io.tpersson.ufw.jobqueue.v2.internal.metrics.JobStateMetric
-import io.tpersson.ufw.jobqueue.v2.DurableJobHandler
-import io.tpersson.ufw.jobqueue.v2.internal.DurableJobQueueWorkersManager
-import io.tpersson.ufw.jobqueue.v2.internal.SimpleDurableJobHandlersProvider
+import io.tpersson.ufw.jobqueue.internal.metrics.JobStateMetric
+import io.tpersson.ufw.jobqueue.internal.DurableJobQueueWorkersManager
+import io.tpersson.ufw.jobqueue.internal.SimpleDurableJobHandlersProvider
 import io.tpersson.ufw.managed.ManagedComponent
 import jakarta.inject.Inject
 
 public class JobQueueComponent @Inject constructor(
     public val jobQueue: JobQueue,
-    internal val jobsDAO: JobsDAO,
-    internal val jobFailureRepository: JobFailureRepository,
-    internal val staleJobRescheduler: StaleJobRescheduler,
 ) {
     init {
         Migrator.registerMigrationScript(
@@ -31,11 +27,9 @@ public class JobQueueComponent @Inject constructor(
         public fun create(
             coreComponent: CoreComponent,
             managedComponent: ManagedComponent,
-            databaseComponent: DatabaseComponent,
             databaseQueueComponent: DatabaseQueueComponent,
             adminComponent: AdminComponent?,
             config: JobQueueConfig,
-            jobHandlers: Set<JobHandler<*>>,
             durableJobHandlers: Set<DurableJobHandler<*>>,
         ): JobQueueComponent {
 
@@ -47,46 +41,13 @@ public class JobQueueComponent @Inject constructor(
                 objectMapper = coreComponent.objectMapper,
             )
 
-            val jobRepository = JobsDAOImpl(
-                database = databaseComponent.database,
-                objectMapper = coreComponent.objectMapper
-            )
 
-            val jobFailureRepository = JobFailureRepositoryImpl(
-                database = databaseComponent.database,
-            )
 
             val jobQueue = JobQueueImpl(
                 config = config,
                 clock = coreComponent.clock,
-                jobsDAO = jobRepository,
-                jobFailureRepository = jobFailureRepository,
                 workItemsDAO = databaseQueueComponent.workItemsDAO,
                 objectMapper = coreComponent.objectMapper,
-            )
-
-            val jobHandlersProvider = SimpleJobHandlersProvider(jobHandlers)
-
-            val jobQueueRunner = JobQueueRunner(
-                jobQueue = jobQueue,
-                jobsDAO = jobRepository,
-                unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
-                jobHandlersProvider = jobHandlersProvider,
-                clock = coreComponent.clock,
-                config = config,
-                meterRegistry = coreComponent.meterRegistry
-            )
-
-            val staleJobRescheduler = StaleJobRescheduler(
-                jobsDAO = jobRepository,
-                clock = coreComponent.clock,
-                config = config,
-            )
-
-            val expiredJobReaper = ExpiredJobReaper(
-                jobsDAO = jobRepository,
-                clock = coreComponent.clock,
-                config = config
             )
 
             val jobStateMetric = JobStateMetric(
@@ -96,9 +57,6 @@ public class JobQueueComponent @Inject constructor(
                 config = config,
             )
 
-            managedComponent.register(jobQueueRunner)
-            managedComponent.register(staleJobRescheduler)
-            managedComponent.register(expiredJobReaper)
             managedComponent.register(jobStateMetric)
             managedComponent.register(durableJobQueueWorkersManager)
 
@@ -106,9 +64,6 @@ public class JobQueueComponent @Inject constructor(
 
             return JobQueueComponent(
                 jobQueue = jobQueue,
-                jobsDAO = jobRepository,
-                jobFailureRepository = jobFailureRepository,
-                staleJobRescheduler = staleJobRescheduler
             )
         }
     }

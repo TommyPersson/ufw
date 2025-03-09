@@ -1,4 +1,4 @@
-package io.tpersson.ufw.jobqueue.v2.internal
+package io.tpersson.ufw.jobqueue.internal
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
@@ -7,10 +7,10 @@ import io.tpersson.ufw.databasequeue.WorkItemContext
 import io.tpersson.ufw.databasequeue.WorkItemFailureContext
 import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
 import io.tpersson.ufw.databasequeue.WorkItemHandler
-import io.tpersson.ufw.jobqueue.v2.DurableJob
-import io.tpersson.ufw.jobqueue.v2.DurableJobHandler
-import io.tpersson.ufw.jobqueue.v2.JobContext
-import io.tpersson.ufw.jobqueue.v2.JobFailureContext
+import io.tpersson.ufw.jobqueue.DurableJob
+import io.tpersson.ufw.jobqueue.DurableJobHandler
+import io.tpersson.ufw.jobqueue.JobContext
+import io.tpersson.ufw.jobqueue.JobFailureContext
 import java.time.Instant
 import java.time.InstantSource
 

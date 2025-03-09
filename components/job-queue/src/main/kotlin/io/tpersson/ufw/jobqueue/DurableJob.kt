@@ -1,4 +1,4 @@
-package io.tpersson.ufw.jobqueue.v2
+package io.tpersson.ufw.jobqueue
 
 public interface DurableJob {
     public val id: JobId

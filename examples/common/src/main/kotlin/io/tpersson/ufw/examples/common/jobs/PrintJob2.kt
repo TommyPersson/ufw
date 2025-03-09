@@ -2,7 +2,7 @@ package io.tpersson.ufw.examples.common.jobs
 
 import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.databasequeue.FailureAction
-import io.tpersson.ufw.jobqueue.v2.*
+import io.tpersson.ufw.jobqueue.*
 import jakarta.inject.Inject
 import org.slf4j.MDC
 

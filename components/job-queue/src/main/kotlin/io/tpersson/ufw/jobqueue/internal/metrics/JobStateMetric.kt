@@ -1,14 +1,14 @@
-package io.tpersson.ufw.jobqueue.v2.internal.metrics
+package io.tpersson.ufw.jobqueue.internal.metrics
 
 import io.micrometer.core.instrument.MeterRegistry
 import io.tpersson.ufw.databasequeue.WorkItemQueueId
 import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
 import io.tpersson.ufw.databasequeue.metrics.AbstractDatabaseQueueStateMetrics
 import io.tpersson.ufw.jobqueue.JobQueueConfig
-import io.tpersson.ufw.jobqueue.v2.internal.DurableJobHandlersProvider
-import io.tpersson.ufw.jobqueue.v2.internal.DurableJobsDatabaseQueueAdapterSettings
-import io.tpersson.ufw.jobqueue.v2.internal.jobDefinition
-import io.tpersson.ufw.jobqueue.v2.internal.toWorkItemQueueId
+import io.tpersson.ufw.jobqueue.internal.DurableJobHandlersProvider
+import io.tpersson.ufw.jobqueue.internal.DurableJobsDatabaseQueueAdapterSettings
+import io.tpersson.ufw.jobqueue.internal.jobDefinition
+import io.tpersson.ufw.jobqueue.internal.toWorkItemQueueId
 import jakarta.inject.Inject
 
 public class JobStateMetric @Inject constructor(

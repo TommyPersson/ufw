@@ -64,16 +64,18 @@ internal class SingleWorkItemProcessorImplTest {
 
     @Test
     fun `processSingleItem - Returns false if no item was taken from the queue`(): Unit = runBlocking {
+        val queueId = "queue-1".toWorkItemQueueId()
+
         stubNextWorkItem(
             item = null,
-            queueId = "queue-1"
+            queueId = queueId.value
         )
 
-        val result = processor.processSingleItem("queue-1", emptyMap())
+        val result = processor.processSingleItem(queueId, emptyMap())
 
         assertThat(result).isFalse()
 
-        verify(workItemsDAO).takeNext(eq("queue-1"), eq(watchdogId), eq(now))
+        verify(workItemsDAO).takeNext(eq(queueId), eq(watchdogId), eq(now))
     }
 
     @Test
@@ -84,7 +86,7 @@ internal class SingleWorkItemProcessorImplTest {
                 queueId = "queue-1"
             )!!
 
-            val result = processor.processSingleItem(stubbedWorkItem.queueId, typeHandlerMap)
+            val result = processor.processSingleItem(stubbedWorkItem.queueId.toWorkItemQueueId(), typeHandlerMap)
 
             assertThat(result).isTrue()
 
@@ -100,7 +102,7 @@ internal class SingleWorkItemProcessorImplTest {
                 queueId = "queue-1"
             )!!
 
-            val result = processor.processSingleItem(stubbedWorkItem.queueId, typeHandlerMap)
+            val result = processor.processSingleItem(stubbedWorkItem.queueId.toWorkItemQueueId(), typeHandlerMap)
 
             assertThat(result).isTrue()
         }
@@ -113,7 +115,7 @@ internal class SingleWorkItemProcessorImplTest {
                 queueId = "queue-1"
             )!!
 
-            val result = processor.processSingleItem(stubbedWorkItem.queueId, typeHandlerMap)
+            val result = processor.processSingleItem(stubbedWorkItem.queueId.toWorkItemQueueId(), typeHandlerMap)
 
             assertThat(result).isTrue()
         }
@@ -125,11 +127,11 @@ internal class SingleWorkItemProcessorImplTest {
             queueId = "queue-1"
         )!!
 
-        processor.processSingleItem(stubbedWorkItem.queueId, typeHandlerMap)
+        processor.processSingleItem(stubbedWorkItem.queueId.toWorkItemQueueId(), typeHandlerMap)
 
         verify(workItemsDAO).markInProgressItemAsSuccessful(
-            queueId = eq(stubbedWorkItem.queueId),
-            itemId = eq(stubbedWorkItem.itemId),
+            queueId = eq(stubbedWorkItem.queueId.toWorkItemQueueId()),
+            itemId = eq(stubbedWorkItem.itemId.toWorkItemId()),
             expiresAt = eq(now.plus(config.successfulItemExpirationDelay)),
             watchdogId = eq(watchdogId),
             now = eq(now),
@@ -146,11 +148,11 @@ internal class SingleWorkItemProcessorImplTest {
             queueId = "queue-1"
         )!!
 
-        processor.processSingleItem(stubbedWorkItem.queueId, typeHandlerMap)
+        processor.processSingleItem(stubbedWorkItem.queueId.toWorkItemQueueId(), typeHandlerMap)
 
         verify(workItemsDAO).markInProgressItemAsFailed(
-            queueId = eq(stubbedWorkItem.queueId),
-            itemId = eq(stubbedWorkItem.itemId),
+            queueId = eq(stubbedWorkItem.queueId.toWorkItemQueueId()),
+            itemId = eq(stubbedWorkItem.itemId.toWorkItemId()),
             expiresAt = eq(now.plus(config.failedItemExpirationDelay)),
             watchdogId = eq(watchdogId),
             now = eq(now),
@@ -170,11 +172,11 @@ internal class SingleWorkItemProcessorImplTest {
 
             TestWorkItem1Handler.failureAction = FailureAction.RescheduleNow
 
-            processor.processSingleItem(stubbedWorkItem.queueId, typeHandlerMap)
+            processor.processSingleItem(stubbedWorkItem.queueId.toWorkItemQueueId(), typeHandlerMap)
 
             verify(workItemsDAO).rescheduleInProgressItem(
-                queueId = eq(stubbedWorkItem.queueId),
-                itemId = eq(stubbedWorkItem.itemId),
+                queueId = eq(stubbedWorkItem.queueId.toWorkItemQueueId()),
+                itemId = eq(stubbedWorkItem.itemId.toWorkItemId()),
                 watchdogId = eq(watchdogId),
                 scheduleFor = same(now),
                 now = eq(now),
@@ -194,11 +196,11 @@ internal class SingleWorkItemProcessorImplTest {
 
             TestWorkItem1Handler.failureAction = FailureAction.RescheduleAt(rescheduleAt)
 
-            processor.processSingleItem(stubbedWorkItem.queueId, typeHandlerMap)
+            processor.processSingleItem(stubbedWorkItem.queueId.toWorkItemQueueId(), typeHandlerMap)
 
             verify(workItemsDAO).rescheduleInProgressItem(
-                queueId = eq(stubbedWorkItem.queueId),
-                itemId = eq(stubbedWorkItem.itemId),
+                queueId = eq(stubbedWorkItem.queueId.toWorkItemQueueId()),
+                itemId = eq(stubbedWorkItem.itemId.toWorkItemId()),
                 watchdogId = eq(watchdogId),
                 scheduleFor = same(rescheduleAt),
                 now = eq(now),
@@ -217,7 +219,7 @@ internal class SingleWorkItemProcessorImplTest {
 
         TestWorkItem1Handler.failureAction = FailureAction.RescheduleAt(rescheduleAt)
 
-        processor.processSingleItem(stubbedWorkItem.queueId, typeHandlerMap)
+        processor.processSingleItem(stubbedWorkItem.queueId.toWorkItemQueueId(), typeHandlerMap)
 
         verify(workItemFailuresDAO).insertFailure(
             failure = argWhere {
@@ -241,7 +243,7 @@ internal class SingleWorkItemProcessorImplTest {
             queueId = "queue-1"
         )!!
 
-        processor.processSingleItem(stubbedWorkItem.queueId, typeHandlerMap)
+        processor.processSingleItem(stubbedWorkItem.queueId.toWorkItemQueueId(), typeHandlerMap)
 
         assertThat(TestWorkItem1Handler.failureItem).isEqualTo(workItem)
 
@@ -259,13 +261,13 @@ internal class SingleWorkItemProcessorImplTest {
             queueId = "queue-1"
         )!!
 
-        processor.processSingleItem(stubbedWorkItem.queueId, typeHandlerMap)
+        processor.processSingleItem(stubbedWorkItem.queueId.toWorkItemQueueId(), typeHandlerMap)
 
         val unitOfWorkCaptor = argumentCaptor<UnitOfWork>()
 
         verify(workItemsDAO).markInProgressItemAsFailed(
-            queueId = eq(stubbedWorkItem.queueId),
-            itemId = eq(stubbedWorkItem.itemId),
+            queueId = eq(stubbedWorkItem.queueId.toWorkItemQueueId()),
+            itemId = eq(stubbedWorkItem.itemId.toWorkItemId()),
             expiresAt = eq(now.plus(config.failedItemExpirationDelay)),
             watchdogId = eq(watchdogId),
             now = eq(now),
@@ -296,7 +298,7 @@ internal class SingleWorkItemProcessorImplTest {
             queueId = "queue-1"
         )!!
 
-        processor.processSingleItem(stubbedWorkItem.queueId, typeHandlerMap)
+        processor.processSingleItem(stubbedWorkItem.queueId.toWorkItemQueueId(), typeHandlerMap)
 
         verify(TestWorkItem1Handler.successContextUnitOfWork!!, never()).commit()
         verify(TestWorkItem1Handler.failureContextUnitOfWork!!).commit()
@@ -309,7 +311,7 @@ internal class SingleWorkItemProcessorImplTest {
             queueId = "queue-1"
         )!!
 
-        processor.processSingleItem(stubbedWorkItem.queueId, typeHandlerMap)
+        processor.processSingleItem(stubbedWorkItem.queueId.toWorkItemQueueId(), typeHandlerMap)
 
         assertThat(TestWorkItem1Handler.failureContextUnitOfWork).isNull()
         verify(TestWorkItem1Handler.successContextUnitOfWork!!).commit()
@@ -322,7 +324,7 @@ internal class SingleWorkItemProcessorImplTest {
             queueId = "queue-1"
         )!!
 
-        processor.processSingleItem(stubbedWorkItem.queueId, typeHandlerMap)
+        processor.processSingleItem(stubbedWorkItem.queueId.toWorkItemQueueId(), typeHandlerMap)
 
         assertThat(TestWorkItem1Handler.mdc?.get(TestAdapterSettings.mdcQueueIdLabel))
             .isEqualTo(stubbedWorkItem.queueId)
@@ -342,7 +344,7 @@ internal class SingleWorkItemProcessorImplTest {
             )
         }
 
-        whenever(workItemsDAO.takeNext(eq(queueId), any(), any()))
+        whenever(workItemsDAO.takeNext(eq(queueId.toWorkItemQueueId()), any(), any()))
             .thenReturn(stubbedWorkItem)
 
         return stubbedWorkItem

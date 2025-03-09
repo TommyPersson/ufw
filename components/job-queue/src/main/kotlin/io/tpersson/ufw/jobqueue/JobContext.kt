@@ -1,8 +1,5 @@
 package io.tpersson.ufw.jobqueue
 
-import io.tpersson.ufw.database.unitofwork.UnitOfWork
+import io.tpersson.ufw.databasequeue.WorkItemContext
 
-public interface JobContext {
-    public val unitOfWork: UnitOfWork
-}
-
+public interface JobContext : WorkItemContext

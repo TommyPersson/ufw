@@ -87,8 +87,8 @@ internal class WorkItemsDAOImplTest {
 
         dao.scheduleNewItem(
             newItem = NewWorkItem(
-                queueId = "testQueueId",
-                itemId = "testId",
+                queueId = "testQueueId".toWorkItemQueueId(),
+                itemId = "testId".toWorkItemId(),
                 type = "testType",
                 metadataJson = "metadataJson",
                 concurrencyKey = "concurrencyKey",
@@ -101,7 +101,7 @@ internal class WorkItemsDAOImplTest {
 
         unitOfWork.commit()
 
-        val item = dao.getById(queueId = "testQueueId", itemId = "testId")!!
+        val item = dao.getById("testQueueId".toWorkItemQueueId(), "testId".toWorkItemId())!!
 
         assertThat(item.uid).isGreaterThan(0)
         assertThat(item.itemId).isEqualTo("testId")
@@ -129,8 +129,8 @@ internal class WorkItemsDAOImplTest {
 
         dao.scheduleNewItem(
             newItem = NewWorkItem(
-                queueId = "testQueueId",
-                itemId = "testId",
+                queueId = "testQueueId".toWorkItemQueueId(),
+                itemId = "testId".toWorkItemId(),
                 type = "testType",
                 metadataJson = "metadataJson",
                 concurrencyKey = "concurrencyKey",
@@ -143,7 +143,7 @@ internal class WorkItemsDAOImplTest {
 
         unitOfWork.commit()
 
-        val item = dao.getById(queueId = "testQueueId", itemId = "testId")!!
+        val item = dao.getById("testQueueId".toWorkItemQueueId(), "testId".toWorkItemId())!!
 
         assertTransitionEvents(
             item,
@@ -159,7 +159,7 @@ internal class WorkItemsDAOImplTest {
         val now = testClock.instant().truncatedTo(ChronoUnit.MILLIS)
 
         run {
-            val item = dao.takeNext(queueId = "testQueueId", watchdogId = "testWatchdog", now = now)
+            val item = dao.takeNext("testQueueId".toWorkItemQueueId(), watchdogId = "testWatchdog", now = now)
 
             assertThat(item?.state).isEqualTo(WorkItemState.IN_PROGRESS.dbOrdinal)
             assertThat(item?.stateChangedAt).isEqualTo(now)
@@ -188,13 +188,13 @@ internal class WorkItemsDAOImplTest {
             val now = testClock.instant().truncatedTo(ChronoUnit.MILLIS)
 
             run {
-                val item = dao.takeNext(queueId = "testQueueId", watchdogId = "testWatchdog", now = now)
+                val item = dao.takeNext("testQueueId".toWorkItemQueueId(), watchdogId = "testWatchdog", now = now)
 
                 assertThat(item?.itemId).isEqualTo("testId1")
             }
 
             run {
-                val item = dao.takeNext(queueId = "testQueueId", watchdogId = "testWatchdog", now = now)
+                val item = dao.takeNext("testQueueId".toWorkItemQueueId(), watchdogId = "testWatchdog", now = now)
 
                 assertThat(item).isNull()
             }
@@ -209,12 +209,12 @@ internal class WorkItemsDAOImplTest {
         val now = testClock.dbNow
 
         // Act
-        val item = dao.takeNext(queueId = "testQueueId", watchdogId = "testWatchdog", now = now)!!
+        val item = dao.takeNext("testQueueId".toWorkItemQueueId(), watchdogId = "testWatchdog", now = now)!!
 
         // Assert
         assertTransitionEvents(
-            queueId = item.queueId,
-            itemId = item.itemId,
+            queueId = item.queueId.toWorkItemQueueId(),
+            itemId = item.itemId.toWorkItemId(),
             { it is WorkItemEvent.Taken && it.timestamp == now },
         )
     }
@@ -225,7 +225,7 @@ internal class WorkItemsDAOImplTest {
         testClock.advance(Duration.ofMinutes(2))
 
         val item = dao.takeNext(
-            queueId = "testQueueId",
+            queueId = "testQueueId".toWorkItemQueueId(),
             watchdogId = "testWatchdog",
             now = testClock.dbNow
         )!!
@@ -238,8 +238,8 @@ internal class WorkItemsDAOImplTest {
         val expiresAt = testClock.dbNow.plus(Duration.ofDays(1))
 
         dao.markInProgressItemAsSuccessful(
-            queueId = item.queueId,
-            itemId = item.itemId,
+            queueId = item.queueId.toWorkItemQueueId(),
+            itemId = item.itemId.toWorkItemId(),
             expiresAt = expiresAt,
             watchdogId = "testWatchdog",
             now = now,
@@ -261,7 +261,7 @@ internal class WorkItemsDAOImplTest {
         testClock.advance(Duration.ofMinutes(2))
 
         val item = dao.takeNext(
-            queueId = "testQueueId",
+            queueId = "testQueueId".toWorkItemQueueId(),
             watchdogId = "testWatchdog",
             now = testClock.dbNow
         )!!
@@ -274,8 +274,8 @@ internal class WorkItemsDAOImplTest {
         val expiresAt = testClock.dbNow.plus(Duration.ofDays(1))
 
         dao.markInProgressItemAsSuccessful(
-            queueId = item.queueId,
-            itemId = item.itemId,
+            queueId = item.queueId.toWorkItemQueueId(),
+            itemId = item.itemId.toWorkItemId(),
             expiresAt = expiresAt,
             watchdogId = "testWatchdog",
             now = now,
@@ -292,8 +292,6 @@ internal class WorkItemsDAOImplTest {
         assertThat(item2.expiresAt).isEqualTo(expiresAt)
         assertThat(item2.stateChangedAt).isEqualTo(now)
         assertThat(item2.nextScheduledFor).isNull()
-
-        dumpEvents(item2.queueId, item2.itemId)
     }
 
     @Test
@@ -302,7 +300,7 @@ internal class WorkItemsDAOImplTest {
         testClock.advance(Duration.ofMinutes(2))
 
         val item = dao.takeNext(
-            queueId = "testQueueId",
+            queueId = "testQueueId".toWorkItemQueueId(),
             watchdogId = "testWatchdog",
             now = testClock.dbNow
         )!!
@@ -315,8 +313,8 @@ internal class WorkItemsDAOImplTest {
         val expiresAt = testClock.dbNow.plus(Duration.ofDays(1))
 
         dao.markInProgressItemAsSuccessful(
-            queueId = item.queueId,
-            itemId = item.itemId,
+            queueId = item.queueId.toWorkItemQueueId(),
+            itemId = item.itemId.toWorkItemId(),
             expiresAt = expiresAt,
             watchdogId = "notTheSameWatchdog",
             now = now,
@@ -341,8 +339,8 @@ internal class WorkItemsDAOImplTest {
         val expiresAt = testClock.dbNow.plus(Duration.ofDays(1))
 
         dao.markInProgressItemAsSuccessful(
-            queueId = "testId1",
-            itemId = "testQueueId",
+            queueId = "testQueueId".toWorkItemQueueId(),
+            itemId = "testId1".toWorkItemId(),
             expiresAt = expiresAt,
             watchdogId = "watchdog",
             now = now,
@@ -362,7 +360,7 @@ internal class WorkItemsDAOImplTest {
         testClock.advance(Duration.ofMinutes(2))
 
         val item = dao.takeNext(
-            queueId = "testQueueId",
+            queueId = "testQueueId".toWorkItemQueueId(),
             watchdogId = "testWatchdog",
             now = testClock.dbNow
         )!!
@@ -375,8 +373,8 @@ internal class WorkItemsDAOImplTest {
         val expiresAt = testClock.dbNow.plus(Duration.ofDays(1))
 
         dao.markInProgressItemAsFailed(
-            queueId = item.queueId,
-            itemId = item.itemId,
+            queueId = item.queueId.toWorkItemQueueId(),
+            itemId = item.itemId.toWorkItemId(),
             expiresAt = expiresAt,
             watchdogId = "testWatchdog",
             now = now,
@@ -401,7 +399,7 @@ internal class WorkItemsDAOImplTest {
         testClock.advance(Duration.ofMinutes(2))
 
         val item = dao.takeNext(
-            queueId = "testQueueId",
+            queueId = "testQueueId".toWorkItemQueueId(),
             watchdogId = "testWatchdog",
             now = testClock.dbNow
         )!!
@@ -414,8 +412,8 @@ internal class WorkItemsDAOImplTest {
         val expiresAt = testClock.dbNow.plus(Duration.ofDays(1))
 
         dao.markInProgressItemAsFailed(
-            queueId = item.queueId,
-            itemId = item.itemId,
+            queueId = item.queueId.toWorkItemQueueId(),
+            itemId = item.itemId.toWorkItemId(),
             expiresAt = expiresAt,
             watchdogId = "testWatchdog",
             now = now,
@@ -438,7 +436,7 @@ internal class WorkItemsDAOImplTest {
         testClock.advance(Duration.ofMinutes(2))
 
         val item = dao.takeNext(
-            queueId = "testQueueId",
+            queueId = "testQueueId".toWorkItemQueueId(),
             watchdogId = "testWatchdog",
             now = testClock.dbNow
         )!!
@@ -451,8 +449,8 @@ internal class WorkItemsDAOImplTest {
         val expiresAt = testClock.dbNow.plus(Duration.ofDays(1))
 
         dao.markInProgressItemAsFailed(
-            queueId = item.queueId,
-            itemId = item.itemId,
+            queueId = item.queueId.toWorkItemQueueId(),
+            itemId = item.itemId.toWorkItemId(),
             expiresAt = expiresAt,
             watchdogId = "testWatchdog",
             now = now,
@@ -472,7 +470,7 @@ internal class WorkItemsDAOImplTest {
         testClock.advance(Duration.ofMinutes(2))
 
         val item = dao.takeNext(
-            queueId = "testQueueId",
+            queueId = "testQueueId".toWorkItemQueueId(),
             watchdogId = "testWatchdog",
             now = testClock.dbNow
         )!!
@@ -485,8 +483,8 @@ internal class WorkItemsDAOImplTest {
         val expiresAt = testClock.dbNow.plus(Duration.ofDays(1))
 
         dao.markInProgressItemAsFailed(
-            queueId = item.queueId,
-            itemId = item.itemId,
+            queueId = item.queueId.toWorkItemQueueId(),
+            itemId = item.itemId.toWorkItemId(),
             expiresAt = expiresAt,
             watchdogId = "notTheSameWatchdog",
             now = now,
@@ -511,8 +509,8 @@ internal class WorkItemsDAOImplTest {
         val expiresAt = testClock.dbNow.plus(Duration.ofDays(1))
 
         dao.markInProgressItemAsFailed(
-            queueId = "testId1",
-            itemId = "testQueueId",
+            queueId = "testQueueId".toWorkItemQueueId(),
+            itemId = "testId1".toWorkItemId(),
             expiresAt = expiresAt,
             watchdogId = "watchdog",
             now = now,
@@ -532,7 +530,7 @@ internal class WorkItemsDAOImplTest {
         testClock.advance(Duration.ofMinutes(2))
 
         val item = dao.takeNext(
-            queueId = "testQueueId",
+            queueId = "testQueueId".toWorkItemQueueId(),
             watchdogId = "testWatchdog",
             now = testClock.dbNow
         )!!
@@ -545,8 +543,8 @@ internal class WorkItemsDAOImplTest {
         val scheduleFor = testClock.dbNow.plus(Duration.ofDays(1))
 
         dao.rescheduleInProgressItem(
-            queueId = item.queueId,
-            itemId = item.itemId,
+            queueId = item.queueId.toWorkItemQueueId(),
+            itemId = item.itemId.toWorkItemId(),
             scheduleFor = scheduleFor,
             watchdogId = "testWatchdog",
             now = now,
@@ -563,8 +561,6 @@ internal class WorkItemsDAOImplTest {
         assertThat(item2.expiresAt).isNull()
         assertThat(item2.stateChangedAt).isEqualTo(now)
         assertThat(item2.nextScheduledFor).isEqualTo(scheduleFor)
-
-        dumpEvents(item2.queueId, item2.itemId)
     }
 
     @Test
@@ -573,7 +569,7 @@ internal class WorkItemsDAOImplTest {
         testClock.advance(Duration.ofMinutes(2))
 
         val item = dao.takeNext(
-            queueId = "testQueueId",
+            queueId = "testQueueId".toWorkItemQueueId(),
             watchdogId = "testWatchdog",
             now = testClock.dbNow
         )!!
@@ -586,8 +582,8 @@ internal class WorkItemsDAOImplTest {
         val scheduleFor = testClock.dbNow.plus(Duration.ofDays(1))
 
         dao.rescheduleInProgressItem(
-            queueId = item.queueId,
-            itemId = item.itemId,
+            queueId = item.queueId.toWorkItemQueueId(),
+            itemId = item.itemId.toWorkItemId(),
             scheduleFor = scheduleFor,
             watchdogId = "testWatchdog",
             now = now,
@@ -607,7 +603,7 @@ internal class WorkItemsDAOImplTest {
         testClock.advance(Duration.ofMinutes(2))
 
         val item = dao.takeNext(
-            queueId = "testQueueId",
+            queueId = "testQueueId".toWorkItemQueueId(),
             watchdogId = "testWatchdog",
             now = testClock.dbNow
         )!!
@@ -619,8 +615,8 @@ internal class WorkItemsDAOImplTest {
 
         unitOfWorkFactory.use { uow ->
             dao.rescheduleInProgressItem(
-                queueId = item.queueId,
-                itemId = item.itemId,
+                queueId = item.queueId.toWorkItemQueueId(),
+                itemId = item.itemId.toWorkItemId(),
                 scheduleFor = scheduleFor,
                 watchdogId = "testWatchdog",
                 now = now,
@@ -629,8 +625,8 @@ internal class WorkItemsDAOImplTest {
         }
 
         assertTransitionEvents(
-            queueId = item.queueId,
-            itemId = item.itemId,
+            queueId = item.queueId.toWorkItemQueueId(),
+            itemId = item.itemId.toWorkItemId(),
             { it is WorkItemEvent.Taken },
             { it is WorkItemEvent.Failed && it.timestamp == now },
             { it is WorkItemEvent.AutomaticallyRescheduled && it.timestamp == now && it.scheduledFor == scheduleFor }
@@ -643,7 +639,7 @@ internal class WorkItemsDAOImplTest {
         testClock.advance(Duration.ofMinutes(2))
 
         val item = dao.takeNext(
-            queueId = "testQueueId",
+            queueId = "testQueueId".toWorkItemQueueId(),
             watchdogId = "testWatchdog",
             now = testClock.dbNow
         )!!
@@ -656,8 +652,8 @@ internal class WorkItemsDAOImplTest {
         val scheduleFor = testClock.dbNow.plus(Duration.ofDays(1))
 
         dao.rescheduleInProgressItem(
-            queueId = item.queueId,
-            itemId = item.itemId,
+            queueId = item.queueId.toWorkItemQueueId(),
+            itemId = item.itemId.toWorkItemId(),
             scheduleFor = scheduleFor,
             watchdogId = "notTheSameWatchdog",
             now = now,
@@ -682,8 +678,8 @@ internal class WorkItemsDAOImplTest {
         val scheduleFor = testClock.dbNow.plus(Duration.ofDays(1))
 
         dao.rescheduleInProgressItem(
-            queueId = "testId1",
-            itemId = "testQueueId",
+            queueId = "testQueueId".toWorkItemQueueId(),
+            itemId = "testId1".toWorkItemId(),
             scheduleFor = scheduleFor,
             watchdogId = "watchdog",
             now = now,
@@ -716,8 +712,8 @@ internal class WorkItemsDAOImplTest {
         val scheduleFor = testClock.dbNow.plus(Duration.ofDays(1))
 
         dao.manuallyRescheduleFailedItem(
-            queueId = insertedItem.queueId,
-            itemId = insertedItem.itemId,
+            queueId = insertedItem.queueId.toWorkItemQueueId(),
+            itemId = insertedItem.itemId.toWorkItemId(),
             scheduleFor = scheduleFor,
             now = now,
             unitOfWork = unitOfWork
@@ -725,7 +721,10 @@ internal class WorkItemsDAOImplTest {
 
         unitOfWork.commit()
 
-        val item = dao.getById(queueId = insertedItem.queueId, itemId = insertedItem.itemId)!!
+        val item = dao.getById(
+            queueId = insertedItem.queueId.toWorkItemQueueId(),
+            itemId = insertedItem.itemId.toWorkItemId()
+        )!!
 
         assertThat(item.state).isEqualTo(WorkItemState.SCHEDULED.dbOrdinal)
         assertThat(item.stateChangedAt).isEqualTo(now)
@@ -752,8 +751,8 @@ internal class WorkItemsDAOImplTest {
         val scheduleFor = testClock.dbNow.plus(Duration.ofDays(1))
 
         dao.manuallyRescheduleFailedItem(
-            queueId = insertedItem.queueId,
-            itemId = insertedItem.itemId,
+            queueId = insertedItem.queueId.toWorkItemQueueId(),
+            itemId = insertedItem.itemId.toWorkItemId(),
             scheduleFor = scheduleFor,
             now = now,
             unitOfWork = unitOfWork
@@ -785,8 +784,8 @@ internal class WorkItemsDAOImplTest {
         val scheduleFor = testClock.dbNow.plus(Duration.ofDays(1))
 
         dao.manuallyRescheduleFailedItem(
-            queueId = insertedItem.queueId,
-            itemId = insertedItem.itemId,
+            queueId = insertedItem.queueId.toWorkItemQueueId(),
+            itemId = insertedItem.itemId.toWorkItemId(),
             scheduleFor = scheduleFor,
             now = now,
             unitOfWork = unitOfWork
@@ -820,8 +819,8 @@ internal class WorkItemsDAOImplTest {
         val expireAt = testClock.dbNow.plus(Duration.ofDays(1))
 
         dao.forceCancelItem(
-            queueId = insertedItem.queueId,
-            itemId = insertedItem.itemId,
+            queueId = insertedItem.queueId.toWorkItemQueueId(),
+            itemId = insertedItem.itemId.toWorkItemId(),
             now = now,
             expireAt = expireAt,
             unitOfWork = unitOfWork
@@ -829,7 +828,10 @@ internal class WorkItemsDAOImplTest {
 
         unitOfWork.commit()
 
-        val item = dao.getById(queueId = insertedItem.queueId, itemId = insertedItem.itemId)!!
+        val item = dao.getById(
+            queueId = insertedItem.queueId.toWorkItemQueueId(),
+            itemId = insertedItem.itemId.toWorkItemId()
+        )!!
 
         assertThat(item.state).isEqualTo(WorkItemState.CANCELLED.dbOrdinal)
         assertThat(item.stateChangedAt).isEqualTo(now)
@@ -862,8 +864,8 @@ internal class WorkItemsDAOImplTest {
 
         // Act
         dao.forceCancelItem(
-            queueId = insertedItem.queueId,
-            itemId = insertedItem.itemId,
+            queueId = insertedItem.queueId.toWorkItemQueueId(),
+            itemId = insertedItem.itemId.toWorkItemId(),
             now = now,
             expireAt = expireAt,
             unitOfWork = unitOfWork
@@ -898,8 +900,8 @@ internal class WorkItemsDAOImplTest {
         val now = testClock.dbNow
 
         dao.refreshWatchdog(
-            queueId = insertedItem.queueId,
-            itemId = insertedItem.itemId,
+            queueId = insertedItem.queueId.toWorkItemQueueId(),
+            itemId = insertedItem.itemId.toWorkItemId(),
             watchdogId = "watchdog",
             now = now,
             unitOfWork = unitOfWork
@@ -907,7 +909,10 @@ internal class WorkItemsDAOImplTest {
 
         unitOfWork.commit()
 
-        val item = dao.getById(queueId = insertedItem.queueId, itemId = insertedItem.itemId)!!
+        val item = dao.getById(
+            queueId = insertedItem.queueId.toWorkItemQueueId(),
+            itemId = insertedItem.itemId.toWorkItemId()
+        )!!
 
         assertThat(item.watchdogOwner).isEqualTo("watchdog")
         assertThat(item.watchdogTimestamp).isEqualTo(now)
@@ -933,8 +938,8 @@ internal class WorkItemsDAOImplTest {
         val now = testClock.dbNow
 
         dao.refreshWatchdog(
-            queueId = insertedItem.queueId,
-            itemId = insertedItem.itemId,
+            queueId = insertedItem.queueId.toWorkItemQueueId(),
+            itemId = insertedItem.itemId.toWorkItemId(),
             watchdogId = "wrong-watchdog",
             now = now,
             unitOfWork = unitOfWork
@@ -949,21 +954,22 @@ internal class WorkItemsDAOImplTest {
 
 
     @Test
-    fun `deleteExpiredItems - Shall delete all items with an expiration time equal to or less than now`(): Unit = runBlocking {
-        debugInsertItem(makeWorkItem("1", expiresAt = Instant.parse("2025-03-02T09:59:59Z")))
-        debugInsertItem(makeWorkItem("2", expiresAt = Instant.parse("2025-03-02T10:00:00Z")))
-        debugInsertItem(makeWorkItem("3", expiresAt = Instant.parse("2025-03-02T10:00:01Z")))
+    fun `deleteExpiredItems - Shall delete all items with an expiration time equal to or less than now`(): Unit =
+        runBlocking {
+            debugInsertItem(makeWorkItem("1", expiresAt = Instant.parse("2025-03-02T09:59:59Z")))
+            debugInsertItem(makeWorkItem("2", expiresAt = Instant.parse("2025-03-02T10:00:00Z")))
+            debugInsertItem(makeWorkItem("3", expiresAt = Instant.parse("2025-03-02T10:00:01Z")))
 
-        testClock.reset(Instant.parse("2025-03-02T10:00:00Z"))
+            testClock.reset(Instant.parse("2025-03-02T10:00:00Z"))
 
-        val numDeleted = dao.deleteExpiredItems(testClock.dbNow)
+            val numDeleted = dao.deleteExpiredItems(testClock.dbNow)
 
-        assertThat(numDeleted).isEqualTo(2)
+            assertThat(numDeleted).isEqualTo(2)
 
-        val allItems = dao.listAllItems()
-        assertThat(allItems).hasSize(1)
-        assertThat(allItems[0].itemId).isEqualTo("3")
-    }
+            val allItems = dao.listAllItems()
+            assertThat(allItems).hasSize(1)
+            assertThat(allItems[0].itemId).isEqualTo("3")
+        }
 
     private suspend fun debugInsertItem(item: WorkItemDbEntity) {
         ufw.database.unitOfWorkFactory.use {
@@ -1005,14 +1011,14 @@ internal class WorkItemsDAOImplTest {
         )
     }
 
-    private suspend fun dumpEvents(queueId: String, itemId: String) {
+    private suspend fun dumpEvents(queueId: WorkItemQueueId, itemId: WorkItemId) {
         val events = dao.getEventsForItem(queueId, itemId)
         events.forEach { println(it) }
     }
 
     private suspend fun assertTransitionEvents(
-        queueId: String,
-        itemId: String,
+        queueId: WorkItemQueueId,
+        itemId: WorkItemId,
         vararg expected: (WorkItemEvent) -> Boolean
     ) {
         val events = dao.getEventsForItem(queueId, itemId)
@@ -1027,6 +1033,6 @@ internal class WorkItemsDAOImplTest {
     }
 
     private suspend fun assertTransitionEvents(item: WorkItemDbEntity, vararg expected: (WorkItemEvent) -> Boolean) {
-        return assertTransitionEvents(item.queueId, item.itemId, *expected)
+        return assertTransitionEvents(item.queueId.toWorkItemQueueId(), item.itemId.toWorkItemId(), *expected)
     }
 }

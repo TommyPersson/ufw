@@ -83,10 +83,8 @@ public fun main(): Unit = runBlocking(MDCContext()) {
                 stalenessDetectionInterval = Duration.ofMinutes(1)
                 stalenessAge = Duration.ofMinutes(1)
             }
-            handlers = setOf(
-                PrintJobHandler()
-            )
             durableJobHandlers = setOf(
+                PrintJobHandler(),
                 PrintJob2Handler()
             )
         }

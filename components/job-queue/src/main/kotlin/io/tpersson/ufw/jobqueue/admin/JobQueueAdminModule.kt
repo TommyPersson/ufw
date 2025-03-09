@@ -5,10 +5,10 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.tpersson.ufw.admin.AdminModule
 import io.tpersson.ufw.jobqueue.internal.JobQueueInternal
-import io.tpersson.ufw.jobqueue.v2.JobQueueId
-import io.tpersson.ufw.jobqueue.v2.internal.DurableJobDefinition
-import io.tpersson.ufw.jobqueue.v2.internal.DurableJobHandlersProvider
-import io.tpersson.ufw.jobqueue.v2.internal.jobDefinition
+import io.tpersson.ufw.jobqueue.JobQueueId
+import io.tpersson.ufw.jobqueue.internal.DurableJobDefinition
+import io.tpersson.ufw.jobqueue.internal.DurableJobHandlersProvider
+import io.tpersson.ufw.jobqueue.internal.jobDefinition
 import jakarta.inject.Inject
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
