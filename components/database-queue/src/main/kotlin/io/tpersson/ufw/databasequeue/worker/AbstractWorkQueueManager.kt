@@ -2,6 +2,7 @@ package io.tpersson.ufw.databasequeue.worker
 
 import io.tpersson.ufw.databasequeue.DatabaseQueueAdapterSettings
 import io.tpersson.ufw.databasequeue.WorkItemHandler
+import io.tpersson.ufw.databasequeue.WorkItemQueueId
 import io.tpersson.ufw.managed.Managed
 import kotlinx.coroutines.*
 
@@ -25,8 +26,7 @@ public abstract class AbstractWorkQueueManager(
     public fun startAll(): Job {
         return scope.launch {
             handlersByTypeByQueueId.forEach { (queueId, handlersByType) ->
-                val fullQueueId = adapterSettings.queueIdPrefix + queueId
-                val worker = workerFactory.create(fullQueueId, handlersByType, adapterSettings)
+                val worker = workerFactory.create(queueId, handlersByType, adapterSettings)
                 launch {
                     worker.start()
                 }
@@ -34,5 +34,5 @@ public abstract class AbstractWorkQueueManager(
         }
     }
 
-    protected abstract val handlersByTypeByQueueId: Map<String, Map<String, WorkItemHandler<*>>>
+    protected abstract val handlersByTypeByQueueId: Map<WorkItemQueueId, Map<String, WorkItemHandler<*>>>
 }

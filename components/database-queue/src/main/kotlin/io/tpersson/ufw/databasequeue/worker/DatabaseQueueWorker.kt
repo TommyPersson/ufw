@@ -4,12 +4,13 @@ import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.core.utils.forever
 import io.tpersson.ufw.databasequeue.DatabaseQueueAdapterSettings
 import io.tpersson.ufw.databasequeue.WorkItemHandler
+import io.tpersson.ufw.databasequeue.WorkItemQueueId
 import kotlinx.coroutines.*
 import java.time.Duration
 import java.util.*
 
 public class DatabaseQueueWorker(
-    private val queueId: String,
+    private val queueId: WorkItemQueueId,
     private val handlersByType: Map<String, WorkItemHandler<*>>,
     processorFactory: SingleWorkItemProcessorFactory,
     adapterSettings: DatabaseQueueAdapterSettings,

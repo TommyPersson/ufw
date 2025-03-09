@@ -43,11 +43,11 @@ public interface JobQueueInternal : JobQueue {
 
     public suspend fun <TJob : Job> getNumberOfFailuresFor(job: InternalJob<TJob>): Int
 
-    public suspend fun getQueueStatistics(queueId: String): JobQueueStatistics
+    public suspend fun getQueueStatistics(queueId: io.tpersson.ufw.jobqueue.v2.JobQueueId): JobQueueStatistics
 }
 
 public data class JobQueueStatistics(
-    val queueId: String,
+    val queueId: io.tpersson.ufw.jobqueue.v2.JobQueueId,
     val numScheduled: Int,
     val numPending: Int,
     val numInProgress: Int,

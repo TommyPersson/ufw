@@ -6,10 +6,14 @@ import io.tpersson.ufw.core.concurrency.ConsumerSignal
 import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.databasequeue.NewWorkItem
+import io.tpersson.ufw.databasequeue.WorkItemQueueId
 import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
 import io.tpersson.ufw.jobqueue.*
 import io.tpersson.ufw.jobqueue.v2.DurableJob
+import io.tpersson.ufw.jobqueue.v2.JobId
 import io.tpersson.ufw.jobqueue.v2.internal.jobDefinition2
+import io.tpersson.ufw.jobqueue.v2.internal.toWorkItemId
+import io.tpersson.ufw.jobqueue.v2.internal.toWorkItemQueueId
 import jakarta.inject.Inject
 import jakarta.inject.Named
 import jakarta.inject.Singleton
@@ -78,9 +82,9 @@ public class JobQueueImpl @Inject constructor(
 
         workItemsDAO.scheduleNewItem(
             newItem = NewWorkItem(
-                queueId = "jq__$queueId", // TODO prefix?
-                type = type, // TODO prefix?
-                itemId = job.id,
+                queueId = queueId.toWorkItemQueueId(),
+                type = type,
+                itemId = job.id.toWorkItemId(),
                 dataJson = objectMapper.writeValueAsString(job), // TODO move to new 'WorkItemsQueue'?
                 metadataJson = "{}",
                 concurrencyKey = null,
@@ -163,8 +167,8 @@ public class JobQueueImpl @Inject constructor(
         return jobFailureRepository.getNumberOfFailuresFor(job)
     }
 
-    override suspend fun getQueueStatistics(queueId: String): JobQueueStatistics {
-        val workItemQueueStatistics = workItemsDAO.getQueueStatistics("jq__$queueId") // where to add prefix?
+    override suspend fun getQueueStatistics(queueId: io.tpersson.ufw.jobqueue.v2.JobQueueId): JobQueueStatistics {
+        val workItemQueueStatistics = workItemsDAO.getQueueStatistics(queueId.toWorkItemQueueId())
         return JobQueueStatistics(
             queueId = queueId,
             numScheduled = workItemQueueStatistics.numScheduled,

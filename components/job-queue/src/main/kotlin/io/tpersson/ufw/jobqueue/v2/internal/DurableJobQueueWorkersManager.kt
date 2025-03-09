@@ -3,6 +3,7 @@ package io.tpersson.ufw.jobqueue.v2.internal
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.tpersson.ufw.core.NamedBindings
 import io.tpersson.ufw.databasequeue.WorkItemHandler
+import io.tpersson.ufw.databasequeue.WorkItemQueueId
 import io.tpersson.ufw.databasequeue.worker.AbstractWorkQueueManager
 import io.tpersson.ufw.databasequeue.worker.DatabaseQueueWorkerFactory
 import io.tpersson.ufw.jobqueue.v2.DurableJob
@@ -19,9 +20,9 @@ public class DurableJobQueueWorkersManager @Inject constructor(
     workerFactory = workerFactory,
     adapterSettings = DurableJobsDatabaseQueueAdapterSettings
 ) {
-    protected override val handlersByTypeByQueueId: Map<String, Map<String, WorkItemHandler<*>>> =
+    protected override val handlersByTypeByQueueId: Map<WorkItemQueueId, Map<String, WorkItemHandler<*>>> =
         durableJobHandlersProvider.get()
-            .groupBy { it.jobDefinition.queueId }
+            .groupBy { it.jobDefinition.queueId.toWorkItemQueueId() }
             .mapValues {
                 it.value.associateBy(
                     keySelector = { handler -> handler.jobDefinition.type },

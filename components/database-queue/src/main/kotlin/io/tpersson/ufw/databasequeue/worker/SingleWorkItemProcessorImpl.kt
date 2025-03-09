@@ -33,16 +33,16 @@ public class SingleWorkItemProcessorImpl(
 
     private val logger = createLogger()
 
-    private val timers = Collections.synchronizedMap(mutableMapOf<String, Timer>())
+    private val timers = Collections.synchronizedMap(mutableMapOf<WorkItemQueueId, Timer>())
 
     override suspend fun processSingleItem(
-        queueId: String,
+        queueId: WorkItemQueueId,
         typeHandlerMappings: Map<String, WorkItemHandler<*>>
     ): Boolean {
         val workItem = workItemsDAO.takeNext(queueId, watchdogId, clock.instant())
             ?: return false
 
-        MDC.put(adapterSettings.mdcQueueIdLabel, workItem.queueId)
+        MDC.put(adapterSettings.mdcQueueIdLabel, adapterSettings.convertQueueId(WorkItemQueueId(workItem.queueId)))
         MDC.put(adapterSettings.mdcItemIdLabel, workItem.itemId)
         MDC.put(adapterSettings.mdcItemTypeLabel, workItem.type)
 
@@ -131,8 +131,8 @@ public class SingleWorkItemProcessorImpl(
         unitOfWork: UnitOfWork
     ) {
         workItemsDAO.markInProgressItemAsSuccessful(
-            queueId = workItem.queueId,
-            itemId = workItem.itemId,
+            queueId = WorkItemQueueId(workItem.queueId),
+            itemId = WorkItemId(workItem.itemId),
             expiresAt = clock.instant().plus(config.successfulItemExpirationDelay),
             watchdogId = watchdogId,
             now = clock.instant(),
@@ -181,8 +181,8 @@ public class SingleWorkItemProcessorImpl(
 
         if (rescheduleAt != null) {
             workItemsDAO.rescheduleInProgressItem(
-                queueId = workItem.queueId,
-                itemId = workItem.itemId,
+                queueId = WorkItemQueueId(workItem.queueId),
+                itemId = WorkItemId(workItem.itemId),
                 watchdogId = watchdogId,
                 now = now,
                 scheduleFor = rescheduleAt,
@@ -190,8 +190,8 @@ public class SingleWorkItemProcessorImpl(
             )
         } else {
             workItemsDAO.markInProgressItemAsFailed(
-                queueId = workItem.queueId,
-                itemId = workItem.itemId,
+                queueId = WorkItemQueueId(workItem.queueId),
+                itemId = WorkItemId(workItem.itemId),
                 expiresAt = now.plus(config.failedItemExpirationDelay),
                 watchdogId = watchdogId,
                 now = now,
@@ -210,9 +210,9 @@ public class SingleWorkItemProcessorImpl(
         override val unitOfWork: UnitOfWork = unitOfWork
     }
 
-    private fun createTimer(queueId: String): Timer {
+    private fun createTimer(queueId: WorkItemQueueId): Timer {
         return Timer.builder(adapterSettings.metricsProcessingDurationMetricName)
-            .tag("queueId", queueId.substringAfter(adapterSettings.queueIdPrefix))
+            .tag("queueId", adapterSettings.convertQueueId(queueId))
             .publishPercentiles(0.5, 0.75, 0.90, 0.99, 0.999)
             .register(meterRegistry)
     }

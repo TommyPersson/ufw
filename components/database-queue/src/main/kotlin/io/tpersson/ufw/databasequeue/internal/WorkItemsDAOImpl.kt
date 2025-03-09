@@ -10,6 +10,8 @@ import io.tpersson.ufw.database.typedqueries.TypedUpdate
 import io.tpersson.ufw.database.typedqueries.TypedUpdateReturningSingle
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.databasequeue.NewWorkItem
+import io.tpersson.ufw.databasequeue.WorkItemId
+import io.tpersson.ufw.databasequeue.WorkItemQueueId
 import io.tpersson.ufw.databasequeue.WorkItemState
 import jakarta.inject.Inject
 import jakarta.inject.Named
@@ -23,8 +25,8 @@ public class WorkItemsDAOImpl @Inject constructor(
     override suspend fun scheduleNewItem(newItem: NewWorkItem, now: Instant, unitOfWork: UnitOfWork) {
         val item = WorkItemDbEntity(
             uid = 0,
-            itemId = newItem.itemId,
-            queueId = newItem.queueId,
+            itemId = newItem.itemId.value,
+            queueId = newItem.queueId.value,
             type = newItem.type,
             state = WorkItemState.SCHEDULED.dbOrdinal,
             dataJson = newItem.dataJson,
@@ -48,18 +50,18 @@ public class WorkItemsDAOImpl @Inject constructor(
         )
     }
 
-    override suspend fun getById(queueId: String, itemId: String): WorkItemDbEntity? {
-        return database.select(Queries.Selects.FindById(queueId, itemId))
+    override suspend fun getById(queueId: WorkItemQueueId, itemId: WorkItemId): WorkItemDbEntity? {
+        return database.select(Queries.Selects.FindById(queueId.value, itemId.value))
     }
 
     override suspend fun listAllItems(): List<WorkItemDbEntity> {
         return database.select(Queries.Selects.ListAllItems(limit = 0))
     }
 
-    override suspend fun takeNext(queueId: String, watchdogId: String, now: Instant): WorkItemDbEntity? {
+    override suspend fun takeNext(queueId: WorkItemQueueId, watchdogId: String, now: Instant): WorkItemDbEntity? {
         return database.update(
             Queries.Updates.TakeNext(
-                queueId = queueId,
+                queueId = queueId.value,
                 watchdogOwner = watchdogId,
                 now = now,
                 eventJson = """{ "@type": "TAKEN", "timestamp": "$now" }"""
@@ -68,8 +70,8 @@ public class WorkItemsDAOImpl @Inject constructor(
     }
 
     override suspend fun markInProgressItemAsSuccessful(
-        queueId: String,
-        itemId: String,
+        queueId: WorkItemQueueId,
+        itemId: WorkItemId,
         expiresAt: Instant,
         watchdogId: String,
         now: Instant,
@@ -77,8 +79,8 @@ public class WorkItemsDAOImpl @Inject constructor(
     ) {
         unitOfWork.add(
             Queries.Updates.MarkInProgressItemAsSuccessful(
-                queueId = queueId,
-                itemId = itemId,
+                queueId = queueId.value,
+                itemId = itemId.value,
                 expiresAt = expiresAt,
                 watchdogOwner = watchdogId,
                 now = now,
@@ -88,8 +90,8 @@ public class WorkItemsDAOImpl @Inject constructor(
     }
 
     override suspend fun markInProgressItemAsFailed(
-        queueId: String,
-        itemId: String,
+        queueId: WorkItemQueueId,
+        itemId: WorkItemId,
         expiresAt: Instant,
         watchdogId: String,
         now: Instant,
@@ -97,8 +99,8 @@ public class WorkItemsDAOImpl @Inject constructor(
     ) {
         unitOfWork.add(
             Queries.Updates.MarkInProgressItemAsFailed(
-                queueId = queueId,
-                itemId = itemId,
+                queueId = queueId.value,
+                itemId = itemId.value,
                 expiresAt = expiresAt,
                 watchdogOwner = watchdogId,
                 now = now,
@@ -108,8 +110,8 @@ public class WorkItemsDAOImpl @Inject constructor(
     }
 
     override suspend fun rescheduleInProgressItem(
-        queueId: String,
-        itemId: String,
+        queueId: WorkItemQueueId,
+        itemId: WorkItemId,
         watchdogId: String,
         scheduleFor: Instant,
         now: Instant,
@@ -117,8 +119,8 @@ public class WorkItemsDAOImpl @Inject constructor(
     ) {
         unitOfWork.add(
             Queries.Updates.RescheduleInProgressItem(
-                queueId = queueId,
-                itemId = itemId,
+                queueId = queueId.value,
+                itemId = itemId.value,
                 scheduleFor = scheduleFor,
                 watchdogOwner = watchdogId,
                 now = now,
@@ -133,16 +135,16 @@ public class WorkItemsDAOImpl @Inject constructor(
     }
 
     override suspend fun manuallyRescheduleFailedItem(
-        queueId: String,
-        itemId: String,
+        queueId: WorkItemQueueId,
+        itemId: WorkItemId,
         scheduleFor: Instant,
         now: Instant,
         unitOfWork: UnitOfWork
     ) {
         unitOfWork.add(
             Queries.Updates.RescheduleFailedItem(
-                queueId = queueId,
-                itemId = itemId,
+                queueId = queueId.value,
+                itemId = itemId.value,
                 scheduleFor = scheduleFor,
                 now = now,
                 eventJson = """{ "@type": "MANUALLY_RESCHEDULED", "timestamp": "$now", "scheduledFor": "$scheduleFor" }"""
@@ -151,16 +153,16 @@ public class WorkItemsDAOImpl @Inject constructor(
     }
 
     override suspend fun forceCancelItem(
-        queueId: String,
-        itemId: String,
+        queueId: WorkItemQueueId,
+        itemId: WorkItemId,
         expireAt: Instant,
         now: Instant,
         unitOfWork: UnitOfWork
     ) {
         unitOfWork.add(
             Queries.Updates.ForceCancelItem(
-                queueId = queueId,
-                itemId = itemId,
+                queueId = queueId.value,
+                itemId = itemId.value,
                 expireAt = expireAt,
                 now = now,
                 eventJson = """{ "@type": "CANCELLED", "timestamp": "$now" }"""
@@ -168,38 +170,38 @@ public class WorkItemsDAOImpl @Inject constructor(
         )
     }
 
-    override suspend fun forcePauseItem(queueId: String, itemId: String, now: Instant, unitOfWork: UnitOfWork) {
+    override suspend fun forcePauseItem(queueId: WorkItemQueueId, itemId: WorkItemId, now: Instant, unitOfWork: UnitOfWork) {
         TODO("Not yet implemented")
     }
 
-    override suspend fun pauseQueue(queueId: String, now: Instant, unitOfWork: UnitOfWork) {
+    override suspend fun pauseQueue(queueId: WorkItemQueueId, now: Instant, unitOfWork: UnitOfWork) {
         TODO("Not yet implemented")
     }
 
     override suspend fun refreshWatchdog(
-        queueId: String,
-        itemId: String,
+        queueId: WorkItemQueueId,
+        itemId: WorkItemId,
         watchdogId: String,
         now: Instant,
         unitOfWork: UnitOfWork
     ) {
         unitOfWork.add(
             Queries.Updates.RefreshWatchdog(
-                queueId = queueId,
-                itemId = itemId,
+                queueId = queueId.value,
+                itemId = itemId.value,
                 watchdogId = watchdogId,
                 now = now
             )
         )
     }
 
-    override suspend fun getEventsForItem(queueId: String, itemId: String): List<WorkItemEvent> {
-        return database.select(Queries.Selects.GetEventsForItem(queueId, itemId))
+    override suspend fun getEventsForItem(queueId: WorkItemQueueId, itemId: WorkItemId): List<WorkItemEvent> {
+        return database.select(Queries.Selects.GetEventsForItem(queueId.value, itemId.value))
             .map { objectMapper.readValue<WorkItemEvent>(it.event) }
     }
 
-    override suspend fun getQueueStatistics(queueId: String): WorkItemQueueStatistics {
-        val data = database.select(Queries.Selects.GetStatistics(queueId))
+    override suspend fun getQueueStatistics(queueId: WorkItemQueueId): WorkItemQueueStatistics {
+        val data = database.select(Queries.Selects.GetStatistics(queueId.value))
 
         val map = data.associateBy { WorkItemState.fromDbOrdinal(it.stateId) }
 

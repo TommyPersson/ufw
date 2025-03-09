@@ -11,3 +11,11 @@ public interface DatabaseQueueAdapterSettings {
     public val mdcItemTypeLabel: String
     public val mdcHandlerClassLabel: String
 }
+
+public fun DatabaseQueueAdapterSettings.convertQueueId(queueId: WorkItemQueueId): String {
+    return queueId.value.substringAfter(queueIdPrefix)
+}
+
+public fun DatabaseQueueAdapterSettings.convertQueueId(queueId: String): WorkItemQueueId {
+    return WorkItemQueueId("$queueIdPrefix$queueId")
+}

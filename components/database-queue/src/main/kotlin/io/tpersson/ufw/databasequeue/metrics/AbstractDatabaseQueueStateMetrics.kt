@@ -3,7 +3,9 @@ package io.tpersson.ufw.databasequeue.metrics
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tag
 import io.tpersson.ufw.databasequeue.DatabaseQueueAdapterSettings
+import io.tpersson.ufw.databasequeue.WorkItemQueueId
 import io.tpersson.ufw.databasequeue.WorkItemState
+import io.tpersson.ufw.databasequeue.convertQueueId
 import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
 import io.tpersson.ufw.managed.ManagedJob
 import kotlinx.coroutines.delay
@@ -18,9 +20,9 @@ public abstract class AbstractDatabaseQueueStateMetrics(
     private val adapterSettings: DatabaseQueueAdapterSettings,
 ) : ManagedJob() {
 
-    protected abstract val queueIds: List<String>
+    protected abstract val queueIds: List<WorkItemQueueId>
 
-    private val gauges = ConcurrentHashMap<Pair<String, WorkItemState>, AtomicInteger>()
+    private val gauges = ConcurrentHashMap<Pair<WorkItemQueueId, WorkItemState>, AtomicInteger>()
 
     override suspend fun launch() {
         do {
@@ -31,7 +33,7 @@ public abstract class AbstractDatabaseQueueStateMetrics(
 
     private suspend fun performMeasurement() {
         for (queueId in queueIds) {
-            val queueStatistics = workItemsDAO.getQueueStatistics("${adapterSettings.queueIdPrefix}$queueId")
+            val queueStatistics = workItemsDAO.getQueueStatistics(queueId)
 
             getGauge(queueId, WorkItemState.SCHEDULED).set(queueStatistics.numScheduled)
             getGauge(queueId, WorkItemState.IN_PROGRESS).set(queueStatistics.numInProgress)
@@ -40,12 +42,12 @@ public abstract class AbstractDatabaseQueueStateMetrics(
         }
     }
 
-    private fun getGauge(queueId: String, state: WorkItemState): AtomicInteger {
+    private fun getGauge(queueId: WorkItemQueueId, state: WorkItemState): AtomicInteger {
         return gauges.getOrPut(queueId to state) {
             meterRegistry.gauge(
                 adapterSettings.metricsQueueStateMetricName,
                 listOf(
-                    Tag.of("queueId", queueId.substringAfter(adapterSettings.queueIdPrefix)),
+                    Tag.of("queueId", adapterSettings.convertQueueId(queueId)),
                     Tag.of("state", state.name)
                 ),
                 AtomicInteger(0)

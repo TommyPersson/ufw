@@ -2,6 +2,8 @@ package io.tpersson.ufw.databasequeue.internal
 
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.databasequeue.NewWorkItem
+import io.tpersson.ufw.databasequeue.WorkItemId
+import io.tpersson.ufw.databasequeue.WorkItemQueueId
 import java.time.Instant
 
 public interface WorkItemsDAO {
@@ -13,22 +15,22 @@ public interface WorkItemsDAO {
     )
 
     public suspend fun getById(
-        queueId: String,
-        itemId: String,
+        queueId: WorkItemQueueId,
+        itemId: WorkItemId,
     ): WorkItemDbEntity?
 
     // TODO pagination
     public suspend fun listAllItems(): List<WorkItemDbEntity>
 
     public suspend fun takeNext(
-        queueId: String,
+        queueId: WorkItemQueueId,
         watchdogId: String,
         now: Instant
     ): WorkItemDbEntity?
 
     public suspend fun markInProgressItemAsSuccessful(
-        queueId: String,
-        itemId: String,
+        queueId: WorkItemQueueId,
+        itemId: WorkItemId,
         expiresAt: Instant,
         watchdogId: String,
         now: Instant,
@@ -36,8 +38,8 @@ public interface WorkItemsDAO {
     )
 
     public suspend fun markInProgressItemAsFailed(
-        queueId: String,
-        itemId: String,
+        queueId: WorkItemQueueId,
+        itemId: WorkItemId,
         expiresAt: Instant,
         watchdogId: String,
         now: Instant,
@@ -45,8 +47,8 @@ public interface WorkItemsDAO {
     )
 
     public suspend fun rescheduleInProgressItem(
-        queueId: String,
-        itemId: String,
+        queueId: WorkItemQueueId,
+        itemId: WorkItemId,
         watchdogId: String,
         scheduleFor: Instant,
         now: Instant,
@@ -54,49 +56,49 @@ public interface WorkItemsDAO {
     )
 
     public suspend fun manuallyRescheduleFailedItem(
-        queueId: String,
-        itemId: String,
+        queueId: WorkItemQueueId,
+        itemId: WorkItemId,
         scheduleFor: Instant,
         now: Instant,
         unitOfWork: UnitOfWork,
     )
 
     public suspend fun forceCancelItem(
-        queueId: String,
-        itemId: String,
+        queueId: WorkItemQueueId,
+        itemId: WorkItemId,
         expireAt: Instant,
         now: Instant,
         unitOfWork: UnitOfWork,
     )
 
     public suspend fun forcePauseItem(
-        queueId: String,
-        itemId: String,
+        queueId: WorkItemQueueId,
+        itemId: WorkItemId,
         now: Instant,
         unitOfWork: UnitOfWork,
     )
 
     public suspend fun pauseQueue(
-        queueId: String,
+        queueId: WorkItemQueueId,
         now: Instant,
         unitOfWork: UnitOfWork,
     )
 
     public suspend fun refreshWatchdog(
-        queueId: String,
-        itemId: String,
+        queueId: WorkItemQueueId,
+        itemId: WorkItemId,
         watchdogId: String,
         now: Instant,
         unitOfWork: UnitOfWork,
     )
 
     public suspend fun getEventsForItem(
-        queueId: String,
-        itemId: String
+        queueId: WorkItemQueueId,
+        itemId: WorkItemId
     ): List<WorkItemEvent>
 
     public suspend fun getQueueStatistics(
-        queueId: String,
+        queueId: WorkItemQueueId,
     ): WorkItemQueueStatistics
 
     public suspend fun deleteExpiredItems(now: Instant): Int

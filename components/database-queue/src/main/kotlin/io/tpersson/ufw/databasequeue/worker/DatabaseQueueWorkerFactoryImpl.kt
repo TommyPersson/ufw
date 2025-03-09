@@ -2,6 +2,7 @@ package io.tpersson.ufw.databasequeue.worker
 
 import io.tpersson.ufw.databasequeue.DatabaseQueueAdapterSettings
 import io.tpersson.ufw.databasequeue.WorkItemHandler
+import io.tpersson.ufw.databasequeue.WorkItemQueueId
 import jakarta.inject.Inject
 
 public class DatabaseQueueWorkerFactoryImpl @Inject constructor(
@@ -9,7 +10,7 @@ public class DatabaseQueueWorkerFactoryImpl @Inject constructor(
 ) : DatabaseQueueWorkerFactory {
 
     override fun create(
-        queueId: String,
+        queueId: WorkItemQueueId,
         handlersByType: Map<String, WorkItemHandler<*>>,
         adapterSettings: DatabaseQueueAdapterSettings
     ): DatabaseQueueWorker {

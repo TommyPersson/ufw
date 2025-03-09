@@ -5,6 +5,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.tpersson.ufw.admin.AdminModule
 import io.tpersson.ufw.jobqueue.internal.JobQueueInternal
+import io.tpersson.ufw.jobqueue.v2.JobQueueId
 import io.tpersson.ufw.jobqueue.v2.internal.DurableJobHandlersProvider
 import io.tpersson.ufw.jobqueue.v2.internal.jobDefinition
 import jakarta.inject.Inject
@@ -50,7 +51,7 @@ public class JobQueueAdminModule @Inject constructor(
 }
 
 public data class QueueListItemDTO(
-    val queueId: String,
+    val queueId: JobQueueId,
     val numScheduled: Int,
     val numPending: Int,
     val numInProgress: Int,

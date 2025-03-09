@@ -2,14 +2,13 @@ package io.tpersson.ufw.examples.common.jobs
 
 import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.databasequeue.FailureAction
-import io.tpersson.ufw.jobqueue.JobId
 import io.tpersson.ufw.jobqueue.v2.*
 import jakarta.inject.Inject
 import org.slf4j.MDC
 
 public data class PrintJob2(
     val text: String,
-    override val id: String = JobId.new().value
+    override val id: JobId = JobId.new()
 ) : DurableJob
 
 public class PrintJob2Handler @Inject constructor() : DurableJobHandler<PrintJob2> {
