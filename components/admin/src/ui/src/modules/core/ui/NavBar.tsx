@@ -1,7 +1,7 @@
 import HomeIcon from "@mui/icons-material/Home"
-import { AppBar, IconButton, Toolbar, Typography } from "@mui/material"
+import { AppBar, Box, IconButton, Toolbar, Typography } from "@mui/material"
 import { Link } from "react-router"
-import { PropertyText } from "../../../common/components"
+import { navBarPortalContainerId, PropertyText } from "../../../common/components"
 import { ApplicationMetadata } from "../models/ApplicationMetadata"
 
 import classes from "./NavBar.module.css"
@@ -43,6 +43,10 @@ export const NavBar = (props: {
           subtitle={props.applicationMetadata.version}
           sx={{ mr: 4 }}
         />
+      </Toolbar>
+      <Box flex={1} />
+      <Toolbar>
+        <div id={navBarPortalContainerId}></div>
       </Toolbar>
     </AppBar>
   )

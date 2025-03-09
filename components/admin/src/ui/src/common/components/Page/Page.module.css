@@ -16,3 +16,13 @@
 .Filled {
     width: 100%;
 }
+
+.PageHeader {
+    position: relative;
+}
+
+.PageLoadingIndicator {
+    position: absolute;
+    left: 0;
+    right: 0;
+}

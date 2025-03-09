@@ -1,4 +1,4 @@
-import { Box, Card, CardActionArea, CardContent, Typography } from "@mui/material"
+import { Box, Card, CardActionArea, CardContent, Skeleton, Typography } from "@mui/material"
 import { useQuery } from "@tanstack/react-query"
 import * as React from "react"
 import { Link, LinkProps, useParams } from "react-router"
@@ -14,25 +14,29 @@ export const JobQueueDetailsPage = () => {
   const queueItem = (queuesQuery.data ?? []).find(it => it.queueId === queueId)
 
   return (
-    <Page heading={`Job Queue: ${queueId}`}>
+    <Page
+      heading={<>Job Queue: <code>{queueId}</code></>}
+      isLoading={queuesQuery.isFetching}
+      onRefresh={queuesQuery.refetch}
+    >
       <PageSectionHeader>Queue Statistics</PageSectionHeader>
       <Box className={classes.StatCardBox}>
         <StatCard
           title={"# Scheduled"}
-          value={queueItem?.numScheduled}
+          value={queueItem?.numScheduled ?? <Skeleton variant="text" />}
           linkProps={{ to: "../jobs/SCHEDULED", relative: "path" }}
         />
         <StatCard
           title={"# Pending"}
-          value={queueItem?.numPending}
+          value={queueItem?.numPending?? <Skeleton variant="text" />}
           linkProps={{ to: "../jobs/PENDING", relative: "path" }} />
         <StatCard
           title={"# In Progress"}
-          value={queueItem?.numInProgress}
+          value={queueItem?.numInProgress?? <Skeleton variant="text" />}
           linkProps={{ to: "../jobs/IN_PROGRESS", relative: "path" }} />
         <StatCard
           title={"# Failed"}
-          value={queueItem?.numFailed}
+          value={queueItem?.numFailed?? <Skeleton variant="text" />}
           linkProps={{ to: "../jobs/FAILED", relative: "path" }} />
       </Box>
       <PageSectionHeader>Actions</PageSectionHeader>
