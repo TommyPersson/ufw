@@ -5,6 +5,7 @@ import io.tpersson.ufw.databasequeue.FailureAction
 import io.tpersson.ufw.jobqueue.*
 import jakarta.inject.Inject
 import org.slf4j.MDC
+import kotlin.random.Random
 
 @WithDurableJobDefinition(
     description = """
@@ -23,8 +24,12 @@ public class PrintJob2Handler @Inject constructor() : DurableJobHandler<PrintJob
     override suspend fun handle(job: PrintJob2, context: JobContext) {
         println(MDC.getCopyOfContextMap())
 
-        if (job.text.contains("2")) {
-            error("oh no, there was a 2!")
+        val unluckyNumber = Random.nextInt(0, 10)
+
+        logger.info("Todays unlucky number: $unluckyNumber")
+
+        if (job.text.contains(unluckyNumber.toString())) {
+            error("oh no, there was a unlucky ${unluckyNumber}!")
         }
 
         logger.info("Handling: $job")

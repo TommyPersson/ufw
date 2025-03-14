@@ -3,6 +3,7 @@ package io.tpersson.ufw.admin.internal
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
+import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -10,8 +11,11 @@ import io.ktor.server.http.content.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.callloging.*
 import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.tpersson.ufw.admin.AdminComponentConfig
+import io.tpersson.ufw.admin.ApiException
 import io.tpersson.ufw.managed.Managed
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
@@ -36,6 +40,28 @@ public class ManagedAdminServer @Inject constructor(
 
             install(CallLogging) {
                 level = Level.INFO
+            }
+
+            install(StatusPages) {
+                exception<ApiException> { call, cause ->
+                    call.respond(
+                        status = cause.statusCode,
+                        message = ApiErrorDTO(
+                            errorCode = cause.errorCode,
+                            errorMessage = cause.errorMessage
+                        )
+                    )
+                }
+                exception<Throwable> {call, cause ->
+                    logger.error("Uncaught exception", cause)
+                    call.respond(
+                        status = HttpStatusCode.InternalServerError,
+                        message = ApiErrorDTO(
+                            errorCode = "internal.error",
+                            errorMessage = "An unknown error occurred"
+                        )
+                    )
+                }
             }
 
             adminModulesProvider.get().forEach {
@@ -64,3 +90,4 @@ public fun configureJackson(om: ObjectMapper) {
     om.findAndRegisterModules()
     om.dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
 }
+

@@ -5,7 +5,7 @@ import { useMutation, useQuery } from "@tanstack/react-query"
 import * as React from "react"
 import Markdown from "react-markdown"
 import { Link, LinkProps, useParams } from "react-router"
-import { Page, PropertyText } from "../../../../common/components"
+import { CommandButton, Page, PropertyText } from "../../../../common/components"
 import { RescheduleAllFailedJobsCommand } from "../../commands/RescheduleAllJobsCommand"
 import { JobQueueDetails, JobType } from "../../models/JobQueueDetails"
 import { JobQueueDetailsQuery } from "../../queries/JobQueueDetailsQuery"
@@ -99,22 +99,19 @@ const QueueActionsSection = (props: { queueId: string }) => {
 
   const rescheduleAllFailedJobsCommand = useMutation(RescheduleAllFailedJobsCommand)
 
-  const handleRescheduleAllFailedJobsClick = () => {
-    rescheduleAllFailedJobsCommand.mutate({ queueId })
-  }
-
-  // TODO show errors
-
   return (
     <>
       <PageSectionHeader>Actions</PageSectionHeader>
       <Box sx={{ display: "flex", gap: 2, flexDirection: "column" }}>
-        <Button
+        <CommandButton
           variant={"contained"}
           sx={{ alignSelf: "flex-start" }}
           startIcon={<PlaylistPlayIcon />}
-          onClick={handleRescheduleAllFailedJobsClick}
-          children={"Rescheduled all failed jobs"}
+          command={rescheduleAllFailedJobsCommand}
+          args={{ queueId }}
+          errorTitle={"Unable to rescheduled jobs"}
+          confirmText={"Are you sure you want to reschedule all jobs?"}
+          children={"Reschedule all failed jobs"}
         />
         <Button
           color={"error"}
@@ -127,6 +124,7 @@ const QueueActionsSection = (props: { queueId: string }) => {
     </>
   )
 }
+
 
 const JobTypesSection = (props: { jobTypes: JobType[] }) => {
   return (

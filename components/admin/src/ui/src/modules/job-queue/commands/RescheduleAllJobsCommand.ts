@@ -1,14 +1,15 @@
 import { UseMutationOptions } from "@tanstack/react-query"
+import { makeApiRequest } from "../../../common/utils/api"
+import { queryClient } from "../../../common/utils/tsq"
 
 
 export const RescheduleAllFailedJobsCommand: UseMutationOptions<any, Error, { queueId: string }> = ({
   mutationFn: async ({ queueId }) => {
-    const response = await fetch(`/admin/api/job-queue/queues/${queueId}/actions/reschedule-all-failed-jobs`, {
+    await makeApiRequest(`/admin/api/job-queue/queues/${queueId}/actions/reschedule-all-failed-jobs`, {
       method: "POST"
     })
-      // TODO real error handling
-    if (!response.ok) {
-      throw new Error(response.statusText)
-    }
+  },
+  onSuccess: async () => {
+    await queryClient.invalidateQueries({ queryKey: ["job-queue", "queues"] })
   }
 })

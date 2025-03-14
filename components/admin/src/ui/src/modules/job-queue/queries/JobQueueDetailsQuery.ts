@@ -1,12 +1,12 @@
 import { UseQueryOptions } from "@tanstack/react-query"
 import { z } from "zod"
+import { makeApiRequest } from "../../../common/utils/api"
 import { JobQueueDetails } from "../models/JobQueueDetails"
 
 export const JobQueueDetailsQuery: (queueId: string) => UseQueryOptions<JobQueueDetails | null> = (queueId) => ({
   queryKey: ["job-queue", "queues", queueId, "details"],
   queryFn: async () => {
-    // TODO handle 404
-    return detailsSchema.parse(await (await fetch(`/admin/api/job-queue/queues/${queueId}/details`)).json())
+    return detailsSchema.parse(await makeApiRequest(`/admin/api/job-queue/queues/${queueId}/details`))
   },
 })
 
