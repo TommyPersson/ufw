@@ -1,11 +1,11 @@
-import { AlertColor, Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material"
+import { Button, ButtonProps, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material"
 import { useCallback } from "react"
 
 export type ConfirmDialogProps = {
   isOpen: boolean
   title?: string
   content?: any
-  color?: AlertColor
+  color?: ButtonProps["color"]
   onClose?: () => void
   onConfirm?: () => void
   onCancel?: () => void

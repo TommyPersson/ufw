@@ -1,7 +1,5 @@
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline"
-import PlaylistPlayIcon from "@mui/icons-material/PlaylistPlay"
 import { Box, Card, CardActionArea, CardContent, Skeleton, Typography } from "@mui/material"
-import { useMutation, useQuery } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import * as React from "react"
 import { useMemo } from "react"
 import Markdown from "react-markdown"
@@ -105,10 +103,6 @@ const StatCard = (props: {
 
 const QueueActionsSection = (props: { queueId: string }) => {
   const { queueId } = props
-
-  const rescheduleAllFailedJobsCommand = useMutation(RescheduleAllFailedJobsCommand)
-  const deleteAllFailedJobsCommand = useMutation(DeleteAllFailedJobsCommand)
-
   return (
     <>
       <PageSectionHeader>Actions</PageSectionHeader>
@@ -116,24 +110,14 @@ const QueueActionsSection = (props: { queueId: string }) => {
         <CommandButton
           variant={"contained"}
           sx={{ alignSelf: "flex-start" }}
-          startIcon={<PlaylistPlayIcon />}
-          command={rescheduleAllFailedJobsCommand}
+          command={RescheduleAllFailedJobsCommand}
           args={{ queueId }}
-          errorTitle={"Unable to rescheduled jobs"}
-          confirmText={"Are you sure you want to reschedule all jobs?"}
-          children={"Reschedule all failed jobs"}
         />
         <CommandButton
-          color={"error"}
           variant={"contained"}
           sx={{ alignSelf: "flex-start" }}
-          startIcon={<DeleteOutlineIcon />}
-          command={deleteAllFailedJobsCommand}
+          command={DeleteAllFailedJobsCommand}
           args={{ queueId }}
-          errorTitle={"Unable to delete jobs"}
-          confirmText={"Are you sure you want to delete all failed jobs?"}
-          confirmColor={"error"}
-          children={"Delete all failed jobs"}
         />
       </Box>
     </>

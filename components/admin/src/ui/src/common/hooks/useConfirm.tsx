@@ -1,11 +1,11 @@
-import { AlertColor } from "@mui/material"
+import { ButtonProps } from "@mui/material"
 import { createRoot } from "react-dom/client"
 import { ConfirmDialog, confirmProviderRootId } from "../components"
 
 export type ConfirmOptions = {
   title?: string
   content?: any
-  color?: AlertColor
+  color?: ButtonProps["color"]
 }
 
 export type ConfirmResult = {
