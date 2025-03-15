@@ -1,16 +1,15 @@
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline"
 import PlaylistPlayIcon from "@mui/icons-material/PlaylistPlay"
-import { Box, Button, Card, CardActionArea, CardContent, Skeleton, Typography } from "@mui/material"
+import { Box, Card, CardActionArea, CardContent, Skeleton, Typography } from "@mui/material"
 import { useMutation, useQuery } from "@tanstack/react-query"
-import { useMemo } from "react"
 import * as React from "react"
+import { useMemo } from "react"
 import Markdown from "react-markdown"
 import { Link, LinkProps, useParams } from "react-router"
 import { CommandButton, Page, PageBreadcrumb, PropertyText } from "../../../../common/components"
-import { RescheduleAllFailedJobsCommand } from "../../commands/RescheduleAllJobsCommand"
-import { JobQueueDetails } from "../../models/JobQueueDetails"
-import { JobType } from "../../models/JobType"
-import { JobQueueDetailsQuery } from "../../queries/JobQueueDetailsQuery"
+import { DeleteAllFailedJobsCommand, RescheduleAllFailedJobsCommand } from "../../commands"
+import { JobQueueDetails, JobType } from "../../models"
+import { JobQueueDetailsQuery } from "../../queries"
 
 import classes from "./JobQueueDetailsPage.module.css"
 
@@ -108,6 +107,7 @@ const QueueActionsSection = (props: { queueId: string }) => {
   const { queueId } = props
 
   const rescheduleAllFailedJobsCommand = useMutation(RescheduleAllFailedJobsCommand)
+  const deleteAllFailedJobsCommand = useMutation(DeleteAllFailedJobsCommand)
 
   return (
     <>
@@ -123,11 +123,16 @@ const QueueActionsSection = (props: { queueId: string }) => {
           confirmText={"Are you sure you want to reschedule all jobs?"}
           children={"Reschedule all failed jobs"}
         />
-        <Button
+        <CommandButton
           color={"error"}
           variant={"contained"}
           sx={{ alignSelf: "flex-start" }}
           startIcon={<DeleteOutlineIcon />}
+          command={deleteAllFailedJobsCommand}
+          args={{ queueId }}
+          errorTitle={"Unable to delete jobs"}
+          confirmText={"Are you sure you want to delete all failed jobs?"}
+          confirmColor={"error"}
           children={"Delete all failed jobs"}
         />
       </Box>

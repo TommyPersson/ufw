@@ -102,6 +102,8 @@ public interface WorkItemsDAO {
         now: Instant,
     )
 
+    public suspend fun deleteAllFailedItems(queueId: WorkItemQueueId)
+
     public suspend fun getEventsForItem(
         queueId: WorkItemQueueId,
         itemId: WorkItemId
@@ -119,6 +121,7 @@ public interface WorkItemsDAO {
     )
 
     public suspend fun debugTruncate()
+
 
 
 }

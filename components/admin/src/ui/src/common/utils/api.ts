@@ -14,7 +14,10 @@ export async function makeApiRequest<T>(url: string, init?: RequestInit): Promis
       }
     }
 
-    throw Error(response.statusText)
+    throw new ApiError({
+      errorCode: `unknown.error`,
+      errorMessage: `HTTP Error: ${response.statusText}`
+    }, response.status)
   }
 
   if (response.status === 204) {

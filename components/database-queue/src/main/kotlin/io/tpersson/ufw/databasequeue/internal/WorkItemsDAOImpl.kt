@@ -221,6 +221,10 @@ public class WorkItemsDAOImpl @Inject constructor(
         )
     }
 
+    override suspend fun deleteAllFailedItems(queueId: WorkItemQueueId) {
+        database.update(Queries.Updates.DeleteAllFailedItems(queueId = queueId.value))
+    }
+
     override suspend fun getEventsForItem(queueId: WorkItemQueueId, itemId: WorkItemId): List<WorkItemEvent> {
         return paginate {
             database.select(Queries.Selects.GetEventsForItem(queueId.value, itemId.value, it))
@@ -574,6 +578,18 @@ public class WorkItemsDAOImpl @Inject constructor(
                    next_scheduled_for = :now,
                    expires_at = NULL,
                    events = events || :eventJson::jsonb
+                WHERE queue_id = :queueId
+                  AND state = ${WorkItemState.FAILED.dbOrdinal}
+                """.trimIndent(),
+                minimumAffectedRows = 0
+            )
+
+            data class DeleteAllFailedItems(
+                val queueId: String,
+            ) : TypedUpdate(
+                """
+                DELETE 
+                FROM $TableName
                 WHERE queue_id = :queueId
                   AND state = ${WorkItemState.FAILED.dbOrdinal}
                 """.trimIndent(),

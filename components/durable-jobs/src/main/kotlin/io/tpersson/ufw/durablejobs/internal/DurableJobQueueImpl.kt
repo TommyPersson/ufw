@@ -78,4 +78,8 @@ public class DurableJobQueueImpl @Inject constructor(
     override suspend fun rescheduleAllFailedJobs(queueId: DurableJobQueueId) {
         workItemsDAO.rescheduleAllFailedItems(queueId.toWorkItemQueueId(), clock.instant())
     }
+
+    override suspend fun deleteAllFailedJobs(queueId: DurableJobQueueId) {
+        workItemsDAO.deleteAllFailedItems(queueId.toWorkItemQueueId())
+    }
 }

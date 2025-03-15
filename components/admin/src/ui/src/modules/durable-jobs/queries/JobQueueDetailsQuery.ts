@@ -1,7 +1,7 @@
 import { UseQueryOptions } from "@tanstack/react-query"
 import { z } from "zod"
 import { makeApiRequest } from "../../../common/utils/api"
-import { JobQueueDetails } from "../models/JobQueueDetails"
+import { JobQueueDetails } from "../models"
 
 export const JobQueueDetailsQuery: (queueId: string) => UseQueryOptions<JobQueueDetails | null> = (queueId) => ({
   queryKey: ["durable-jobs", "queues", queueId, "details"],

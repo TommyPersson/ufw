@@ -2,8 +2,7 @@ import { UseQueryOptions } from "@tanstack/react-query"
 import { z } from "zod"
 import { makeApiRequest, PaginatedList } from "../../../common/utils/api"
 import { zx } from "../../../common/utils/zod"
-import { JobListItem } from "../models/JobListItem"
-import { JobState } from "../models/JobState"
+import { JobListItem, JobState } from "../models"
 
 export const JobListQuery: (queueId: string, jobState: JobState, page: number) => UseQueryOptions<PaginatedList<JobListItem>> =
   (queueId, jobState, page) => ({

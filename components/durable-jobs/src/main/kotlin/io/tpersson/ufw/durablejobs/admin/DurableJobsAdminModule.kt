@@ -91,6 +91,15 @@ public class DurableJobsAdminModule @Inject constructor(
                 call.respond(HttpStatusCode.NoContent)
             }
 
+            post("/admin/api/durable-jobs/queues/{queueId}/actions/delete-all-failed-jobs") {
+                val queueId = DurableJobQueueId.fromString(call.parameters["queueId"]!!)
+
+                jobQueue.deleteAllFailedJobs(queueId)
+
+                logger.info("Deleted all failed jobs for queue: $queueId")
+
+                call.respond(HttpStatusCode.NoContent)
+            }
 
             get("/admin/api/durable-jobs/queues/{queueId}/jobs") {
                 val queueId = DurableJobQueueId.fromString(call.parameters["queueId"]!!)

@@ -17,6 +17,8 @@ public interface DurableJobQueueInternal : DurableJobQueue {
     ): PaginatedList<WorkItemDbEntity> // TODO "job"-wrappers?
 
     public suspend fun rescheduleAllFailedJobs(queueId: DurableJobQueueId)
+
+    public suspend fun deleteAllFailedJobs(queueId: DurableJobQueueId)
 }
 
 public data class JobQueueStatistics(

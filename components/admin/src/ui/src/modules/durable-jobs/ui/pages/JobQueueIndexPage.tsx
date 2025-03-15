@@ -1,10 +1,10 @@
+import WarningIcon from "@mui/icons-material/Warning"
+import { Box, Paper, Skeleton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material"
 import { useQuery } from "@tanstack/react-query"
 import { useMemo } from "react"
 import { Link } from "react-router"
 import { Page, PageBreadcrumb } from "../../../../common/components"
-import { JobQueueListQuery } from "../../queries/JobQueueListQuery"
-import { Box, Paper, Skeleton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material"
-import WarningIcon from "@mui/icons-material/Warning"
+import { JobQueueListQuery } from "../../queries"
 
 import classes from "./JobQueueIndexPage.module.css"
 

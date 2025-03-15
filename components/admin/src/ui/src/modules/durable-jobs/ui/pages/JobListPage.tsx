@@ -5,7 +5,8 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableContainer, TableFooter,
+  TableContainer,
+  TableFooter,
   TableHead,
   TablePagination,
   TableRow
@@ -15,11 +16,8 @@ import * as React from "react"
 import { useCallback, useMemo, useState } from "react"
 import { useParams } from "react-router"
 import { DateTimeText, Page, PageBreadcrumb, TableRowSkeleton } from "../../../../common/components"
-import { JobListItem } from "../../models/JobListItem"
-import { JobQueueDetails } from "../../models/JobQueueDetails"
-import { JobState } from "../../models/JobState"
-import { JobListQuery } from "../../queries/JobListQuery"
-import { JobQueueDetailsQuery } from "../../queries/JobQueueDetailsQuery"
+import { JobListItem, JobQueueDetails, JobState } from "../../models"
+import { JobListQuery, JobQueueDetailsQuery } from "../../queries"
 
 export const JobListPage = () => {
   const params = useParams<{ queueId: string, jobState: JobState }>()

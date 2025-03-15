@@ -1,4 +1,4 @@
-import { Button, ButtonProps, Popover } from "@mui/material"
+import { AlertColor, Button, ButtonProps, Popover } from "@mui/material"
 import { UseMutationResult } from "@tanstack/react-query"
 import { useRef } from "react"
 import { useConfirm } from "../../hooks"
@@ -10,10 +10,11 @@ export type CommandButtonProps<TArgs> = {
   args: TArgs
   errorTitle?: string | null
   confirmText?: string | null
+  confirmColor?: AlertColor | null
 } & ButtonProps
 
 export const CommandButton = <TArgs, >(props: CommandButtonProps<TArgs>) => {
-  const { command, args, confirmText, errorTitle, ...buttonProps } = props
+  const { command, args, confirmText, confirmColor, errorTitle, ...buttonProps } = props
 
   const buttonRef = useRef<HTMLButtonElement | null>(null)
 
@@ -22,7 +23,7 @@ export const CommandButton = <TArgs, >(props: CommandButtonProps<TArgs>) => {
       <Button
         ref={buttonRef}
         {...buttonProps}
-        {...bindCommandButton(command, args, confirmText ?? null)}
+        {...bindCommandButton(command, args, confirmText ?? null, confirmColor ?? null)}
       />
       <Popover
         open={command.error}
@@ -40,6 +41,7 @@ export function bindCommandButton<TArgs>(
   mutation: UseMutationResult<any, any, TArgs>,
   args: TArgs | null,
   confirmText: string | null,
+  confirmColor: AlertColor | null,
 ): ButtonProps {
   const confirm = useConfirm()
 
@@ -48,7 +50,7 @@ export function bindCommandButton<TArgs>(
       if (confirmText) {
         const { confirmed } = await confirm({
           content: confirmText,
-          color: "error"
+          color: confirmColor ?? undefined
         })
 
         if (!confirmed) {

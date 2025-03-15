@@ -3,9 +3,9 @@ import { makeApiRequest } from "../../../common/utils/api"
 import { queryClient } from "../../../common/utils/tsq"
 
 
-export const RescheduleAllFailedJobsCommand: UseMutationOptions<any, Error, { queueId: string }> = ({
+export const DeleteAllFailedJobsCommand: UseMutationOptions<any, Error, { queueId: string }> = ({
   mutationFn: async ({ queueId }) => {
-    await makeApiRequest(`/admin/api/durable-jobs/queues/${queueId}/actions/reschedule-all-failed-jobs`, {
+    await makeApiRequest(`/admin/api/durable-jobs/queues/${queueId}/actions/delete-all-failed-jobs`, {
       method: "POST"
     })
   },
