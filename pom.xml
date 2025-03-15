@@ -49,32 +49,32 @@
         <kotlinx-coroutines.version>1.10.1</kotlinx-coroutines.version>
         <ktor.version>2.3.12</ktor.version>
 
-        <jackson.version>2.16.0</jackson.version>
-        <micrometer.version>1.12.0</micrometer.version>
+        <jackson.version>2.18.3</jackson.version>
+        <micrometer.version>1.14.5</micrometer.version>
         <guice.version>7.0.0</guice.version>
-        <classgraph.version>4.8.162</classgraph.version>
-        <resilience4j.version>2.1.0</resilience4j.version>
-        <caffeine.version>3.1.8</caffeine.version>
+        <classgraph.version>4.8.179</classgraph.version>
+        <resilience4j.version>2.3.0</resilience4j.version>
+        <caffeine.version>3.2.0</caffeine.version>
 
         <hikaricp.version>5.0.1</hikaricp.version>
-        <postgresql.version>42.6.0</postgresql.version>
-        <liquibase.version>4.31.0</liquibase.version>
-        <liquibase-slf4j.version>5.0.0</liquibase-slf4j.version>
+        <postgresql.version>42.7.5</postgresql.version>
+        <liquibase.version>4.31.1</liquibase.version>
+        <liquibase-slf4j.version>5.1.0</liquibase-slf4j.version>
 
-        <logback.version>1.4.11</logback.version>
+        <logback.version>1.5.17</logback.version>
         <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
-        <janino.version>3.1.10</janino.version>
-        <slf4j.version>2.0.9</slf4j.version>
+        <janino.version>3.1.12</janino.version>
+        <slf4j.version>2.0.17</slf4j.version>
 
-        <junit.version>5.10.1</junit.version>
-        <testcontainers.version>1.19.0</testcontainers.version>
-        <assertj-core.version>3.24.2</assertj-core.version>
+        <junit.version>5.12.1</junit.version>
+        <testcontainers.version>1.20.6</testcontainers.version>
+        <assertj-core.version>3.27.3</assertj-core.version>
         <jakarta.inject-api.version>2.0.1</jakarta.inject-api.version>
-        <mockito.version>5.7.0</mockito.version>
-        <mockito-kotlin.version>5.1.0</mockito-kotlin.version>
-        <awaitility.version>4.2.0</awaitility.version>
+        <mockito.version>5.16.1</mockito.version>
+        <mockito-kotlin.version>5.4.0</mockito-kotlin.version>
+        <awaitility.version>4.3.0</awaitility.version>
 
-        <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
     </properties>
 
     <dependencyManagement>
@@ -450,11 +450,11 @@
             </plugin>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.1.2</version>
+                <version>3.5.2</version>
             </plugin>
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>3.2.2</version>
+                <version>3.5.2</version>
             </plugin>
 
             <plugin>
@@ -473,7 +473,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>3.3.0</version>
+                <version>3.3.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
