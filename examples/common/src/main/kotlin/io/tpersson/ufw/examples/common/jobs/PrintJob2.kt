@@ -5,6 +5,7 @@ import io.tpersson.ufw.databasequeue.FailureAction
 import io.tpersson.ufw.jobqueue.*
 import jakarta.inject.Inject
 import org.slf4j.MDC
+import java.time.Duration
 import kotlin.random.Random
 
 @WithDurableJobDefinition(
@@ -42,6 +43,6 @@ public class PrintJob2Handler @Inject constructor() : DurableJobHandler<PrintJob
             return FailureAction.GiveUp
         }
 
-        return FailureAction.RescheduleNow
+        return FailureAction.RescheduleAt(context.timestamp + Duration.ofSeconds(60))
     }
 }

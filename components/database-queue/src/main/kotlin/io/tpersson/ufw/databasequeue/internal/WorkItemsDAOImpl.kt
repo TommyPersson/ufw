@@ -54,8 +54,12 @@ public class WorkItemsDAOImpl @Inject constructor(
         return database.select(Queries.Selects.FindById(queueId.value, itemId.value))
     }
 
-    override suspend fun listAllItems(): List<WorkItemDbEntity> {
-        return database.select(Queries.Selects.ListAllItems(limit = 0))
+    override suspend fun listAllItems(state: WorkItemState?): List<WorkItemDbEntity> {
+        if (state == null) {
+            return database.select(Queries.Selects.ListAllItems(limit = 0))
+        } else {
+            return database.select(Queries.Selects.ListAllItemsByState(state, limit = 0))
+        }
     }
 
     override suspend fun takeNext(queueId: WorkItemQueueId, watchdogId: String, now: Instant): WorkItemDbEntity? {
@@ -301,6 +305,15 @@ public class WorkItemsDAOImpl @Inject constructor(
                 """.trimIndent()
             )
 
+            data class ListAllItemsByState(val state: WorkItemState, val limit: Int) : TypedSelectList<WorkItemDbEntity>(
+                """
+                SELECT $columnsWithoutEventsSql  
+                FROM $TableName
+                WHERE state = :state.dbOrdinal
+                ORDER BY created_at ASC
+                """.trimIndent()
+            )
+
             data class GetEventsForItem(
                 val queueId: String,
                 val itemId: String,
@@ -387,6 +400,7 @@ public class WorkItemsDAOImpl @Inject constructor(
                     FROM $TableName nj
                     WHERE state = ${WorkItemState.SCHEDULED.dbOrdinal}
                       AND queue_id = :queueId
+                      AND next_scheduled_for < :now
                       AND (nj.concurrency_key IS NULL OR 0 = (
                         SELECT count(ipj.*)
                         FROM in_progress_jobs ipj

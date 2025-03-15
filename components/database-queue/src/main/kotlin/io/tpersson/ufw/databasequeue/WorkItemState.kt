@@ -22,5 +22,9 @@ public enum class WorkItemState(
                 else -> error("Unknown WorkItemState: $dbOrdinal")
             }
         }
+
+        public fun fromString(string: String): WorkItemState {
+            return valueOf(string)
+        }
     }
 }

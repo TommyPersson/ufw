@@ -6,6 +6,8 @@ import io.tpersson.ufw.core.concurrency.ConsumerSignal
 import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.databasequeue.NewWorkItem
+import io.tpersson.ufw.databasequeue.WorkItemState
+import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
 import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
 import io.tpersson.ufw.jobqueue.*
 import io.tpersson.ufw.jobqueue.DurableJob
@@ -58,6 +60,7 @@ public class JobQueueImpl @Inject constructor(
         )
 
         unitOfWork.addPostCommitHook {
+            // TODO fix signalling for work items
             //getSignal(queueId).signal()
         }
     }
@@ -71,6 +74,10 @@ public class JobQueueImpl @Inject constructor(
             numInProgress = workItemQueueStatistics.numInProgress,
             numFailed = workItemQueueStatistics.numFailed,
         )
+    }
+
+    override suspend fun getJobs(queueId: JobQueueId, state: WorkItemState): List<WorkItemDbEntity> {
+        return workItemsDAO.listAllItems(state = state)
     }
 
     override suspend fun rescheduleAllFailedJobs(queueId: JobQueueId) {

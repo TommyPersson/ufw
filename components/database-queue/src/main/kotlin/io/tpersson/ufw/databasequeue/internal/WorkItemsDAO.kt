@@ -4,6 +4,7 @@ import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.databasequeue.NewWorkItem
 import io.tpersson.ufw.databasequeue.WorkItemId
 import io.tpersson.ufw.databasequeue.WorkItemQueueId
+import io.tpersson.ufw.databasequeue.WorkItemState
 import java.time.Instant
 
 public interface WorkItemsDAO {
@@ -20,7 +21,9 @@ public interface WorkItemsDAO {
     ): WorkItemDbEntity?
 
     // TODO pagination
-    public suspend fun listAllItems(): List<WorkItemDbEntity>
+    public suspend fun listAllItems(
+        state: WorkItemState? = null
+    ): List<WorkItemDbEntity>
 
     public suspend fun takeNext(
         queueId: WorkItemQueueId,

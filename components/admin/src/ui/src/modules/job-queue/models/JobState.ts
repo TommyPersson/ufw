@@ -1,0 +1,1 @@
+export type JobState = "SCHEDULED" | "PENDING" | "IN_PROGRESS" | "SUCCESSFUL" | "FAILED"

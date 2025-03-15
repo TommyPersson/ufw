@@ -1,3 +1,5 @@
+import { JobType } from "./JobType"
+
 export type JobQueueDetails = {
   queueId: string
   numScheduled: number
@@ -7,8 +9,3 @@ export type JobQueueDetails = {
   jobTypes: JobType[]
 }
 
-export type JobType = {
-  type: string
-  jobClassName: string
-  description: string | null
-}

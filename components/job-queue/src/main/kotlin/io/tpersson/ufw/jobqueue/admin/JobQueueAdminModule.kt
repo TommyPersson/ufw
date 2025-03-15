@@ -6,6 +6,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.tpersson.ufw.admin.AdminModule
 import io.tpersson.ufw.core.logging.createLogger
+import io.tpersson.ufw.databasequeue.WorkItemState
 import io.tpersson.ufw.jobqueue.internal.JobQueueInternal
 import io.tpersson.ufw.jobqueue.JobQueueId
 import io.tpersson.ufw.jobqueue.internal.DurableJobDefinition
@@ -15,6 +16,7 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import java.time.Instant
 
 public class JobQueueAdminModule @Inject constructor(
     private val durableJobHandlersProvider: DurableJobHandlersProvider,
@@ -91,6 +93,25 @@ public class JobQueueAdminModule @Inject constructor(
 
                 call.respond(HttpStatusCode.NoContent)
             }
+
+
+            get("/admin/api/job-queue/queues/{queueId}/jobs") {
+                val queueId = JobQueueId.fromString(call.parameters["queueId"]!!)
+                val jobState = WorkItemState.fromString(call.parameters["state"]!!)
+
+                val jobList = jobQueue.getJobs(queueId, jobState).map {
+                    JobItemDTO(
+                        jobId = it.itemId,
+                        numFailures = it.numFailures,
+                        createdAt = it.createdAt,
+                        firstScheduledFor = it.firstScheduledFor,
+                        nextScheduledFor = it.nextScheduledFor,
+                        stateChangedAt = it.stateChangedAt,
+                    )
+                }
+
+                call.respond(jobList)
+            }
         }
     }
 }
@@ -117,3 +138,12 @@ public data class QueueDetailsDTO(
         val description: String?,
     )
 }
+
+public data class JobItemDTO(
+    val jobId: String,
+    val numFailures: Int,
+    val createdAt: Instant,
+    val firstScheduledFor: Instant,
+    val nextScheduledFor: Instant?,
+    val stateChangedAt: Instant,
+)

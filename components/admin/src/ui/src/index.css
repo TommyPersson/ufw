@@ -1,11 +1,13 @@
+body {
+    background: hsla(215, 15%, 97%, 0.5);
+}
+
 #root {
     width: 100vw;
     height: 100vh;
     display: flex;
     flex-direction: column;
-    background: hsla(215, 15%, 97%, 0.5);;
 }
-
 
 code {
     padding: 2px 4px;

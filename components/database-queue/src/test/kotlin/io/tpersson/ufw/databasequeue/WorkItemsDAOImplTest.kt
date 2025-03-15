@@ -200,6 +200,24 @@ internal class WorkItemsDAOImplTest {
         }
 
     @Test
+    fun `takeNext - Shall not take an item scheduled for the future`(): Unit = runBlocking {
+        val now = testClock.instant().truncatedTo(ChronoUnit.MILLIS)
+        val scheduleFor = now.plus(Duration.ofMinutes(1))
+
+        debugInsertItems(
+            makeWorkItem(
+                itemId = "testId1",
+                firstScheduledFor = scheduleFor,
+                nextScheduledFor = scheduleFor
+            )
+        )
+
+        val item = dao.takeNext("testQueueId".toWorkItemQueueId(), watchdogId = "testWatchdog", now = now)
+
+        assertThat(item).isNull()
+    }
+
+    @Test
     fun `takeNext - Shall record state transition event`(): Unit = runBlocking {
         // Arrange
         debugInsertItems(makeWorkItem(itemId = "testId1", concurrencyKey = "concurrencyKey"))
