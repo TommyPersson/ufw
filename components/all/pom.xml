@@ -38,7 +38,7 @@
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-job-queue</artifactId>
+            <artifactId>ufw-durable-jobs</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>

@@ -6,7 +6,6 @@ export type TableRowSkeletonProps = {
 
 
 export const TableRowSkeleton = (props: TableRowSkeletonProps) => {
-
   const { numColumns } = props
 
   const cells = range(numColumns).map(i => (
@@ -23,5 +22,5 @@ export const TableRowSkeleton = (props: TableRowSkeletonProps) => {
 }
 
 function range(numColumns: number) {
-  return new Array(numColumns).fill(0).map(i => i)
+  return new Array(numColumns).fill(0).map((_, i) => i)
 }

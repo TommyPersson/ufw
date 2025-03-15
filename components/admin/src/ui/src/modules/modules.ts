@@ -1,6 +1,6 @@
 import { ModuleDefinition } from "./ModuleDefinition.tsx"
-import { JobQueueModuleDefinition } from "./job-queue/JobQueueModuleDefinition.tsx"
+import { DurableJobsModuleDefinition } from "./durable-jobs/DurableJobsModuleDefinition.tsx"
 
 export const allModuleDefinitions: ModuleDefinition[] = [
-  JobQueueModuleDefinition,
+  DurableJobsModuleDefinition,
 ]

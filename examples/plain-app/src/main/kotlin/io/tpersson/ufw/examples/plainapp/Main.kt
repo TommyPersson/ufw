@@ -24,7 +24,8 @@ import io.tpersson.ufw.examples.common.jobs.PrintJob2Handler
 import io.tpersson.ufw.examples.common.managed.PeriodicEventPublisher
 import io.tpersson.ufw.examples.common.managed.PeriodicLogger
 import io.tpersson.ufw.examples.common.managed.PrometheusServer
-import io.tpersson.ufw.jobqueue.dsl.jobQueue
+import io.tpersson.ufw.durablejobs.dsl.jobQueue
+import io.tpersson.ufw.durablejobs.dsl.durableJobs
 import io.tpersson.ufw.keyvaluestore.dsl.keyValueStore
 import io.tpersson.ufw.managed.dsl.managed
 import io.tpersson.ufw.mediator.dsl.mediator
@@ -78,7 +79,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
                 TransactionalMiddleware(components.database.unitOfWorkFactory)
             )
         }
-        jobQueue {
+        durableJobs {
             configure {
                 stalenessDetectionInterval = Duration.ofMinutes(1)
                 stalenessAge = Duration.ofMinutes(1)

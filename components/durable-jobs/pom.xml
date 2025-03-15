@@ -11,7 +11,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>ufw-all-guice</artifactId>
+    <artifactId>ufw-durable-jobs</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -22,47 +22,29 @@
     <dependencies>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-all</artifactId>
+            <artifactId>ufw-core</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-core-guice</artifactId>
+            <artifactId>ufw-managed</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-database-guice</artifactId>
+            <artifactId>ufw-admin</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-database-queue-guice</artifactId>
+            <artifactId>ufw-database</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-managed-guice</artifactId>
+            <artifactId>ufw-database-queue</artifactId>
         </dependency>
+
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-mediator-guice</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-key-value-store-guice</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-durable-jobs-guice</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-aggregates-guice</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-transactional-events-guice</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-admin-guice</artifactId>
+            <artifactId>ufw-test</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

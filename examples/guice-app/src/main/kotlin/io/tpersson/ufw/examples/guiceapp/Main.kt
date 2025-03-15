@@ -22,9 +22,9 @@ import io.tpersson.ufw.examples.common.commands.PerformGreetingCommand
 import io.tpersson.ufw.examples.common.events.ExampleEventV1
 import io.tpersson.ufw.examples.common.jobs.PrintJob
 import io.tpersson.ufw.examples.common.jobs.PrintJob2
-import io.tpersson.ufw.jobqueue.JobQueue
-import io.tpersson.ufw.jobqueue.JobQueueConfig
-import io.tpersson.ufw.jobqueue.guice.JobQueueGuiceModule
+import io.tpersson.ufw.durablejobs.DurableJobQueue
+import io.tpersson.ufw.durablejobs.DurableJobsConfig
+import io.tpersson.ufw.durablejobs.guice.DurableJobsGuiceModule
 import io.tpersson.ufw.keyvaluestore.KeyValueStoreConfig
 import io.tpersson.ufw.keyvaluestore.guice.KeyValueStoreGuiceModule
 import io.tpersson.ufw.managed.ManagedComponent
@@ -82,8 +82,8 @@ public fun main(): Unit = runBlocking(MDCContext()) {
             )
         ),
         MediatorGuiceModule(),
-        JobQueueGuiceModule(
-            config = JobQueueConfig(
+        DurableJobsGuiceModule(
+            config = DurableJobsConfig(
                 stalenessDetectionInterval = Duration.ofSeconds(30)
             )
         ),
@@ -120,7 +120,7 @@ private suspend fun testMediator(injector: Injector) {
 }
 
 private suspend fun testJobQueue(injector: Injector) {
-    val jobQueue = injector.getInstance(JobQueue::class.java)
+    val jobQueue = injector.getInstance(DurableJobQueue::class.java)
     val unitOfWorkFactory = injector.getInstance(UnitOfWorkFactory::class.java)
 
     unitOfWorkFactory.use { uow ->

@@ -25,8 +25,8 @@
         <module>components/mediator-middleware-transactional</module>
         <module>components/key-value-store</module>
         <module>components/key-value-store-guice</module>
-        <module>components/job-queue</module>
-        <module>components/job-queue-guice</module>
+        <module>components/durable-jobs</module>
+        <module>components/durable-jobs-guice</module>
         <module>components/aggregates</module>
         <module>components/aggregates-guice</module>
         <module>components/transactional-events</module>
@@ -131,12 +131,12 @@
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
-                <artifactId>ufw-job-queue</artifactId>
+                <artifactId>ufw-durable-jobs</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
-                <artifactId>ufw-job-queue-guice</artifactId>
+                <artifactId>ufw-durable-jobs-guice</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
