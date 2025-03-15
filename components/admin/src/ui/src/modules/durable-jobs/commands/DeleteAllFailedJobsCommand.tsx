@@ -5,6 +5,7 @@ import { queryClient } from "../../../common/utils/tsq"
 
 export const DeleteAllFailedJobsCommand: Command<{ queueId: string }> = {
   mutationOptions: ({
+    mutationKey: ['durable-jobs', 'DeleteAllFailedJobs'],
     mutationFn: async ({ queueId }) => {
       await makeApiRequest(`/admin/api/durable-jobs/queues/${queueId}/actions/delete-all-failed-jobs`, {
         method: "POST"

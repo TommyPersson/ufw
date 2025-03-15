@@ -4,6 +4,7 @@ import java.time.Duration
 import java.time.Instant
 import java.time.InstantSource
 import java.time.temporal.ChronoUnit
+import kotlin.time.toJavaDuration
 
 public class TestInstantSource : InstantSource {
     private var now = Instant.now()
@@ -14,6 +15,10 @@ public class TestInstantSource : InstantSource {
 
     public fun advance(duration: Duration) {
         now += duration
+    }
+
+    public fun advance(duration: kotlin.time.Duration) {
+        advance(duration.toJavaDuration())
     }
 
     public fun reset(instant: Instant) {

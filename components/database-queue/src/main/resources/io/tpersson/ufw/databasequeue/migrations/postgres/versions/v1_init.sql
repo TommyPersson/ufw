@@ -41,3 +41,9 @@ CREATE TABLE ufw__db_queue__failures
 
 -- TODO indexes
 
+CREATE TABLE ufw__db_queue__queues
+(
+    queue_id         TEXT        NOT NULL PRIMARY KEY,
+    state            TEXT        NOT NULL,
+    state_changed_at TIMESTAMPTZ NOT NULL
+);

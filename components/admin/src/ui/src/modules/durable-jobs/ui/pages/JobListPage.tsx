@@ -63,6 +63,15 @@ export const JobListPage = () => {
         <Table>
           <TableHead>
             <TableRow>
+              <TablePagination
+                count={totalItemCount}
+                onPageChange={handlePageChanged}
+                page={page-1}
+                rowsPerPage={100}
+                rowsPerPageOptions={[]}
+              />
+            </TableRow>
+            <TableRow>
               <TableCell></TableCell>
               <TableCell>ID</TableCell>
               <TableCell>Created At</TableCell>
