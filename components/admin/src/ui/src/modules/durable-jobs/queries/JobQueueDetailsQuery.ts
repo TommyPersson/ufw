@@ -4,9 +4,9 @@ import { makeApiRequest } from "../../../common/utils/api"
 import { JobQueueDetails } from "../models/JobQueueDetails"
 
 export const JobQueueDetailsQuery: (queueId: string) => UseQueryOptions<JobQueueDetails | null> = (queueId) => ({
-  queryKey: ["job-queue", "queues", queueId, "details"],
+  queryKey: ["durable-jobs", "queues", queueId, "details"],
   queryFn: async () => {
-    return detailsSchema.parse(await makeApiRequest(`/admin/api/job-queue/queues/${queueId}/details`))
+    return detailsSchema.parse(await makeApiRequest(`/admin/api/durable-jobs/queues/${queueId}/details`))
   },
 })
 

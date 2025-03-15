@@ -7,11 +7,11 @@ import { JobState } from "../models/JobState"
 
 export const JobListQuery: (queueId: string, jobState: JobState, page: number) => UseQueryOptions<PaginatedList<JobListItem>> =
   (queueId, jobState, page) => ({
-    queryKey: ["job-queue", "queues", queueId, "jobs", jobState, page],
+    queryKey: ["durable-jobs", "queues", queueId, "jobs", jobState, page],
     queryFn: async () => {
       const limit = 100
       const offset = (page - 1) * 100
-      return responseSchema.parse(await makeApiRequest(`/admin/api/job-queue/queues/${queueId}/jobs?state=${jobState}&limit=${limit}&offset=${offset}`))
+      return responseSchema.parse(await makeApiRequest(`/admin/api/durable-jobs/queues/${queueId}/jobs?state=${jobState}&limit=${limit}&offset=${offset}`))
     },
   })
 

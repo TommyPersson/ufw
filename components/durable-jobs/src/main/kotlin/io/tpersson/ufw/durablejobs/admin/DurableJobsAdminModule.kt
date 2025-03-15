@@ -36,11 +36,7 @@ public class DurableJobsAdminModule @Inject constructor(
 
     override fun configure(application: Application) {
         application.routing {
-            get("/admin/api/job-queue/hello") {
-                call.respondText("Hello, Jobs!")
-            }
-
-            get("/admin/api/job-queue/queues") {
+            get("/admin/api/durable-jobs/queues") {
                 coroutineScope {
                     val queueIds = jobHandlerDefinitions.map { it.queueId }
                     val listItems = queueIds.map { queueId ->
@@ -60,7 +56,7 @@ public class DurableJobsAdminModule @Inject constructor(
                 }
             }
 
-            get("/admin/api/job-queue/queues/{queueId}/details") {
+            get("/admin/api/durable-jobs/queues/{queueId}/details") {
                 val queueId = DurableJobQueueId.fromString(call.parameters["queueId"]!!)
 
                 val handlers = jobHandlerDefinitions.filter { it.queueId == queueId }
@@ -85,7 +81,7 @@ public class DurableJobsAdminModule @Inject constructor(
                 call.respond(details)
             }
 
-            post("/admin/api/job-queue/queues/{queueId}/actions/reschedule-all-failed-jobs") {
+            post("/admin/api/durable-jobs/queues/{queueId}/actions/reschedule-all-failed-jobs") {
                 val queueId = DurableJobQueueId.fromString(call.parameters["queueId"]!!)
 
                 jobQueue.rescheduleAllFailedJobs(queueId)
@@ -96,7 +92,7 @@ public class DurableJobsAdminModule @Inject constructor(
             }
 
 
-            get("/admin/api/job-queue/queues/{queueId}/jobs") {
+            get("/admin/api/durable-jobs/queues/{queueId}/jobs") {
                 val queueId = DurableJobQueueId.fromString(call.parameters["queueId"]!!)
                 val jobState = WorkItemState.fromString(call.parameters["state"]!!)
 
