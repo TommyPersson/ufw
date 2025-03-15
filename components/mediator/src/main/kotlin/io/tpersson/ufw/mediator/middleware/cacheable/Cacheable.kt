@@ -1,11 +1,9 @@
 package io.tpersson.ufw.mediator.middleware.cacheable
 
-import java.time.Duration
-
 /**
  * Marker interface for the [CacheableMiddleware].
  */
-public interface Cacheable<TCacheKey> {
+public interface Cacheable<TCacheKey : Any> {
     public val cacheKey: TCacheKey
     public val cacheConfig: CacheConfig
 }
