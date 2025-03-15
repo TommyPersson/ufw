@@ -3,6 +3,8 @@ package io.tpersson.ufw.databasequeue.internal
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.tpersson.ufw.core.NamedBindings
+import io.tpersson.ufw.core.utils.PaginatedList
+import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.database.jdbc.Database
 import io.tpersson.ufw.database.typedqueries.TypedSelectList
 import io.tpersson.ufw.database.typedqueries.TypedSelectSingle
@@ -54,12 +56,25 @@ public class WorkItemsDAOImpl @Inject constructor(
         return database.select(Queries.Selects.FindById(queueId.value, itemId.value))
     }
 
-    override suspend fun listAllItems(state: WorkItemState?): List<WorkItemDbEntity> {
-        if (state == null) {
-            return database.select(Queries.Selects.ListAllItems(limit = 0))
+    override suspend fun listAllItems(
+        state: WorkItemState?,
+        paginationOptions: PaginationOptions
+    ): PaginatedList<WorkItemDbEntity> {
+        // TODO move pagination option handling to TypedSelectList
+        val limit = paginationOptions.limit + 1
+        val offset = paginationOptions.offset
+
+        val items = if (state == null) {
+            database.select(Queries.Selects.ListAllItems(limit = limit, offset = offset))
         } else {
-            return database.select(Queries.Selects.ListAllItemsByState(state, limit = 0))
+            database.select(Queries.Selects.ListAllItemsByState(state, limit = limit, offset = offset))
         }
+
+        return PaginatedList(
+            items = items.take(100),
+            options = paginationOptions,
+            hasMoreItems = items.size > paginationOptions.limit
+        )
     }
 
     override suspend fun takeNext(queueId: WorkItemQueueId, watchdogId: String, now: Instant): WorkItemDbEntity? {
@@ -297,22 +312,27 @@ public class WorkItemsDAOImpl @Inject constructor(
                 """.trimIndent()
             )
 
-            data class ListAllItems(val limit: Int) : TypedSelectList<WorkItemDbEntity>(
+            data class ListAllItems(val limit: Int, val offset: Int) : TypedSelectList<WorkItemDbEntity>(
                 """
                 SELECT $columnsWithoutEventsSql  
                 FROM $TableName
                 ORDER BY created_at ASC
+                LIMIT :limit
+                OFFSET :offset
                 """.trimIndent()
             )
 
-            data class ListAllItemsByState(val state: WorkItemState, val limit: Int) : TypedSelectList<WorkItemDbEntity>(
-                """
+            data class ListAllItemsByState(val state: WorkItemState, val limit: Int, val offset: Int) :
+                TypedSelectList<WorkItemDbEntity>(
+                    """
                 SELECT $columnsWithoutEventsSql  
                 FROM $TableName
                 WHERE state = :state.dbOrdinal
                 ORDER BY created_at ASC
+                LIMIT :limit
+                OFFSET :offset
                 """.trimIndent()
-            )
+                )
 
             data class GetEventsForItem(
                 val queueId: String,

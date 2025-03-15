@@ -80,12 +80,12 @@ const PageBreadcrumbs = (props: { breadcrumbs: PageBreadcrumb[] }) => {
       {props.breadcrumbs.map(it => {
         let content
         if (it.link) {
-          content = <Link key={it.text} to={it.link}>{it.text}</Link>
+          content = <Link to={it.link}>{it.text}</Link>
         } else {
-          content = <span key={it.text}>{it.text}</span>
+          content = <>{it.text}</>
         }
 
-        return <Typography sx={{ color: it.current ? "text.primary" : undefined }}>{content}</Typography>
+        return <Typography key={it.text.toString()} sx={{ color: it.current ? "text.primary" : undefined }}>{content}</Typography>
       })}
     </Breadcrumbs>
   )

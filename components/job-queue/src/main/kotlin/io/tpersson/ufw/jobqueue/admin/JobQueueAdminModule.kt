@@ -6,6 +6,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.tpersson.ufw.admin.AdminModule
 import io.tpersson.ufw.core.logging.createLogger
+import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.databasequeue.WorkItemState
 import io.tpersson.ufw.jobqueue.internal.JobQueueInternal
 import io.tpersson.ufw.jobqueue.JobQueueId
@@ -99,22 +100,40 @@ public class JobQueueAdminModule @Inject constructor(
                 val queueId = JobQueueId.fromString(call.parameters["queueId"]!!)
                 val jobState = WorkItemState.fromString(call.parameters["state"]!!)
 
-                val jobList = jobQueue.getJobs(queueId, jobState).map {
-                    JobItemDTO(
-                        jobId = it.itemId,
-                        numFailures = it.numFailures,
-                        createdAt = it.createdAt,
-                        firstScheduledFor = it.firstScheduledFor,
-                        nextScheduledFor = it.nextScheduledFor,
-                        stateChangedAt = it.stateChangedAt,
-                    )
-                }
+                val paginationOptions = call.getPaginationOptions()
+
+                val paginatedJobs = jobQueue.getJobs(queueId, jobState, paginationOptions)
+
+                val jobList = PaginatedListDTO(
+                    items = paginatedJobs.items.map {
+                        JobItemDTO(
+                            jobId = it.itemId,
+                            numFailures = it.numFailures,
+                            createdAt = it.createdAt,
+                            firstScheduledFor = it.firstScheduledFor,
+                            nextScheduledFor = it.nextScheduledFor,
+                            stateChangedAt = it.stateChangedAt,
+                        )
+                    },
+                    hasMoreItems = paginatedJobs.hasMoreItems,
+                )
 
                 call.respond(jobList)
             }
         }
     }
 }
+
+public fun ApplicationCall.getPaginationOptions(): PaginationOptions {
+    val limit = parameters["limit"]?.toInt() ?: 100
+    val offset = parameters["offset"]?.toInt() ?: 0
+    return PaginationOptions(limit, offset)
+}
+
+public data class PaginatedListDTO<TItem>(
+    val items: List<TItem>,
+    val hasMoreItems: Boolean,
+)
 
 public data class QueueListItemDTO(
     val queueId: JobQueueId,

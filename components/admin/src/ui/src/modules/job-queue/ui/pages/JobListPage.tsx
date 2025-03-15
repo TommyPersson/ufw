@@ -5,15 +5,16 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableContainer,
+  TableContainer, TableFooter,
   TableHead,
   TablePagination,
   TableRow
 } from "@mui/material"
 import { useQuery } from "@tanstack/react-query"
-import { useMemo } from "react"
+import * as React from "react"
+import { useCallback, useMemo, useState } from "react"
 import { useParams } from "react-router"
-import { DateTimeText, Page, PageBreadcrumb } from "../../../../common/components"
+import { DateTimeText, Page, PageBreadcrumb, TableRowSkeleton } from "../../../../common/components"
 import { JobListItem } from "../../models/JobListItem"
 import { JobQueueDetails } from "../../models/JobQueueDetails"
 import { JobState } from "../../models/JobState"
@@ -25,18 +26,24 @@ export const JobListPage = () => {
   const queueId = params.queueId!
   const jobState = params.jobState!
 
-  // TODO pagination
+  const [page, setPage] = useState(1)
 
   const queueDetailsQuery = useQuery(JobQueueDetailsQuery(queueId))
-  const jobListQuery = useQuery(JobListQuery(queueId, jobState, 1))
+  const jobListQuery = useQuery(JobListQuery(queueId, jobState, page))
 
   const handleRefresh = () => {
     jobListQuery.refetch().then()
     queueDetailsQuery.refetch().then()
   }
 
-  const isLoading = queueDetailsQuery.isFetching || jobListQuery.isFetching
+  const handlePageChanged = useCallback((_: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
+    setPage(newPage + 1)
+  }, [setPage])
 
+  const isLoading = queueDetailsQuery.isLoading || jobListQuery.isLoading
+  const isFetching = queueDetailsQuery.isFetching || jobListQuery.isFetching
+
+  const isEmpty = !isLoading && (jobListQuery.data?.items?.length ?? 0) === 0
   const totalItemCount = getTotalItemCountForState(queueDetailsQuery.data ?? null, jobState)
 
   const breadcrumbs = useMemo<PageBreadcrumb[]>(() => [
@@ -50,7 +57,7 @@ export const JobListPage = () => {
   return (
     <Page
       heading={<>Jobs</>}
-      isLoading={isLoading}
+      isLoading={isFetching}
       onRefresh={handleRefresh}
       breadcrumbs={breadcrumbs}
     >
@@ -60,24 +67,30 @@ export const JobListPage = () => {
             <TableRow>
               <TableCell></TableCell>
               <TableCell>ID</TableCell>
+              <TableCell>Created At</TableCell>
               <TableCell>State Changed At</TableCell>
               <TableCell>Next Scheduled For</TableCell>
               <TableCell># Failures</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {jobListQuery.data?.map(it =>
+            {isLoading && <TableRowSkeleton numColumns={6} />}
+            {isEmpty && emptyTableRow}
+            {jobListQuery.data?.items?.map(it =>
               <JobTableRow key={it.jobId} job={it} />
             )}
           </TableBody>
-            <TablePagination
-              count={totalItemCount}
-              onPageChange={() => {
-              }}
-              page={0}
-              rowsPerPage={100}
-              rowsPerPageOptions={[]}
-            />
+          <TableFooter>
+            <TableRow>
+              <TablePagination
+                count={totalItemCount}
+                onPageChange={handlePageChanged}
+                page={page-1}
+                rowsPerPage={100}
+                rowsPerPageOptions={[]}
+              />
+            </TableRow>
+          </TableFooter>
         </Table>
       </TableContainer>
     </Page>
@@ -100,6 +113,9 @@ const JobTableRow = (props: { job: JobListItem }) => {
       </TableCell>
       <TableCell>
         <code>{job.jobId}</code>
+      </TableCell>
+      <TableCell>
+        <DateTimeText dateTime={job.createdAt} />
       </TableCell>
       <TableCell>
         <DateTimeText dateTime={job.stateChangedAt} />
@@ -132,3 +148,5 @@ function getTotalItemCountForState(queueDetails: JobQueueDetails | null, jobStat
       return 0
   }
 }
+
+const emptyTableRow = <TableRow><TableCell colSpan={6}><center><em>No items found</em></center></TableCell></TableRow>

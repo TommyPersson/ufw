@@ -1,5 +1,5 @@
 import { DateTime } from "luxon"
-import { z } from "zod"
+import { z, ZodObject, ZodRawShape } from "zod"
 
 export const zx = {
   dateTime: z.string().transform(it => {
@@ -9,5 +9,9 @@ export const zx = {
     }
 
     return value as DateTime<true>
+  }),
+  paginatedList: <T extends ZodRawShape>(itemSchema: ZodObject<T>) => z.object({
+    items: itemSchema.array(),
+    hasMoreItems: z.boolean(),
   })
 }

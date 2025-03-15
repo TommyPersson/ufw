@@ -1,5 +1,7 @@
 package io.tpersson.ufw.databasequeue.internal
 
+import io.tpersson.ufw.core.utils.PaginatedList
+import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.databasequeue.NewWorkItem
 import io.tpersson.ufw.databasequeue.WorkItemId
@@ -20,10 +22,10 @@ public interface WorkItemsDAO {
         itemId: WorkItemId,
     ): WorkItemDbEntity?
 
-    // TODO pagination
     public suspend fun listAllItems(
-        state: WorkItemState? = null
-    ): List<WorkItemDbEntity>
+        state: WorkItemState? = null,
+        paginationOptions: PaginationOptions = PaginationOptions.DEFAULT
+    ): PaginatedList<WorkItemDbEntity>
 
     public suspend fun takeNext(
         queueId: WorkItemQueueId,

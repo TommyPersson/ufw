@@ -39,3 +39,8 @@ export class ApiError extends Error {
     super(data.errorMessage)
   }
 }
+
+export type PaginatedList<TItem> = {
+  items: TItem[]
+  hasMoreItems: boolean
+}

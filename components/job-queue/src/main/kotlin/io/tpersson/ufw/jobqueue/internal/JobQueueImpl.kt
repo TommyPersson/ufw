@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.tpersson.ufw.core.NamedBindings
 import io.tpersson.ufw.core.concurrency.ConsumerSignal
 import io.tpersson.ufw.core.logging.createLogger
+import io.tpersson.ufw.core.utils.PaginatedList
+import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.databasequeue.NewWorkItem
 import io.tpersson.ufw.databasequeue.WorkItemState
@@ -76,8 +78,8 @@ public class JobQueueImpl @Inject constructor(
         )
     }
 
-    override suspend fun getJobs(queueId: JobQueueId, state: WorkItemState): List<WorkItemDbEntity> {
-        return workItemsDAO.listAllItems(state = state)
+    override suspend fun getJobs(queueId: JobQueueId, state: WorkItemState, paginationOptions: PaginationOptions): PaginatedList<WorkItemDbEntity> {
+        return workItemsDAO.listAllItems(state = state, paginationOptions = paginationOptions)
     }
 
     override suspend fun rescheduleAllFailedJobs(queueId: JobQueueId) {
