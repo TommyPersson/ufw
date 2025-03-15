@@ -1,13 +1,21 @@
 import RefreshIcon from "@mui/icons-material/Refresh"
-import { Box, Button, LinearProgress, Menu, MenuItem, Typography } from "@mui/material"
+import { Box, Breadcrumbs, Button, LinearProgress, Menu, MenuItem, Typography } from "@mui/material"
 import classNames from "classnames"
 import { useEffect, useState } from "react"
+import { Link } from "react-router"
 import { NavBarPortal } from "../NavBarPortal"
 
 import classes from "./Page.module.css"
 
+export type PageBreadcrumb = {
+  text: any
+  link?: string
+  current?: boolean
+}
+
 export type PageProps = {
   heading?: any
+  breadcrumbs?: PageBreadcrumb[]
   isLoading?: boolean
   autoRefresh?: boolean
   onRefresh?: () => void
@@ -18,6 +26,7 @@ export type PageProps = {
 export const Page = (props: PageProps) => {
   const {
     heading,
+    breadcrumbs = [],
     isLoading = false,
     onRefresh,
     autoRefresh = false,
@@ -35,6 +44,7 @@ export const Page = (props: PageProps) => {
       <PageHeader
         heading={heading}
         isLoading={isLoading}
+        breadcrumbs={breadcrumbs}
       />
       {children}
       <NavBarPortal>
@@ -51,13 +61,33 @@ export const Page = (props: PageProps) => {
 const PageHeader = (props: {
   heading: any,
   isLoading: boolean,
+  breadcrumbs: PageBreadcrumb[]
 }) => {
-  const { heading, isLoading } = props
+  const { heading, isLoading, breadcrumbs } = props
+  const hasBreadcrumbs = breadcrumbs.length > 0
   return (
     <Box className={classes.PageHeader}>
+      {hasBreadcrumbs && <PageBreadcrumbs breadcrumbs={breadcrumbs} />}
       {heading && <Typography variant={"h4"} component={"h2"} sx={{ mb: 2 }}>{heading}</Typography>}
       {isLoading && <div className={classes.PageLoadingIndicator}><LinearProgress /></div>}
     </Box>
+  )
+}
+
+const PageBreadcrumbs = (props: { breadcrumbs: PageBreadcrumb[] }) => {
+  return (
+    <Breadcrumbs>
+      {props.breadcrumbs.map(it => {
+        let content
+        if (it.link) {
+          content = <Link key={it.text} to={it.link}>{it.text}</Link>
+        } else {
+          content = <span key={it.text}>{it.text}</span>
+        }
+
+        return <Typography sx={{ color: it.current ? "text.primary" : undefined }}>{content}</Typography>
+      })}
+    </Breadcrumbs>
   )
 }
 

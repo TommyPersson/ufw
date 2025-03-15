@@ -2,10 +2,11 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline"
 import PlaylistPlayIcon from "@mui/icons-material/PlaylistPlay"
 import { Box, Button, Card, CardActionArea, CardContent, Skeleton, Typography } from "@mui/material"
 import { useMutation, useQuery } from "@tanstack/react-query"
+import { useMemo } from "react"
 import * as React from "react"
 import Markdown from "react-markdown"
 import { Link, LinkProps, useParams } from "react-router"
-import { CommandButton, Page, PropertyText } from "../../../../common/components"
+import { CommandButton, Page, PageBreadcrumb, PropertyText } from "../../../../common/components"
 import { RescheduleAllFailedJobsCommand } from "../../commands/RescheduleAllJobsCommand"
 import { JobQueueDetails } from "../../models/JobQueueDetails"
 import { JobType } from "../../models/JobType"
@@ -19,11 +20,19 @@ export const JobQueueDetailsPage = () => {
   const queuesQuery = useQuery(JobQueueDetailsQuery(queueId!))
   const queueDetails = queuesQuery.data ?? null
 
+  const breadcrumbs = useMemo<PageBreadcrumb[]>(() => [
+    { text: "Job Queue" },
+    { text: "Queues", link: "../" },
+    { text: <code>{queueId}</code> },
+    { text: "Details", current: true }
+  ], [queueId])
+
   return (
     <Page
       heading={<>Job Queue: <code>{queueId}</code></>}
       isLoading={queuesQuery.isFetching}
       onRefresh={queuesQuery.refetch}
+      breadcrumbs={breadcrumbs}
     >
       <QueueStatisticsSection details={queueDetails} />
       <QueueActionsSection queueId={queueId!} />

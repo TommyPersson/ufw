@@ -6,19 +6,19 @@ import {
   TableBody,
   TableCell,
   TableContainer,
-  TableFooter,
   TableHead,
   TablePagination,
   TableRow
 } from "@mui/material"
 import { useQuery } from "@tanstack/react-query"
+import { useMemo } from "react"
 import { useParams } from "react-router"
-import { DateTimeText, Page } from "../../../../common/components"
+import { DateTimeText, Page, PageBreadcrumb } from "../../../../common/components"
 import { JobListItem } from "../../models/JobListItem"
+import { JobQueueDetails } from "../../models/JobQueueDetails"
 import { JobState } from "../../models/JobState"
 import { JobListQuery } from "../../queries/JobListQuery"
 import { JobQueueDetailsQuery } from "../../queries/JobQueueDetailsQuery"
-import { JobQueueDetails } from "../../models/JobQueueDetails"
 
 export const JobListPage = () => {
   const params = useParams<{ queueId: string, jobState: JobState }>()
@@ -39,14 +39,21 @@ export const JobListPage = () => {
 
   const totalItemCount = getTotalItemCountForState(queueDetailsQuery.data ?? null, jobState)
 
+  const breadcrumbs = useMemo<PageBreadcrumb[]>(() => [
+    { text: "Job Queue" },
+    { text: "Queues", link: "../" },
+    { text: <code>{queueId}</code>, link: `../queues/${queueId}/details` },
+    { text: "Jobs" },
+    { text: <code>{jobState}</code>, current: true },
+  ], [queueId, jobState])
+
   return (
     <Page
       heading={<>Jobs</>}
       isLoading={isLoading}
       onRefresh={handleRefresh}
+      breadcrumbs={breadcrumbs}
     >
-      {queueId}
-      {jobState}
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -60,10 +67,9 @@ export const JobListPage = () => {
           </TableHead>
           <TableBody>
             {jobListQuery.data?.map(it =>
-              <JobTableRow job={it} />
+              <JobTableRow key={it.jobId} job={it} />
             )}
           </TableBody>
-          <TableFooter>
             <TablePagination
               count={totalItemCount}
               onPageChange={() => {
@@ -72,7 +78,6 @@ export const JobListPage = () => {
               rowsPerPage={100}
               rowsPerPageOptions={[]}
             />
-          </TableFooter>
         </Table>
       </TableContainer>
     </Page>

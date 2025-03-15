@@ -1,5 +1,5 @@
 body {
-    background: hsla(215, 15%, 97%, 0.5);
+    background: hsla(215, 15%, 97%, 0.5) !important;
 }
 
 #root {

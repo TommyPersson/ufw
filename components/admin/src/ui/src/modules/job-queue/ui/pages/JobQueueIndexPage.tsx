@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
+import { useMemo } from "react"
 import { Link } from "react-router"
-import { Page } from "../../../../common/components"
+import { Page, PageBreadcrumb } from "../../../../common/components"
 import { JobQueueListQuery } from "../../queries/JobQueueListQuery"
 import { Box, Paper, Skeleton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material"
 import WarningIcon from "@mui/icons-material/Warning"
@@ -10,11 +11,17 @@ import classes from "./JobQueueIndexPage.module.css"
 export const JobQueueIndexPage = () => {
   const queuesQuery = useQuery(JobQueueListQuery)
 
+  const breadcrumbs = useMemo<PageBreadcrumb[]>(() => [
+    { text: "Job Queue" },
+    { text: "Queues", current: true },
+  ], [])
+
   return (
     <Page
       heading={"Job Queues"}
       isLoading={queuesQuery.isFetching}
       onRefresh={queuesQuery.refetch}
+      breadcrumbs={breadcrumbs}
     >
       <Paper>
         <TableContainer>

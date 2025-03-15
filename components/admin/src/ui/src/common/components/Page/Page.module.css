@@ -1,11 +1,8 @@
 .Page {
-
     display: flex;
     flex-direction: column;
     padding: 24px;
     gap: 24px;
-
-
 }
 
 .NonFilled {
@@ -19,10 +16,14 @@
 
 .PageHeader {
     position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 .PageLoadingIndicator {
     position: absolute;
     left: 0;
     right: 0;
+    bottom: 0;
 }
