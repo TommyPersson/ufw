@@ -1,11 +1,14 @@
 package io.tpersson.ufw.databasequeue.internal
 
+import io.tpersson.ufw.core.utils.PaginationOptions
+import io.tpersson.ufw.core.utils.paginate
 import io.tpersson.ufw.database.jdbc.Database
 import io.tpersson.ufw.database.typedqueries.TypedSelectList
 import io.tpersson.ufw.database.typedqueries.TypedSelectSingle
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import jakarta.inject.Inject
+import kotlinx.coroutines.flow.toList
 
 public interface WorkItemFailuresDAO {
     public fun insertFailure(
@@ -32,14 +35,18 @@ public class WorkItemFailuresDAOImpl @Inject constructor(
     }
 
     override suspend fun listFailuresForWorkItem(itemUid: Long): List<WorkItemFailureDbEntity> {
-        return database.select(Queries.Selects.ListFailuresForWorkItem(itemUid))
+        return paginate { database.select(Queries.Selects.ListFailuresForWorkItem(itemUid, it)) }
+            .toList().flatMap { it.items }
     }
 
     private object Queries {
         val TableName = "ufw__db_queue__failures"
 
         object Selects {
-            data class ListFailuresForWorkItem(val itemUid: Long) : TypedSelectList<WorkItemFailureDbEntity>(
+            data class ListFailuresForWorkItem(
+                val itemUid: Long,
+                override val paginationOptions: PaginationOptions,
+            ) : TypedSelectList<WorkItemFailureDbEntity>(
                 """SELECT * FROM $TableName"""
             )
         }

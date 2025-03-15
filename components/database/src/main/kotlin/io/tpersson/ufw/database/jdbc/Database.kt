@@ -1,5 +1,6 @@
 package io.tpersson.ufw.database.jdbc
 
+import io.tpersson.ufw.core.utils.PaginatedList
 import io.tpersson.ufw.database.DatabaseModuleConfig
 import io.tpersson.ufw.database.exceptions.TypedUpdateMinimumAffectedRowsException
 import io.tpersson.ufw.database.typedqueries.*
@@ -18,7 +19,7 @@ public class Database @Inject constructor(
         }
     }
 
-    public suspend fun <T : Any> select(query: TypedSelectList<T>): List<T> = io {
+    public suspend fun <T : Any> select(query: TypedSelectList<T>): PaginatedList<T> = io {
         connectionProvider.get(autoCommit = true).use {
             it.select(query)
         }

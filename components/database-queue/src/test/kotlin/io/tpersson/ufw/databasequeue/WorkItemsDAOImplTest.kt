@@ -167,7 +167,7 @@ internal class WorkItemsDAOImplTest {
         }
 
         run {
-            val item = dao.listAllItems().first { it.itemId == "testId" }
+            val item = dao.listAllItems().items.first { it.itemId == "testId" }
 
             assertThat(item.state).isEqualTo(WorkItemState.IN_PROGRESS.dbOrdinal)
             assertThat(item.stateChangedAt).isEqualTo(now)
@@ -301,7 +301,7 @@ internal class WorkItemsDAOImplTest {
 
         unitOfWork.commit()
 
-        val item2 = dao.listAllItems().first { it.itemId == "testId1" }
+        val item2 = dao.listAllItems().items.first { it.itemId == "testId1" }
 
         assertThat(item2.state).isEqualTo(WorkItemState.SUCCESSFUL.dbOrdinal)
         assertThat(item2.watchdogOwner).isNull()
@@ -400,7 +400,7 @@ internal class WorkItemsDAOImplTest {
 
         unitOfWork.commit()
 
-        val item2 = dao.listAllItems().first { it.itemId == "testId1" }
+        val item2 = dao.listAllItems().items.first { it.itemId == "testId1" }
 
         assertThat(item2.state).isEqualTo(WorkItemState.FAILED.dbOrdinal)
         assertThat(item2.watchdogOwner).isNull()
@@ -476,7 +476,7 @@ internal class WorkItemsDAOImplTest {
 
         unitOfWork.commit()
 
-        val item2 = dao.listAllItems().first { it.itemId == item.itemId }
+        val item2 = dao.listAllItems().items.first { it.itemId == item.itemId }
 
         assertThat(item2.numFailures).isEqualTo(3)
     }
@@ -570,7 +570,7 @@ internal class WorkItemsDAOImplTest {
 
         unitOfWork.commit()
 
-        val item2 = dao.listAllItems().first { it.itemId == "testId1" }
+        val item2 = dao.listAllItems().items.first { it.itemId == "testId1" }
 
         assertThat(item2.state).isEqualTo(WorkItemState.SCHEDULED.dbOrdinal)
         assertThat(item2.watchdogOwner).isNull()
@@ -609,7 +609,7 @@ internal class WorkItemsDAOImplTest {
 
         unitOfWork.commit()
 
-        val item2 = dao.listAllItems().first { it.itemId == item.itemId }
+        val item2 = dao.listAllItems().items.first { it.itemId == item.itemId }
 
         assertThat(item2.numFailures).isEqualTo(3)
     }
@@ -1027,7 +1027,7 @@ internal class WorkItemsDAOImplTest {
 
             assertThat(numDeleted).isEqualTo(2)
 
-            val allItems = dao.listAllItems()
+            val allItems = dao.listAllItems().items
             assertThat(allItems).hasSize(1)
             assertThat(allItems[0].itemId).isEqualTo("3")
         }

@@ -1,10 +1,13 @@
 package io.tpersson.ufw.transactionalevents.publisher.internal.dao
 
+import io.tpersson.ufw.core.utils.PaginationOptions
+import io.tpersson.ufw.core.utils.paginate
 import io.tpersson.ufw.database.jdbc.Database
 import io.tpersson.ufw.database.typedqueries.TypedSelectList
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import jakarta.inject.Inject
+import kotlinx.coroutines.flow.toList
 
 public class EventOutboxDAO @Inject constructor(
     private val database: Database,
@@ -16,7 +19,10 @@ public class EventOutboxDAO @Inject constructor(
     }
 
     public suspend fun getNextBatch(limit: Int): List<EventEntityData> {
-        return database.select(Queries.Selects.GetNextBatch(limit))
+        val paginationOptions = PaginationOptions.DEFAULT.copy(limit = limit)
+        return paginate(paginationOptions) {
+            database.select(Queries.Selects.GetNextBatch(it))
+        }.toList().flatMap { it.items }
     }
 
     public fun deleteBatch(uids: List<Long>, unitOfWork: UnitOfWork) {
@@ -61,12 +67,11 @@ public class EventOutboxDAO @Inject constructor(
 
         object Selects {
             class GetNextBatch(
-                val limit: Int,
+                override val paginationOptions: PaginationOptions,
             ) : TypedSelectList<EventEntityData>(
                 """
                 SELECT * FROM ufw__transactional_events__outbox 
                 ORDER BY uid
-                LIMIT :limit
                 """.trimIndent()
             )
         }

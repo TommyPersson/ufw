@@ -155,6 +155,6 @@ internal class WorkItemFailuresDAOImplTest {
             )
         )
 
-        return workItemsDAO.listAllItems().last()
+        return workItemsDAO.listAllItems().items.last()
     }
 }

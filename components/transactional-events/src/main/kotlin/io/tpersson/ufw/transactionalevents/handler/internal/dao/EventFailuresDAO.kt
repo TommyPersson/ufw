@@ -1,5 +1,7 @@
 package io.tpersson.ufw.transactionalevents.handler.internal.dao
 
+import io.tpersson.ufw.core.utils.PaginationOptions
+import io.tpersson.ufw.core.utils.paginate
 import io.tpersson.ufw.database.jdbc.Database
 import io.tpersson.ufw.database.typedqueries.TypedSelectList
 import io.tpersson.ufw.database.typedqueries.TypedSelectSingle
@@ -7,6 +9,7 @@ import io.tpersson.ufw.database.typedqueries.TypedUpdate
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.transactionalevents.handler.internal.EventFailure
 import jakarta.inject.Inject
+import kotlinx.coroutines.flow.toList
 
 public class EventFailuresDAO @Inject constructor(
     private val database: Database
@@ -20,7 +23,10 @@ public class EventFailuresDAO @Inject constructor(
     }
 
     public suspend fun getLatestFor(eventUid: Long, limit: Int): List<EventFailure> {
-        return database.select(Queries.Selects.GetLatest(eventUid, limit))
+        val paginationOptions = PaginationOptions.DEFAULT.copy(limit = limit)
+        return paginate(paginationOptions) {
+            database.select(Queries.Selects.GetLatest(eventUid, it))
+        }.toList().flatMap { it.items }
     }
 
     internal object Queries {
@@ -41,13 +47,12 @@ public class EventFailuresDAO @Inject constructor(
 
             data class GetLatest(
                 val eventUid: Long,
-                val limit: Int
+                override val paginationOptions: PaginationOptions
             ) : TypedSelectList<EventFailure>(
                 """
                 SELECT *
                 FROM $TableName
                 WHERE event_uid = :eventUid
-                LIMIT :limit
                 """.trimIndent()
             )
         }

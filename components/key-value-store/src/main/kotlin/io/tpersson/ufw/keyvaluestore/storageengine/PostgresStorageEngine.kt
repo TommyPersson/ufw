@@ -1,5 +1,7 @@
 package io.tpersson.ufw.keyvaluestore.storageengine
 
+import io.tpersson.ufw.core.utils.PaginationOptions
+import io.tpersson.ufw.core.utils.paginate
 import io.tpersson.ufw.database.exceptions.MinimumAffectedRowsException
 import io.tpersson.ufw.database.jdbc.Database
 import io.tpersson.ufw.database.typedqueries.TypedSelectList
@@ -10,6 +12,7 @@ import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.keyvaluestore.exceptions.VersionMismatchException
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
+import kotlinx.coroutines.flow.toList
 import java.time.Instant
 
 @Singleton
@@ -62,7 +65,9 @@ public class PostgresStorageEngine @Inject constructor(
     }
 
     override suspend fun list(prefix: String, limit: Int, offset: Int): List<EntryDataFromRead> {
-        return database.select(Queries.Selects.ListByPrefix(prefix, limit, offset))
+        val paginationOptions = PaginationOptions(limit = limit, offset = offset)
+        return database.select(Queries.Selects.ListByPrefix(prefix, paginationOptions))
+            .items
             .map { it.asEntryDataFromRead() }
     }
 
@@ -71,7 +76,9 @@ public class PostgresStorageEngine @Inject constructor(
     }
 
     public suspend fun debugDumpTable(): List<Map<String, Any?>> {
-        return database.select(Queries.Selects.DebugDumpTable)
+        return paginate {
+            database.select(Queries.Selects.DebugDumpTable(it))
+        }.toList().flatMap { it.items }
     }
 
     private fun exceptionMapper(key: String, expectedVersion: Int?): (Exception) -> Exception = {
@@ -118,20 +125,19 @@ public class PostgresStorageEngine @Inject constructor(
 
             class ListByPrefix(
                 val prefix: String,
-                val limit: Int,
-                val offset: Int
+                override val paginationOptions: PaginationOptions
             ) : TypedSelectList<EntryData>(
                 """
                 SELECT * 
                 FROM $TableName 
                 WHERE key LIKE (:prefix || '%')
                 ORDER BY key
-                LIMIT :limit
-                OFFSET :offset
                 """.trimIndent()
             )
 
-            object DebugDumpTable : TypedSelectList<Map<String, Any?>>("SELECT * FROM $TableName")
+            class DebugDumpTable(
+                override val paginationOptions: PaginationOptions
+            ) : TypedSelectList<Map<String, Any?>>("SELECT * FROM $TableName")
         }
 
         object Updates {

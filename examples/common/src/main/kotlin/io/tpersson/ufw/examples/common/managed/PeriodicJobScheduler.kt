@@ -29,7 +29,7 @@ public class PeriodicJobScheduler @Inject constructor(
                     jobQueue.enqueue(job, uow)
                 }
 
-                delay(1_000)
+                delay(100)
             }
         }
     }

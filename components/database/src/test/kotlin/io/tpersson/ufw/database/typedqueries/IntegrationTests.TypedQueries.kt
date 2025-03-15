@@ -3,9 +3,12 @@ package io.tpersson.ufw.database.typedqueries
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.core.CoreComponent
+import io.tpersson.ufw.core.utils.PaginationOptions
+import io.tpersson.ufw.core.utils.paginate
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.exceptions.MinimumAffectedRowsException
 import io.tpersson.ufw.database.jdbc.useInTransaction
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -150,10 +153,25 @@ internal class IntegrationTestsTypedQueries {
         val originalData2 = BasicTypesEntity(UUID.randomUUID())
         database.update(Queries.Updates.InsertBasicTypesData(originalData2))
 
-        val selectedData = database.select(Queries.Selects.SelectBasicTypesDataList())
+        val selectedData = database.select(Queries.Selects.SelectBasicTypesDataList(PaginationOptions.DEFAULT)).items
 
         assertThat(selectedData).contains(originalData1)
         assertThat(selectedData).contains(originalData2)
+    }
+
+    @Test
+    fun `TypedSelectList - Can be paginated`(): Unit = runBlocking {
+        val expectedInts = 1..101
+        for (i in expectedInts) {
+            val originalData1 = BasicTypesEntity(UUID.randomUUID(), theInt = i)
+            database.update(Queries.Updates.InsertBasicTypesData(originalData1))
+        }
+
+        val actualInts = paginate(PaginationOptions.DEFAULT.copy(limit = 2)) {
+            database.select(Queries.Selects.SelectBasicTypesDataList(it))
+        }.toList().flatMap { it.items }.map { it.theInt!! }
+
+        assertThat(actualInts).isEqualTo(expectedInts.toList())
     }
 
     @Test
@@ -270,6 +288,7 @@ internal class IntegrationTestsTypedQueries {
             ) : TypedSelectSingle<BasicTypesEntity>("SELECT * FROM basic_types WHERE id = :id")
 
             class SelectBasicTypesDataList(
+                override val paginationOptions: PaginationOptions
             ) : TypedSelectList<BasicTypesEntity>("SELECT * FROM basic_types")
 
             class SelectTimeTypesData(

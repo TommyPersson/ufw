@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.tpersson.ufw.aggregates.*
 import io.tpersson.ufw.aggregates.exceptions.AggregateVersionConflictException
 import io.tpersson.ufw.core.NamedBindings
+import io.tpersson.ufw.core.utils.PaginationOptions
+import io.tpersson.ufw.core.utils.paginate
 import io.tpersson.ufw.database.jdbc.Database
 import io.tpersson.ufw.database.typedqueries.TypedSelectList
 import io.tpersson.ufw.database.typedqueries.TypedSelectSingle
@@ -11,6 +13,7 @@ import io.tpersson.ufw.database.typedqueries.TypedUpdate
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import jakarta.inject.Inject
 import jakarta.inject.Named
+import kotlinx.coroutines.flow.toList
 import org.postgresql.util.PSQLException
 import java.time.Instant
 import java.util.*
@@ -39,7 +42,9 @@ public class AggregateFactRepositoryImpl @Inject constructor(
     }
 
     override suspend fun <TFact : Fact> getAll(aggregateId: AggregateId, factClass: KClass<TFact>): List<TFact> {
-        val rawFacts = database.select(Queries.Selects.GetAll(aggregateId.value))
+        val rawFacts = paginate { 
+            database.select(Queries.Selects.GetAll(aggregateId.value, it))
+        }.toList().flatMap { it.items }
 
         return rawFacts.map { objectMapper.readValue(it.json, factClass.java) }
     }
@@ -62,7 +67,10 @@ public class AggregateFactRepositoryImpl @Inject constructor(
         private const val TableName = "ufw__aggregates__facts"
 
         object Selects {
-            class GetAll(val aggregateId: String) : TypedSelectList<FactData>(
+            class GetAll(
+                val aggregateId: String,
+                override val paginationOptions: PaginationOptions,
+            ) : TypedSelectList<FactData>(
                 """
                 SELECT * 
                 FROM $TableName

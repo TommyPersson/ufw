@@ -1,5 +1,7 @@
 package io.tpersson.ufw.transactionalevents.handler.internal.dao
 
+import io.tpersson.ufw.core.utils.PaginationOptions
+import io.tpersson.ufw.core.utils.paginate
 import io.tpersson.ufw.database.exceptions.TypedUpdateMinimumAffectedRowsException
 import io.tpersson.ufw.database.jdbc.Database
 import io.tpersson.ufw.database.typedqueries.TypedSelectList
@@ -14,6 +16,7 @@ import io.tpersson.ufw.transactionalevents.handler.internal.exceptions.EventOwne
 import io.tpersson.ufw.transactionalevents.handler.internal.metrics.EventQueueStatistics
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
+import kotlinx.coroutines.flow.toList
 import java.time.Instant
 
 @Singleton
@@ -129,7 +132,9 @@ public class EventQueueDAOImpl @Inject constructor(
     }
 
     override suspend fun getQueueStatistics(queueId: EventQueueId): EventQueueStatistics {
-        val data = database.select(Queries.Selects.GetStatistics(queueId.id))
+        val data = paginate {
+            database.select(Queries.Selects.GetStatistics(queueId.id, it))
+        }.toList().flatMap { it.items }
 
         val map = data.associateBy { EventState.fromId(it.stateId) }
 
@@ -143,7 +148,9 @@ public class EventQueueDAOImpl @Inject constructor(
     }
 
     override suspend fun debugGetAllEvents(queueId: EventQueueId?): List<EventEntityData> {
-        return database.select(Queries.Selects.DebugSelectAll(queueId))
+        return paginate {
+            database.select(Queries.Selects.DebugSelectAll(queueId, it))
+        }.toList().flatMap { it.items }
     }
 
     override suspend fun debugTruncate() {
@@ -179,7 +186,8 @@ public class EventQueueDAOImpl @Inject constructor(
             )
 
             data class GetStatistics(
-                val queueId: String
+                val queueId: String,
+                override val paginationOptions: PaginationOptions,
             ) : TypedSelectList<StatisticsData>(
                 """
                 SELECT COUNT(*) AS count, state AS state_id
@@ -190,7 +198,8 @@ public class EventQueueDAOImpl @Inject constructor(
             )
 
             data class DebugSelectAll(
-                val queueId: EventQueueId?
+                val queueId: EventQueueId?,
+                override val paginationOptions: PaginationOptions,
             ) : TypedSelectList<EventEntityData>(
                 """
                 SELECT * FROM $TableName 

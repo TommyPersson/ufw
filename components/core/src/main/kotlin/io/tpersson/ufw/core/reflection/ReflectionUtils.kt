@@ -3,6 +3,7 @@ package io.tpersson.ufw.core.reflection
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.memberProperties
 
 public fun <T : Any?> valueByPath(path: String, obj: Any): Pair<KClass<out T & Any>, T> {
     return getValueByPath(path, obj) as Pair<KClass<out T & Any>, T>
@@ -19,7 +20,7 @@ private fun getValueByPath(path: String, obj: Any): Pair<KClass<Any>, Any?> {
 
 private fun getValueForSimpleArgument(argName: String, obj: Any): Pair<KClass<Any>, Any?> {
     @Suppress("UNCHECKED_CAST")
-    val property = obj::class.declaredMemberProperties
+    val property = obj::class.memberProperties
         .map { it as KProperty1<Any, Any?> }
         .firstOrNull { it.name == argName }
         ?: error("Unable to find parameter for '$argName'")
@@ -43,7 +44,7 @@ private fun getValueForNestedArgument(argName: String, root: Any): Pair<KClass<A
         path = fullPath[i]
 
         @Suppress("UNCHECKED_CAST")
-        val property = obj!!::class.declaredMemberProperties.firstOrNull { it.name == path } as? KProperty1<Any, Any?>
+        val property = obj!!::class.memberProperties.firstOrNull { it.name == path } as? KProperty1<Any, Any?>
             ?: error("Unable to find parameter for '$argName'")
 
         type = property.returnType.classifier as KClass<Any>
