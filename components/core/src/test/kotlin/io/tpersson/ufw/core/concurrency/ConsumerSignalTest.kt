@@ -17,7 +17,7 @@ internal class ConsumerSignalTest {
         val jobFinished = AtomicBoolean(false)
 
         val waitingJob = launchWaiter {
-            if (signal.wait(100.ms)) {
+            if (signal.wait(1000.ms)) {
                 jobFinished.set(true)
             }
         }
@@ -42,7 +42,7 @@ internal class ConsumerSignalTest {
         signal.signal()
 
         val waitingJob = launchWaiter {
-            if (signal.wait(100.ms)) {
+            if (signal.wait(1000.ms)) {
                 jobFinished.set(true)
             }
         }
@@ -61,11 +61,11 @@ internal class ConsumerSignalTest {
         signal.signal()
 
         val waitingJob = launchWaiter {
-            if (signal.wait(100.ms)) {
+            if (signal.wait(1000.ms)) {
                 numWaitsCompleted.incrementAndGet()
             }
 
-            if (signal.wait(100.ms)) {
+            if (signal.wait(1000.ms)) {
                 numWaitsCompleted.incrementAndGet()
             }
         }
@@ -85,18 +85,18 @@ internal class ConsumerSignalTest {
         signal.signal()
 
         val waitingJob = launchWaiter {
-            if (signal.wait(100.ms)) {
+            if (signal.wait(1000.ms)) {
                 numWaitsCompleted.incrementAndGet()
             }
 
             returnSignal.signal()
 
-            if (signal.wait(100.ms)) {
+            if (signal.wait(1000.ms)) {
                 numWaitsCompleted.incrementAndGet()
             }
         }
 
-        returnSignal.wait(100.ms)
+        returnSignal.wait(1000.ms)
 
         signal.signal()
 

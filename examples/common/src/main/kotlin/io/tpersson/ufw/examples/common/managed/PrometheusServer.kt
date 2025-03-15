@@ -2,7 +2,7 @@ package io.tpersson.ufw.examples.common.managed
 
 import com.sun.net.httpserver.HttpServer
 import io.micrometer.core.instrument.MeterRegistry
-import io.micrometer.prometheus.PrometheusMeterRegistry
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import io.tpersson.ufw.managed.Managed
 import jakarta.inject.Inject
 import java.net.InetSocketAddress

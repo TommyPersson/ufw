@@ -41,12 +41,12 @@ public class CacheableMiddleware @Inject constructor(
             .maximumSize(request.cacheConfig.maximumsSize)
             .let {
                 if (request.cacheConfig.expireAfterAccess != null) {
-                    it.expireAfterAccess(request.cacheConfig.expireAfterAccess)
+                    it.expireAfterAccess(request.cacheConfig.expireAfterAccess!!)
                 } else it
             }
             .let {
                 if (request.cacheConfig.expireAfterWrite != null) {
-                    it.expireAfterWrite(request.cacheConfig.expireAfterWrite)
+                    it.expireAfterWrite(request.cacheConfig.expireAfterWrite!!)
                 } else it
             }
             .let {
