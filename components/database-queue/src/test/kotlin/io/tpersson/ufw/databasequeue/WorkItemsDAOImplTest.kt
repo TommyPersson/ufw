@@ -1015,6 +1015,32 @@ internal class WorkItemsDAOImplTest {
     }
 
     @Test
+    fun `deleteAllFailedItems - Shall delete all failed items`(): Unit = runBlocking {
+        // Arrange
+        val queueId = "testQueueId".toWorkItemQueueId()
+
+        debugInsertItems(
+            makeWorkItem("1", state = WorkItemState.FAILED.dbOrdinal),
+            makeWorkItem("2", state = WorkItemState.FAILED.dbOrdinal),
+            makeWorkItem("3", state = WorkItemState.SUCCESSFUL.dbOrdinal),
+            makeWorkItem("4", state = WorkItemState.IN_PROGRESS.dbOrdinal),
+            makeWorkItem("5", state = WorkItemState.SCHEDULED.dbOrdinal),
+            makeWorkItem("6", state = WorkItemState.FAILED.dbOrdinal),
+        )
+
+        // Act
+        dao.deleteAllFailedItems(queueId)
+
+        // Assert
+        assertThat(dao.getById(queueId, "1".toWorkItemId())).isNull()
+        assertThat(dao.getById(queueId, "2".toWorkItemId())).isNull()
+        assertThat(dao.getById(queueId, "3".toWorkItemId())).isNotNull()
+        assertThat(dao.getById(queueId, "4".toWorkItemId())).isNotNull()
+        assertThat(dao.getById(queueId, "5".toWorkItemId())).isNotNull()
+        assertThat(dao.getById(queueId, "6".toWorkItemId())).isNull()
+    }
+
+    @Test
     fun `deleteExpiredItems - Shall delete all items with an expiration time equal to or less than now`(): Unit =
         runBlocking {
             debugInsertItems(makeWorkItem("1", expiresAt = Instant.parse("2025-03-02T09:59:59Z")))
