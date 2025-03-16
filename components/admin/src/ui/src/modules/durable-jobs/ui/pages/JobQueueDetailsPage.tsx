@@ -4,7 +4,14 @@ import * as React from "react"
 import { useMemo } from "react"
 import Markdown from "react-markdown"
 import { Link, LinkProps, useParams } from "react-router"
-import { CommandButton, Page, PageBreadcrumb, PropertyText } from "../../../../common/components"
+import {
+  CommandButton,
+  Page,
+  PageBreadcrumb, PageSectionCard,
+  PageSectionHeader,
+  PropertyGroup,
+  PropertyText
+} from "../../../../common/components"
 import { DeleteAllFailedJobsCommand, RescheduleAllFailedJobsCommand } from "../../commands"
 import { JobQueueDetails, JobType } from "../../models"
 import { JobQueueDetailsQuery } from "../../queries"
@@ -29,18 +36,13 @@ export const JobQueueDetailsPage = () => {
       heading={<>Job Queue: <code>{queueId}</code></>}
       isLoading={queuesQuery.isFetching}
       onRefresh={queuesQuery.refetch}
+      autoRefresh={true}
       breadcrumbs={breadcrumbs}
     >
       <QueueStatisticsSection details={queueDetails} />
       <QueueActionsSection queueId={queueId!} />
       <JobTypesSection jobTypes={queueDetails?.jobTypes ?? []} />
     </Page>
-  )
-}
-
-const PageSectionHeader = (props: { children: any }) => {
-  return (
-    <Typography variant={"h5"} component={"h3"}>{props.children}</Typography>
   )
 }
 
@@ -136,26 +138,24 @@ const JobTypesSection = (props: { jobTypes: JobType[] }) => {
 
 const JobTypeDetailsCard = (props: { jobType: JobType }) => {
   return (
-    <Card className={classes.JobTypeDetailsCard}>
-      <CardContent>
-        <Box sx={{ display: "flex", gap: 2, flexDirection: "column" }}>
-          <Box display={"flex"} flexDirection={"row"} sx={{ gap: 2 }}>
-            <PropertyText
-              title={"Job Type"}
-              subtitle={<code>{props.jobType.type}</code>}
-            />
-            <PropertyText
-              title={"Job Class Name"}
-              subtitle={<code>{props.jobType.jobClassName}</code>}
-            />
-          </Box>
+    <PageSectionCard>
+      <PropertyGroup>
+        <PropertyGroup horizontal>
           <PropertyText
-            title={"Description"}
-            subtitle={<Markdown>{props.jobType.description ?? "*No description*"}</Markdown>}
-            noSubtitleStyling
+            title={"Job Type"}
+            subtitle={<code>{props.jobType.type}</code>}
           />
-        </Box>
-      </CardContent>
-    </Card>
+          <PropertyText
+            title={"Job Class Name"}
+            subtitle={<code>{props.jobType.jobClassName}</code>}
+          />
+        </PropertyGroup>
+        <PropertyText
+          title={"Description"}
+          subtitle={<Markdown>{props.jobType.description ?? "*No description*"}</Markdown>}
+          noSubtitleStyling
+        />
+      </PropertyGroup>
+    </PageSectionCard>
   )
 }

@@ -3,6 +3,7 @@ package io.tpersson.ufw.databasequeue
 import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
+import io.tpersson.ufw.databasequeue.internal.WorkItemFailuresDAO
 import io.tpersson.ufw.databasequeue.internal.WorkItemFailuresDAOImpl
 import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
 import io.tpersson.ufw.databasequeue.internal.WorkItemsDAOImpl
@@ -14,6 +15,7 @@ import jakarta.inject.Inject
 public class DatabaseQueueComponent @Inject constructor(
     public val databaseQueueWorkerFactory: DatabaseQueueWorkerFactory,
     public val workItemsDAO: WorkItemsDAO, // TODO cleaner queue interface
+    public val workItemFailuresDAO: WorkItemFailuresDAO, // TODO cleaner queue interface
     public val config: DatabaseQueueConfig,
 ) {
     init {
@@ -51,7 +53,12 @@ public class DatabaseQueueComponent @Inject constructor(
                 processorFactory = processorFactory
             )
 
-            return DatabaseQueueComponent(databaseQueueWorkerFactory, workItemsDAO, config)
+            return DatabaseQueueComponent(
+                databaseQueueWorkerFactory = databaseQueueWorkerFactory,
+                workItemsDAO = workItemsDAO,
+                workItemFailuresDAO = workItemFailuresDAO,
+                config = config
+            )
         }
     }
 }

@@ -1,3 +1,5 @@
+export * from "./JobDetails"
+export * from "./JobFailure"
 export * from "./JobListItem"
 export * from "./JobQueueDetails"
 export * from "./JobQueueListItem"

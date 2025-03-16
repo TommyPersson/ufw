@@ -102,7 +102,7 @@ const AutoRefreshControl = (props: {
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>()
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
 
-  const [refreshInterval, setRefreshInterval] = useState<number | null>(15)
+  const [refreshInterval, setRefreshInterval] = useState<number | null>(autoRefresh ? 15 : null)
 
   const handleMenuItemClicked = (value: number | null) => {
     setRefreshInterval(value)
@@ -110,7 +110,7 @@ const AutoRefreshControl = (props: {
   }
 
   useEffect(() => {
-    if (autoRefresh && refreshInterval) {
+    if (!refreshInterval) {
       return
     }
 

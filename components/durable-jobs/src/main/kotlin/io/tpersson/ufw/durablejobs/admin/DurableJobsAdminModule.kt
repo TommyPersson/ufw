@@ -6,8 +6,10 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.tpersson.ufw.admin.AdminModule
 import io.tpersson.ufw.core.logging.createLogger
+import io.tpersson.ufw.core.utils.PaginatedList
 import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.databasequeue.WorkItemState
+import io.tpersson.ufw.durablejobs.DurableJobId
 import io.tpersson.ufw.durablejobs.internal.DurableJobQueueInternal
 import io.tpersson.ufw.durablejobs.DurableJobQueueId
 import io.tpersson.ufw.durablejobs.internal.DurableJobDefinition
@@ -109,36 +111,97 @@ public class DurableJobsAdminModule @Inject constructor(
 
                 val paginatedJobs = jobQueue.getJobs(queueId, jobState, paginationOptions)
 
-                val jobList = PaginatedListDTO(
-                    items = paginatedJobs.items.map {
-                        JobItemDTO(
-                            jobId = it.itemId,
-                            numFailures = it.numFailures,
-                            createdAt = it.createdAt,
-                            firstScheduledFor = it.firstScheduledFor,
-                            nextScheduledFor = it.nextScheduledFor,
-                            stateChangedAt = it.stateChangedAt,
-                        )
-                    },
-                    hasMoreItems = paginatedJobs.hasMoreItems,
-                )
+                val jobList = paginatedJobs.toDTO {
+                    JobItemDTO(
+                        jobId = it.itemId,
+                        jobType = it.type,
+                        createdAt = it.createdAt,
+                        firstScheduledFor = it.firstScheduledFor,
+                        nextScheduledFor = it.nextScheduledFor,
+                        stateChangedAt = it.stateChangedAt,
+                        numFailures = it.numFailures,
+                    )
+                }
 
                 call.respond(jobList)
+            }
+
+            get("/admin/api/durable-jobs/queues/{queueId}/jobs/{jobId}/details") {
+                val queueId = DurableJobQueueId.fromString(call.parameters["queueId"]!!)
+                val jobId = DurableJobId.fromString(call.parameters["jobId"]!!)
+
+                val job = jobQueue.getJob(queueId, jobId)?.let {
+                    JobDetailsDTO(
+                        queueId = queueId.value,
+                        jobId = it.itemId,
+                        jobType = it.type,
+                        state = WorkItemState.fromDbOrdinal(it.state).name,
+                        dataJson = it.dataJson,
+                        metadataJson = it.metadataJson,
+                        concurrencyKey = it.concurrencyKey,
+                        createdAt = it.createdAt,
+                        firstScheduledFor = it.firstScheduledFor,
+                        nextScheduledFor = it.nextScheduledFor,
+                        stateChangedAt = it.stateChangedAt,
+                        watchdogTimestamp = it.watchdogTimestamp,
+                        watchdogOwner = it.watchdogOwner,
+                        numFailures = it.numFailures,
+                        expiresAt = it.expiresAt,
+                    )
+                }
+
+                if (job == null) {
+                    call.respond(HttpStatusCode.NotFound)
+                    return@get
+                }
+
+                call.respond(job)
+            }
+
+            get("/admin/api/durable-jobs/queues/{queueId}/jobs/{jobId}/failures") {
+                val queueId = DurableJobQueueId.fromString(call.parameters["queueId"]!!)
+                val jobId = DurableJobId.fromString(call.parameters["jobId"]!!)
+
+                val paginationOptions = call.getPaginationOptions(defaultLimit = 5)
+
+                val failures = jobQueue.getJobFailures(queueId, jobId, paginationOptions).toDTO {
+                    JobFailureDTO(
+                        failureId = it.id,
+                        jobId = jobId.value,
+                        timestamp = it.timestamp,
+                        errorType = it.errorType,
+                        errorMessage = it.errorMessage,
+                        errorStackTrace = it.errorStackTrace,
+                    )
+                }
+
+                call.respond(failures)
             }
         }
     }
 }
 
-public fun ApplicationCall.getPaginationOptions(): PaginationOptions {
-    val limit = parameters["limit"]?.toInt() ?: 100
-    val offset = parameters["offset"]?.toInt() ?: 0
-    return PaginationOptions(limit, offset)
+public fun ApplicationCall.getPaginationOptions(
+    defaultLimit: Int = 100,
+    defaultOffset: Int = 0,
+): PaginationOptions {
+    return PaginationOptions(
+        limit = parameters["limit"]?.toInt() ?: defaultLimit,
+        offset = parameters["offset"]?.toInt() ?: defaultOffset
+    )
 }
 
 public data class PaginatedListDTO<TItem>(
     val items: List<TItem>,
     val hasMoreItems: Boolean,
 )
+
+public fun <TItem, TItemDTO> PaginatedList<TItem>.toDTO(transform: (TItem) -> TItemDTO): PaginatedListDTO<TItemDTO> {
+    return PaginatedListDTO(
+        items = items.map(transform),
+        hasMoreItems = hasMoreItems,
+    )
+}
 
 public data class QueueListItemDTO(
     val queueId: DurableJobQueueId,
@@ -165,9 +228,37 @@ public data class QueueDetailsDTO(
 
 public data class JobItemDTO(
     val jobId: String,
-    val numFailures: Int,
+    val jobType: String,
     val createdAt: Instant,
     val firstScheduledFor: Instant,
     val nextScheduledFor: Instant?,
     val stateChangedAt: Instant,
+    val numFailures: Int,
+)
+
+public data class JobDetailsDTO(
+    val queueId: String,
+    val jobId: String,
+    val jobType: String,
+    val state: String,
+    val dataJson: String,
+    val metadataJson: String,
+    val concurrencyKey: String?,
+    val createdAt: Instant,
+    val firstScheduledFor: Instant,
+    val nextScheduledFor: Instant?,
+    val stateChangedAt: Instant,
+    val watchdogTimestamp: Instant?,
+    val watchdogOwner: String?,
+    val numFailures: Int,
+    val expiresAt: Instant?,
+)
+
+public data class JobFailureDTO(
+    val failureId: String,
+    val jobId: String,
+    val timestamp: Instant,
+    val errorType: String,
+    val errorMessage: String,
+    val errorStackTrace: String,
 )

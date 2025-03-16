@@ -9,6 +9,8 @@ import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.databasequeue.NewWorkItem
 import io.tpersson.ufw.databasequeue.WorkItemState
 import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
+import io.tpersson.ufw.databasequeue.internal.WorkItemFailureDbEntity
+import io.tpersson.ufw.databasequeue.internal.WorkItemFailuresDAO
 import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
 import io.tpersson.ufw.durablejobs.*
 import io.tpersson.ufw.durablejobs.DurableJob
@@ -22,6 +24,7 @@ public class DurableJobQueueImpl @Inject constructor(
     private val config: DurableJobsConfig,
     private val clock: InstantSource,
     private val workItemsDAO: WorkItemsDAO,
+    private val workItemFailuresDAO: WorkItemFailuresDAO,
     @Named(NamedBindings.ObjectMapper) private val objectMapper: ObjectMapper,
 ) : DurableJobQueueInternal {
 
@@ -75,11 +78,26 @@ public class DurableJobQueueImpl @Inject constructor(
         return workItemsDAO.listAllItems(state = state, paginationOptions = paginationOptions)
     }
 
+    override suspend fun getJob(queueId: DurableJobQueueId, jobId: DurableJobId): WorkItemDbEntity? {
+        return workItemsDAO.getById(queueId.toWorkItemQueueId(), jobId.toWorkItemId())
+    }
+
     override suspend fun rescheduleAllFailedJobs(queueId: DurableJobQueueId) {
         workItemsDAO.rescheduleAllFailedItems(queueId.toWorkItemQueueId(), clock.instant())
     }
 
     override suspend fun deleteAllFailedJobs(queueId: DurableJobQueueId) {
         workItemsDAO.deleteAllFailedItems(queueId.toWorkItemQueueId())
+    }
+
+    override suspend fun getJobFailures(
+        queueId: DurableJobQueueId,
+        jobId: DurableJobId,
+        paginationOptions: PaginationOptions
+    ): PaginatedList<WorkItemFailureDbEntity> {
+        val workItem = workItemsDAO.getById(queueId.toWorkItemQueueId(), jobId.toWorkItemId())
+            ?: return PaginatedList.empty(paginationOptions)
+
+        return workItemFailuresDAO.listFailuresForWorkItem(workItem.uid, paginationOptions)
     }
 }

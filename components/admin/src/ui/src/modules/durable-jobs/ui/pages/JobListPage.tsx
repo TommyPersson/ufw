@@ -14,7 +14,7 @@ import {
 import { useQuery } from "@tanstack/react-query"
 import * as React from "react"
 import { useCallback, useMemo, useState } from "react"
-import { useParams } from "react-router"
+import { Link, useParams } from "react-router"
 import { DateTimeText, Page, PageBreadcrumb, TableRowSkeleton } from "../../../../common/components"
 import { JobListItem, JobQueueDetails, JobState } from "../../models"
 import { JobListQuery, JobQueueDetailsQuery } from "../../queries"
@@ -84,7 +84,7 @@ export const JobListPage = () => {
             {isLoading && <TableRowSkeleton numColumns={6} />}
             {isEmpty && emptyTableRow}
             {jobListQuery.data?.items?.map(it =>
-              <JobTableRow key={it.jobId} job={it} />
+              <JobTableRow key={it.jobId} queueId={queueId} job={it} />
             )}
           </TableBody>
           <TableFooter>
@@ -104,8 +104,8 @@ export const JobListPage = () => {
   )
 }
 
-const JobTableRow = (props: { job: JobListItem }) => {
-  const { job } = props
+const JobTableRow = (props: { queueId: string, job: JobListItem }) => {
+  const { queueId, job } = props
   let hasFailures = job.numFailures > 0
   return (
     <TableRow key={job.jobId}>
@@ -119,7 +119,7 @@ const JobTableRow = (props: { job: JobListItem }) => {
         </Box>
       </TableCell>
       <TableCell>
-        <code>{job.jobId}</code>
+        <Link to={`/durable-jobs/queues/${queueId}/jobs/by-id/${job.jobId}/details`}><code>{job.jobId}</code></Link>
       </TableCell>
       <TableCell>
         <DateTimeText dateTime={job.createdAt} />

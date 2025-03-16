@@ -1,3 +1,4 @@
+import { JobDetailsPage } from "./ui/pages/JobDetailsPage"
 import { JobListPage } from "./ui/pages/JobListPage"
 import { JobQueueIndexPage } from "./ui/pages/JobQueueIndexPage.tsx"
 import { ModuleDefinition } from "../ModuleDefinition.tsx"
@@ -22,6 +23,10 @@ export const DurableJobsModuleDefinition: ModuleDefinition = {
         {
           path: "queues/:queueId/jobs/:jobState",
           Component: JobListPage,
+        },
+        {
+          path: "queues/:queueId/jobs/by-id/:jobId/details",
+          Component: JobDetailsPage
         }
       ]
     }

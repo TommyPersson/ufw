@@ -44,6 +44,7 @@ public class DurableJobsComponent @Inject constructor(
                 config = config,
                 clock = coreComponent.clock,
                 workItemsDAO = databaseQueueComponent.workItemsDAO,
+                workItemFailuresDAO = databaseQueueComponent.workItemFailuresDAO,
                 objectMapper = coreComponent.objectMapper,
             )
 

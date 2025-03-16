@@ -16,6 +16,7 @@ export const JobListQuery: (queueId: string, jobState: JobState, page: number) =
 
 const itemSchema = z.object({
   jobId: z.string(),
+  jobType: z.string(),
   numFailures: z.number(),
   createdAt: zx.dateTime,
   firstScheduledFor: zx.dateTime,
