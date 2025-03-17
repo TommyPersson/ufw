@@ -7,6 +7,7 @@ import { createBrowserRouter, RouterProvider } from "react-router"
 import { ConfirmProvider } from "./common/components"
 import { queryClient } from "./common/utils/tsq"
 import { routes } from "./routes"
+import { routerHolder } from "./router"
 
 import "@fontsource/roboto/300.css"
 import "@fontsource/roboto/400.css"
@@ -15,7 +16,7 @@ import "@fontsource/roboto/700.css"
 
 import "./index.css"
 
-const router = createBrowserRouter(routes, {
+routerHolder.router = createBrowserRouter(routes, {
   basename: "/admin/ui",
 })
 
@@ -25,7 +26,7 @@ createRoot(document.getElementById("root")!).render(
       <CssBaseline />
       <ReactQueryDevtools />
       <ConfirmProvider>
-        <RouterProvider router={router} />
+        <RouterProvider router={routerHolder.router} />
       </ConfirmProvider>
     </QueryClientProvider>
   </StrictMode>,

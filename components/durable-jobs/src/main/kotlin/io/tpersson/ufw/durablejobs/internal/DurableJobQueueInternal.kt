@@ -8,6 +8,7 @@ import io.tpersson.ufw.databasequeue.internal.WorkItemFailureDbEntity
 import io.tpersson.ufw.durablejobs.DurableJobId
 import io.tpersson.ufw.durablejobs.DurableJobQueue
 import io.tpersson.ufw.durablejobs.DurableJobQueueId
+import java.time.Instant
 
 public interface DurableJobQueueInternal : DurableJobQueue {
     public suspend fun getQueueStatistics(queueId: DurableJobQueueId): JobQueueStatistics
@@ -32,6 +33,17 @@ public interface DurableJobQueueInternal : DurableJobQueue {
         jobId: DurableJobId,
         paginationOptions: PaginationOptions
     ): PaginatedList<WorkItemFailureDbEntity>  // TODO "job"-wrappers?
+
+    public suspend fun deleteFailedJob(
+        queueId: DurableJobQueueId,
+        jobId: DurableJobId
+    ): Boolean
+
+    public suspend fun rescheduleFailedJob(
+        queueId: DurableJobQueueId,
+        jobId: DurableJobId,
+        rescheduleAt: Instant
+    )
 }
 
 public data class JobQueueStatistics(

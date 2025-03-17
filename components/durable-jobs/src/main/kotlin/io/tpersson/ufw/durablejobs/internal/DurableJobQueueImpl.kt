@@ -6,6 +6,7 @@ import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.core.utils.PaginatedList
 import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
+import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.databasequeue.NewWorkItem
 import io.tpersson.ufw.databasequeue.WorkItemState
 import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
@@ -17,6 +18,7 @@ import io.tpersson.ufw.durablejobs.DurableJob
 import jakarta.inject.Inject
 import jakarta.inject.Named
 import jakarta.inject.Singleton
+import java.time.Instant
 import java.time.InstantSource
 
 @Singleton
@@ -25,6 +27,7 @@ public class DurableJobQueueImpl @Inject constructor(
     private val clock: InstantSource,
     private val workItemsDAO: WorkItemsDAO,
     private val workItemFailuresDAO: WorkItemFailuresDAO,
+    private val unitOfWorkFactory: UnitOfWorkFactory,
     @Named(NamedBindings.ObjectMapper) private val objectMapper: ObjectMapper,
 ) : DurableJobQueueInternal {
 
@@ -74,7 +77,11 @@ public class DurableJobQueueImpl @Inject constructor(
         )
     }
 
-    override suspend fun getJobs(queueId: DurableJobQueueId, state: WorkItemState, paginationOptions: PaginationOptions): PaginatedList<WorkItemDbEntity> {
+    override suspend fun getJobs(
+        queueId: DurableJobQueueId,
+        state: WorkItemState,
+        paginationOptions: PaginationOptions
+    ): PaginatedList<WorkItemDbEntity> {
         return workItemsDAO.listAllItems(state = state, paginationOptions = paginationOptions)
     }
 
@@ -99,5 +106,30 @@ public class DurableJobQueueImpl @Inject constructor(
             ?: return PaginatedList.empty(paginationOptions)
 
         return workItemFailuresDAO.listFailuresForWorkItem(workItem.uid, paginationOptions)
+    }
+
+    override suspend fun deleteFailedJob(
+        queueId: DurableJobQueueId,
+        jobId: DurableJobId
+    ): Boolean {
+        return workItemsDAO.deleteFailedItem(queueId.toWorkItemQueueId(), jobId.toWorkItemId())
+    }
+
+    override suspend fun rescheduleFailedJob(
+        queueId: DurableJobQueueId,
+        jobId: DurableJobId,
+        rescheduleAt: Instant
+    ) {
+        val unitOfWork = unitOfWorkFactory.create()
+
+        workItemsDAO.manuallyRescheduleFailedItem(
+            queueId = queueId.toWorkItemQueueId(),
+            itemId = jobId.toWorkItemId(),
+            now = clock.instant(),
+            scheduleFor = rescheduleAt,
+            unitOfWork = unitOfWork
+        )
+
+        unitOfWork.commit()
     }
 }

@@ -1058,6 +1058,27 @@ internal class WorkItemsDAOImplTest {
             assertThat(allItems[0].itemId).isEqualTo("3")
         }
 
+    @Test
+    fun `deleteFailedItem - Shall only delete a failed item`(): Unit = runBlocking {
+        // Arrange
+        val queueId = "testQueueId".toWorkItemQueueId()
+
+        debugInsertItems(
+            makeWorkItem("1", state = WorkItemState.FAILED.dbOrdinal),
+            makeWorkItem("2", state = WorkItemState.SUCCESSFUL.dbOrdinal),
+            makeWorkItem("3", state = WorkItemState.IN_PROGRESS.dbOrdinal),
+            makeWorkItem("4", state = WorkItemState.SCHEDULED.dbOrdinal),
+        )
+
+        assertThat(dao.deleteFailedItem(queueId, "1".toWorkItemId())).isTrue()
+        assertThat(dao.deleteFailedItem(queueId, "2".toWorkItemId())).isFalse()
+        assertThat(dao.deleteFailedItem(queueId, "3".toWorkItemId())).isFalse()
+        assertThat(dao.deleteFailedItem(queueId, "4".toWorkItemId())).isFalse()
+
+        val allItemIds = dao.listAllItems().items.map { it.itemId }.toSet()
+        assertThat(allItemIds).isEqualTo(setOf("2","3","4"))
+    }
+
     private suspend fun debugInsertItems(vararg items: WorkItemDbEntity) {
         ufw.database.unitOfWorkFactory.use {
             for (item in items) {

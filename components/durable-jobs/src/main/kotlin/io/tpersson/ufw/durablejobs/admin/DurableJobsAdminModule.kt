@@ -10,20 +10,22 @@ import io.tpersson.ufw.core.utils.PaginatedList
 import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.databasequeue.WorkItemState
 import io.tpersson.ufw.durablejobs.DurableJobId
-import io.tpersson.ufw.durablejobs.internal.DurableJobQueueInternal
 import io.tpersson.ufw.durablejobs.DurableJobQueueId
 import io.tpersson.ufw.durablejobs.internal.DurableJobDefinition
 import io.tpersson.ufw.durablejobs.internal.DurableJobHandlersProvider
+import io.tpersson.ufw.durablejobs.internal.DurableJobQueueInternal
 import io.tpersson.ufw.durablejobs.internal.jobDefinition
 import jakarta.inject.Inject
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import java.time.Instant
+import java.time.InstantSource
 
 public class DurableJobsAdminModule @Inject constructor(
     private val durableJobHandlersProvider: DurableJobHandlersProvider,
-    private val jobQueue: DurableJobQueueInternal
+    private val jobQueue: DurableJobQueueInternal,
+    private val clock: InstantSource
 ) : AdminModule {
 
     private val logger = createLogger()
@@ -59,7 +61,7 @@ public class DurableJobsAdminModule @Inject constructor(
             }
 
             get("/admin/api/durable-jobs/queues/{queueId}/details") {
-                val queueId = DurableJobQueueId.fromString(call.parameters["queueId"]!!)
+                val queueId = call.parameters.queueId!!
 
                 val handlers = jobHandlerDefinitions.filter { it.queueId == queueId }
 
@@ -84,7 +86,7 @@ public class DurableJobsAdminModule @Inject constructor(
             }
 
             post("/admin/api/durable-jobs/queues/{queueId}/actions/reschedule-all-failed-jobs") {
-                val queueId = DurableJobQueueId.fromString(call.parameters["queueId"]!!)
+                val queueId = call.parameters.queueId!!
 
                 jobQueue.rescheduleAllFailedJobs(queueId)
 
@@ -94,7 +96,7 @@ public class DurableJobsAdminModule @Inject constructor(
             }
 
             post("/admin/api/durable-jobs/queues/{queueId}/actions/delete-all-failed-jobs") {
-                val queueId = DurableJobQueueId.fromString(call.parameters["queueId"]!!)
+                val queueId = call.parameters.queueId!!
 
                 jobQueue.deleteAllFailedJobs(queueId)
 
@@ -104,8 +106,8 @@ public class DurableJobsAdminModule @Inject constructor(
             }
 
             get("/admin/api/durable-jobs/queues/{queueId}/jobs") {
-                val queueId = DurableJobQueueId.fromString(call.parameters["queueId"]!!)
-                val jobState = WorkItemState.fromString(call.parameters["state"]!!)
+                val queueId = call.parameters.queueId!!
+                val jobState = call.parameters.state!!
 
                 val paginationOptions = call.getPaginationOptions()
 
@@ -127,8 +129,8 @@ public class DurableJobsAdminModule @Inject constructor(
             }
 
             get("/admin/api/durable-jobs/queues/{queueId}/jobs/{jobId}/details") {
-                val queueId = DurableJobQueueId.fromString(call.parameters["queueId"]!!)
-                val jobId = DurableJobId.fromString(call.parameters["jobId"]!!)
+                val queueId = call.parameters.queueId!!
+                val jobId = call.parameters.jobId!!
 
                 val job = jobQueue.getJob(queueId, jobId)?.let {
                     JobDetailsDTO(
@@ -159,8 +161,8 @@ public class DurableJobsAdminModule @Inject constructor(
             }
 
             get("/admin/api/durable-jobs/queues/{queueId}/jobs/{jobId}/failures") {
-                val queueId = DurableJobQueueId.fromString(call.parameters["queueId"]!!)
-                val jobId = DurableJobId.fromString(call.parameters["jobId"]!!)
+                val queueId = call.parameters.queueId!!
+                val jobId = call.parameters.jobId!!
 
                 val paginationOptions = call.getPaginationOptions(defaultLimit = 5)
 
@@ -177,9 +179,35 @@ public class DurableJobsAdminModule @Inject constructor(
 
                 call.respond(failures)
             }
+
+            post("/admin/api/durable-jobs/queues/{queueId}/jobs/{jobId}/actions/delete") {
+                val queueId = call.parameters.queueId!!
+                val jobId = call.parameters.jobId!!
+
+                jobQueue.deleteFailedJob(queueId, jobId)
+
+                logger.info("Deleted job: <$queueId/$jobId>")
+
+                call.respond(HttpStatusCode.NoContent)
+            }
+
+            post("/admin/api/durable-jobs/queues/{queueId}/jobs/{jobId}/actions/reschedule-now") {
+                val queueId = call.parameters.queueId!!
+                val jobId = call.parameters.jobId!!
+
+                jobQueue.rescheduleFailedJob(queueId, jobId, clock.instant())
+
+                logger.info("Rescheduled job: <$queueId/$jobId>")
+
+                call.respond(HttpStatusCode.NoContent)
+            }
         }
     }
 }
+
+private val Parameters.queueId: DurableJobQueueId? get() = this["queueId"]?.let { DurableJobQueueId.fromString(it) }
+private val Parameters.jobId: DurableJobId? get() = this["jobId"]?.let { DurableJobId.fromString(it) }
+private val Parameters.state: WorkItemState? get() = this["state"]?.let { WorkItemState.fromString(it) }
 
 public fun ApplicationCall.getPaginationOptions(
     defaultLimit: Int = 100,

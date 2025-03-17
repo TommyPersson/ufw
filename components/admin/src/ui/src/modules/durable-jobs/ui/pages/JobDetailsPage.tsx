@@ -1,10 +1,12 @@
-import { Alert, AlertTitle, Box, Skeleton } from "@mui/material"
+import { Alert, AlertTitle, Box, ButtonProps, Skeleton } from "@mui/material"
 import { useQuery } from "@tanstack/react-query"
 import { useMemo } from "react"
 import { useParams } from "react-router"
 import {
   CodeBlock,
+  CommandButton,
   DateTimeText,
+  ErrorAlert,
   JsonBlock,
   Page,
   PageBreadcrumb,
@@ -13,6 +15,7 @@ import {
   PropertyGroup,
   PropertyText
 } from "../../../../common/components"
+import { CancelJobCommand, DeleteJobCommand, RescheduleJobNowCommand } from "../../commands"
 import { JobDetails, JobFailure } from "../../models"
 import { JobDetailsQuery, JobFailuresQuery } from "../../queries"
 
@@ -44,6 +47,20 @@ export const JobDetailsPage = () => {
     jobFailuresQuery.refetch().then()
   }
 
+  const content = jobDetailsQuery.error ? (
+    <ErrorAlert error={jobDetailsQuery.error} title={"Unable to load job details"} />
+  ) : (
+    <>
+      <JobStateSection isLoading={isLoading} jobDetails={jobDetails} lastJobFailure={jobFailures[0]} />
+      <JobActionsSection jobDetails={jobDetails} />
+      <JobFailureWarning jobDetails={jobDetails} />
+      <JobDetailsSection isLoading={isLoading} jobDetails={jobDetails} />
+      <JobDataSections isLoading={isLoading} jobDetails={jobDetails} />
+      <JobFailuresSection isLoading={isLoading} jobFailures={jobFailures ?? []} />
+      <JobTimelineSection />
+    </>
+  )
+
   return (
     <Page
       heading={"Job Details"}
@@ -51,15 +68,8 @@ export const JobDetailsPage = () => {
       isLoading={isFetching}
       onRefresh={onRefresh}
       autoRefresh={true}
-    >
-      <JobStateSection isLoading={isLoading} jobDetails={jobDetails} lastJobFailure={jobFailures[0]} />
-      <JobFailureWarning jobDetails={jobDetails} />
-      <JobDetailsSection isLoading={isLoading} jobDetails={jobDetails} />
-      <JobActionsSection />
-      <JobDataSections isLoading={isLoading} jobDetails={jobDetails} />
-      <JobFailuresSection isLoading={isLoading} jobFailures={jobFailures ?? []} />
-      <JobTimelineSection />
-    </Page>
+      children={content}
+    />
   )
 }
 
@@ -126,7 +136,7 @@ const JobFailureWarning = (props: {
 
   const { jobDetails } = props
 
-  if (!jobDetails) {
+  if (!jobDetails || jobDetails.numFailures === 0) {
     return null
   }
 
@@ -219,12 +229,49 @@ const JobDetailsSection = (props: {
   )
 }
 
-const JobActionsSection = () => {
+const JobActionsSection = (props: {
+  jobDetails: JobDetails | null | undefined
+}) => {
+  const { jobDetails } = props
+
+  if (!jobDetails || jobDetails.state === "SUCCESSFUL") {
+    return null
+  }
+
+  const baseActionButtonProps: ButtonProps = {
+    variant: "contained"
+  }
+
+  const { queueId, jobId, state } = jobDetails
+
+  const canRescheduleJob = state === "FAILED"
+  const canDeleteJob = state === "FAILED"
+  const canCancelJob = state === "SCHEDULED" || state === "PENDING" || state === "IN_PROGRESS"
+
   return (
-    <>
-      <PageSectionHeader>Actions</PageSectionHeader>
-      TODO ACTIONS
-    </>
+    <Box display={"flex"} flexDirection={"row"} gap={1}>
+      {canRescheduleJob && (
+        <CommandButton
+          {...baseActionButtonProps}
+          command={RescheduleJobNowCommand}
+          args={{ queueId, jobId }}
+        />
+      )}
+      {canDeleteJob && (
+        <CommandButton
+          {...baseActionButtonProps}
+          command={DeleteJobCommand}
+          args={{ queueId, jobId }}
+        />
+      )}
+      {canCancelJob && (
+        <CommandButton
+          {...baseActionButtonProps}
+          command={CancelJobCommand}
+          args={{ queueId, jobId }}
+        />
+      )}
+    </Box>
   )
 }
 
@@ -276,7 +323,7 @@ const JobFailuresSection = (props: {
             />
             <PropertyText
               title={"Error Stacktrace"}
-              subtitle={<CodeBlock code={it.errorStackTrace} style={{ height: 120 }} />}
+              subtitle={<CodeBlock code={it.errorStackTrace} style={{ height: 160 }} />}
             />
           </PropertyGroup>
         </PageSectionCard>

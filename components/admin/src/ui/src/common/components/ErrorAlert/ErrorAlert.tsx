@@ -4,7 +4,7 @@ import { ApiError } from "../../utils/api"
 export type ErrorAlertProps = {
   readonly error: Error | null
   readonly title?: string | null
-  readonly onClose: () => void
+  readonly onClose?: () => void
 }
 
 export const ErrorAlert = (props: ErrorAlertProps) => {

@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.core.dsl.UFW
 import io.tpersson.ufw.core.dsl.core
+import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.database.unitofwork.use
 import io.tpersson.ufw.databasequeue.dsl.databaseQueue
@@ -96,7 +97,7 @@ internal class WorkItemFailuresDAOImplTest {
             )
         }
 
-        val failures = workItemFailuresDAO.listFailuresForWorkItem(item.uid)
+        val failures = workItemFailuresDAO.listFailuresForWorkItem(item.uid, PaginationOptions.DEFAULT).items
         val failure = failures.single()
 
         assertThat(failure.itemUid).isEqualTo(item.uid)
@@ -129,7 +130,7 @@ internal class WorkItemFailuresDAOImplTest {
 
         workItemsDAO.debugTruncate()
 
-        val failures = workItemFailuresDAO.listFailuresForWorkItem(item.uid)
+        val failures = workItemFailuresDAO.listFailuresForWorkItem(item.uid, PaginationOptions.DEFAULT).items
         assertThat(failures).hasSize(0)
     }
 

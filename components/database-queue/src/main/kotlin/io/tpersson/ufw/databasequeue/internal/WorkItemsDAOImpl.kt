@@ -225,6 +225,11 @@ public class WorkItemsDAOImpl @Inject constructor(
         database.update(Queries.Updates.DeleteAllFailedItems(queueId = queueId.value))
     }
 
+    override suspend fun deleteFailedItem(queueId: WorkItemQueueId, itemId: WorkItemId): Boolean {
+        val affectedRows =  database.update(Queries.Updates.DeleteFailedItem(queueId.value, itemId.value))
+        return affectedRows > 0
+    }
+
     override suspend fun getEventsForItem(queueId: WorkItemQueueId, itemId: WorkItemId): List<WorkItemEvent> {
         return paginate {
             database.select(Queries.Selects.GetEventsForItem(queueId.value, itemId.value, it))
@@ -542,6 +547,19 @@ public class WorkItemsDAOImpl @Inject constructor(
                   AND state = ${WorkItemState.FAILED.dbOrdinal}
                 """.trimIndent(),
                 minimumAffectedRows = 1
+            )
+
+            data class DeleteFailedItem(
+                val queueId: String,
+                val itemId: String,
+            ) : TypedUpdate(
+                """
+                DELETE FROM $TableName
+                WHERE queue_id = :queueId
+                  AND item_id = :itemId
+                  AND state = ${WorkItemState.FAILED.dbOrdinal}
+                """.trimIndent(),
+                minimumAffectedRows = 0
             )
 
             data class ForceCancelItem(
