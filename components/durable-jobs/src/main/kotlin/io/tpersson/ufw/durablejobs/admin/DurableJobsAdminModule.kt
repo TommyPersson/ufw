@@ -5,12 +5,16 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.tpersson.ufw.admin.AdminModule
+import io.tpersson.ufw.admin.contracts.PaginatedListDTO
+import io.tpersson.ufw.admin.contracts.toDTO
+import io.tpersson.ufw.admin.utils.getPaginationOptions
 import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.core.utils.PaginatedList
 import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.databasequeue.WorkItemState
 import io.tpersson.ufw.durablejobs.DurableJobId
 import io.tpersson.ufw.durablejobs.DurableJobQueueId
+import io.tpersson.ufw.durablejobs.admin.contracts.*
 import io.tpersson.ufw.durablejobs.internal.DurableJobDefinition
 import io.tpersson.ufw.durablejobs.internal.DurableJobHandlersProvider
 import io.tpersson.ufw.durablejobs.internal.DurableJobQueueInternal
@@ -19,7 +23,6 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import java.time.Instant
 import java.time.InstantSource
 
 public class DurableJobsAdminModule @Inject constructor(
@@ -201,6 +204,17 @@ public class DurableJobsAdminModule @Inject constructor(
 
                 call.respond(HttpStatusCode.NoContent)
             }
+
+            post("/admin/api/durable-jobs/queues/{queueId}/jobs/{jobId}/actions/cancel") {
+                val queueId = call.parameters.queueId!!
+                val jobId = call.parameters.jobId!!
+
+                jobQueue.cancelJob(queueId, jobId, clock.instant())
+
+                logger.info("Cancelled job: <$queueId/$jobId>")
+
+                call.respond(HttpStatusCode.NoContent)
+            }
         }
     }
 }
@@ -208,85 +222,3 @@ public class DurableJobsAdminModule @Inject constructor(
 private val Parameters.queueId: DurableJobQueueId? get() = this["queueId"]?.let { DurableJobQueueId.fromString(it) }
 private val Parameters.jobId: DurableJobId? get() = this["jobId"]?.let { DurableJobId.fromString(it) }
 private val Parameters.state: WorkItemState? get() = this["state"]?.let { WorkItemState.fromString(it) }
-
-public fun ApplicationCall.getPaginationOptions(
-    defaultLimit: Int = 100,
-    defaultOffset: Int = 0,
-): PaginationOptions {
-    return PaginationOptions(
-        limit = parameters["limit"]?.toInt() ?: defaultLimit,
-        offset = parameters["offset"]?.toInt() ?: defaultOffset
-    )
-}
-
-public data class PaginatedListDTO<TItem>(
-    val items: List<TItem>,
-    val hasMoreItems: Boolean,
-)
-
-public fun <TItem, TItemDTO> PaginatedList<TItem>.toDTO(transform: (TItem) -> TItemDTO): PaginatedListDTO<TItemDTO> {
-    return PaginatedListDTO(
-        items = items.map(transform),
-        hasMoreItems = hasMoreItems,
-    )
-}
-
-public data class QueueListItemDTO(
-    val queueId: DurableJobQueueId,
-    val numScheduled: Int,
-    val numPending: Int,
-    val numInProgress: Int,
-    val numFailed: Int,
-)
-
-public data class QueueDetailsDTO(
-    val queueId: DurableJobQueueId,
-    val numScheduled: Int,
-    val numPending: Int,
-    val numInProgress: Int,
-    val numFailed: Int,
-    val jobTypes: List<JobType>,
-) {
-    public data class JobType(
-        val type: String,
-        val jobClassName: String,
-        val description: String?,
-    )
-}
-
-public data class JobItemDTO(
-    val jobId: String,
-    val jobType: String,
-    val createdAt: Instant,
-    val firstScheduledFor: Instant,
-    val nextScheduledFor: Instant?,
-    val stateChangedAt: Instant,
-    val numFailures: Int,
-)
-
-public data class JobDetailsDTO(
-    val queueId: String,
-    val jobId: String,
-    val jobType: String,
-    val state: String,
-    val dataJson: String,
-    val metadataJson: String,
-    val concurrencyKey: String?,
-    val createdAt: Instant,
-    val firstScheduledFor: Instant,
-    val nextScheduledFor: Instant?,
-    val stateChangedAt: Instant,
-    val watchdogTimestamp: Instant?,
-    val watchdogOwner: String?,
-    val numFailures: Int,
-    val expiresAt: Instant?,
-)
-
-public data class JobFailureDTO(
-    val failureId: String,
-    val jobId: String,
-    val timestamp: Instant,
-    val errorType: String,
-    val errorMessage: String,
-    val errorStackTrace: String,
-)

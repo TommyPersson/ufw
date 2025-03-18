@@ -18,8 +18,14 @@ import io.tpersson.ufw.durablejobs.DurableJob
 import jakarta.inject.Inject
 import jakarta.inject.Named
 import jakarta.inject.Singleton
+import java.time.Duration
 import java.time.Instant
 import java.time.InstantSource
+
+/*
+ * TODO much of this should be moved to a 'WorkItemsQueue' that can be used by the internal components, such as the
+ * admin API
+*/
 
 @Singleton
 public class DurableJobQueueImpl @Inject constructor(
@@ -128,6 +134,20 @@ public class DurableJobQueueImpl @Inject constructor(
             now = clock.instant(),
             scheduleFor = rescheduleAt,
             unitOfWork = unitOfWork
+        )
+
+        unitOfWork.commit()
+    }
+
+    override suspend fun cancelJob(queueId: DurableJobQueueId, jobId: DurableJobId, now: Instant) {
+        val unitOfWork = unitOfWorkFactory.create()
+
+        workItemsDAO.forceCancelItem(
+            queueId = queueId.toWorkItemQueueId(),
+            itemId = jobId.toWorkItemId(),
+            expireAt = now.plus(Duration.ofDays(14)), // TODO configurable
+            now = now,
+            unitOfWork = unitOfWork,
         )
 
         unitOfWork.commit()

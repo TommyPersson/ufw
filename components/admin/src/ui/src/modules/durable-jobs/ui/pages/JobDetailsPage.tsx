@@ -106,6 +106,13 @@ const JobStateSection = (props: {
           This job started at <strong><DateTimeText dateTime={jobDetails.stateChangedAt} /></strong>.
         </Alert>
       )
+    case "CANCELLED":
+      return (
+        <Alert severity={"warning"}>
+          <AlertTitle>{jobDetails.state}</AlertTitle>
+          This job was cancelled at <strong><DateTimeText dateTime={jobDetails.stateChangedAt} /></strong>.
+        </Alert>
+      )
     case "SUCCESSFUL":
       return (
         <Alert severity={"success"}>
@@ -234,7 +241,7 @@ const JobActionsSection = (props: {
 }) => {
   const { jobDetails } = props
 
-  if (!jobDetails || jobDetails.state === "SUCCESSFUL") {
+  if (!jobDetails) {
     return null
   }
 
@@ -247,6 +254,10 @@ const JobActionsSection = (props: {
   const canRescheduleJob = state === "FAILED"
   const canDeleteJob = state === "FAILED"
   const canCancelJob = state === "SCHEDULED" || state === "PENDING" || state === "IN_PROGRESS"
+
+  if (!canRescheduleJob && !canDeleteJob && !canCancelJob) {
+    return null
+  }
 
   return (
     <Box display={"flex"} flexDirection={"row"} gap={1}>

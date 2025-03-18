@@ -109,7 +109,6 @@ public class SingleWorkItemProcessorImpl(
                     handler = handler,
                     unitOfWork = failureUnitOfWork
                 )
-
                 failureUnitOfWork.commit()
             }
         }
@@ -147,6 +146,16 @@ public class SingleWorkItemProcessorImpl(
         handler: WorkItemHandler<Any>,
         unitOfWork: UnitOfWork
     ) {
+        val wasDeletedOrCancelled = isItemDeletedOrCancelled(
+            queueId = WorkItemQueueId(workItem.queueId),
+            itemId = WorkItemId(workItem.itemId)
+        )
+
+        if (wasDeletedOrCancelled) {
+            // We can safely ignore errors caused by state changes
+            return
+        }
+
         val failureCount = workItem.numFailures + 1 // We include the current failure in the count
 
         val now = clock.instant()
@@ -210,6 +219,27 @@ public class SingleWorkItemProcessorImpl(
         override val unitOfWork: UnitOfWork = unitOfWork
     }
 
+    private suspend fun isItemDeletedOrCancelled(
+        queueId: WorkItemQueueId,
+        itemId: WorkItemId,
+    ): Boolean {
+        val state = workItemsDAO.getById(queueId, itemId)
+            ?.state
+            ?.let { WorkItemState.fromDbOrdinal(it) }
+
+        return state == null || state == WorkItemState.CANCELLED
+
+    }
+
+    private suspend fun getLatestItemState(
+        queueId: WorkItemQueueId,
+        itemId: WorkItemId,
+    ): WorkItemState? {
+        return workItemsDAO.getById(queueId, itemId)
+            ?.state
+            ?.let { WorkItemState.fromDbOrdinal(it) }
+    }
+
     private fun createTimer(queueId: WorkItemQueueId): Timer {
         return Timer.builder(adapterSettings.metricsProcessingDurationMetricName)
             .tag("queueId", adapterSettings.convertQueueId(queueId))
@@ -217,4 +247,3 @@ public class SingleWorkItemProcessorImpl(
             .register(meterRegistry)
     }
 }
-

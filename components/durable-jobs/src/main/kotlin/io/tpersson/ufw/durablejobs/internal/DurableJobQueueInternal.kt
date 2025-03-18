@@ -44,6 +44,12 @@ public interface DurableJobQueueInternal : DurableJobQueue {
         jobId: DurableJobId,
         rescheduleAt: Instant
     )
+
+    public suspend fun cancelJob(
+        queueId: DurableJobQueueId,
+        jobId: DurableJobId,
+        now: Instant
+    )
 }
 
 public data class JobQueueStatistics(

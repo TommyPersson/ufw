@@ -121,7 +121,7 @@ internal class SingleWorkItemProcessorImplTest {
         }
 
     @Test
-    fun `processSingleItem - Returns mark item as successful on successful processing`(): Unit = runBlocking {
+    fun `processSingleItem - Marks item as successful on successful processing`(): Unit = runBlocking {
         val stubbedWorkItem = stubNextWorkItem(
             item = TestWorkItem1(),
             queueId = "queue-1"
@@ -142,7 +142,7 @@ internal class SingleWorkItemProcessorImplTest {
     }
 
     @Test
-    fun `processSingleItem - Returns mark item as failed on failed processing`(): Unit = runBlocking {
+    fun `processSingleItem - Marks item as failed on failed processing`(): Unit = runBlocking {
         val stubbedWorkItem = stubNextWorkItem(
             item = TestWorkItem1(shouldFail = true),
             queueId = "queue-1"
@@ -336,6 +336,60 @@ internal class SingleWorkItemProcessorImplTest {
             .isEqualTo(TestWorkItem1Handler::class.simpleName)
     }
 
+    @Test
+    fun `processSingleItem - Shall not modify item state if cancelled`(): Unit = runBlocking {
+        val stubbedWorkItem = stubNextWorkItem(
+            item = TestWorkItem1(shouldFail = false),
+            queueId = "queue-1"
+        )!!
+
+        whenever(
+            workItemsDAO.getById(
+                eq(stubbedWorkItem.queueId.toWorkItemQueueId()),
+                eq(stubbedWorkItem.itemId.toWorkItemId())
+            )
+        ).thenReturn(stubbedWorkItem.copy(state = WorkItemState.CANCELLED.dbOrdinal))
+
+        val successUnitOfWork = mock<UnitOfWork>()
+        val failureUnitOfWork = mock<UnitOfWork>()
+        whenever(unitOfWorkFactory.create()).thenReturn(successUnitOfWork, failureUnitOfWork)
+
+        whenever(successUnitOfWork.commit()).thenThrow(RuntimeException("unable to commit due to state change"))
+
+        processor.processSingleItem(stubbedWorkItem.queueId.toWorkItemQueueId(), typeHandlerMap)
+
+        verify(workItemsDAO, never()).markInProgressItemAsFailed(any(), any(), any(), any(), any(), any())
+        verify(workItemsDAO, never()).rescheduleInProgressItem(any(), any(), any(), any(), any(), any())
+        assertThat(TestWorkItem1Handler.failureError).isNull()
+    }
+
+    @Test
+    fun `processSingleItem - Shall not modify item state if deleted`(): Unit = runBlocking {
+        val stubbedWorkItem = stubNextWorkItem(
+            item = TestWorkItem1(shouldFail = false),
+            queueId = "queue-1"
+        )!!
+
+        whenever(
+            workItemsDAO.getById(
+                eq(stubbedWorkItem.queueId.toWorkItemQueueId()),
+                eq(stubbedWorkItem.itemId.toWorkItemId())
+            )
+        ).thenReturn(null)
+
+        val successUnitOfWork = mock<UnitOfWork>()
+        val failureUnitOfWork = mock<UnitOfWork>()
+        whenever(unitOfWorkFactory.create()).thenReturn(successUnitOfWork, failureUnitOfWork)
+
+        whenever(successUnitOfWork.commit()).thenThrow(RuntimeException("unable to commit due to state change"))
+
+        processor.processSingleItem(stubbedWorkItem.queueId.toWorkItemQueueId(), typeHandlerMap)
+
+        verify(workItemsDAO, never()).markInProgressItemAsFailed(any(), any(), any(), any(), any(), any())
+        verify(workItemsDAO, never()).rescheduleInProgressItem(any(), any(), any(), any(), any(), any())
+        assertThat(TestWorkItem1Handler.failureError).isNull()
+    }
+
     private suspend fun <T> stubNextWorkItem(item: T, queueId: String): WorkItemDbEntity? {
         val stubbedWorkItem = item?.let {
             createWorkItemDbEntity(
@@ -346,6 +400,11 @@ internal class SingleWorkItemProcessorImplTest {
 
         whenever(workItemsDAO.takeNext(eq(queueId.toWorkItemQueueId()), any(), any()))
             .thenReturn(stubbedWorkItem)
+
+        if (stubbedWorkItem != null) {
+            whenever(workItemsDAO.getById(eq(queueId.toWorkItemQueueId()), eq(stubbedWorkItem.itemId.toWorkItemId())))
+                .thenReturn(stubbedWorkItem)
+        }
 
         return stubbedWorkItem
     }

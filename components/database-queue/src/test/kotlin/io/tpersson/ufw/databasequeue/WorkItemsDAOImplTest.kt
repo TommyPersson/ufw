@@ -1076,7 +1076,7 @@ internal class WorkItemsDAOImplTest {
         assertThat(dao.deleteFailedItem(queueId, "4".toWorkItemId())).isFalse()
 
         val allItemIds = dao.listAllItems().items.map { it.itemId }.toSet()
-        assertThat(allItemIds).isEqualTo(setOf("2","3","4"))
+        assertThat(allItemIds).isEqualTo(setOf("2", "3", "4"))
     }
 
     private suspend fun debugInsertItems(vararg items: WorkItemDbEntity) {
