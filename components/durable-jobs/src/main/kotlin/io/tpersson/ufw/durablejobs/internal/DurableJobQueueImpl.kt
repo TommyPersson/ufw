@@ -9,10 +9,9 @@ import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.databasequeue.NewWorkItem
 import io.tpersson.ufw.databasequeue.WorkItemState
-import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
-import io.tpersson.ufw.databasequeue.internal.WorkItemFailureDbEntity
-import io.tpersson.ufw.databasequeue.internal.WorkItemFailuresDAO
-import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
+import io.tpersson.ufw.databasequeue.WorkQueueState
+import io.tpersson.ufw.databasequeue.WorkQueueStatus
+import io.tpersson.ufw.databasequeue.internal.*
 import io.tpersson.ufw.durablejobs.*
 import io.tpersson.ufw.durablejobs.DurableJob
 import jakarta.inject.Inject
@@ -33,6 +32,7 @@ public class DurableJobQueueImpl @Inject constructor(
     private val clock: InstantSource,
     private val workItemsDAO: WorkItemsDAO,
     private val workItemFailuresDAO: WorkItemFailuresDAO,
+    private val workQueuesDAO: WorkQueuesDAO,
     private val unitOfWorkFactory: UnitOfWorkFactory,
     @Named(NamedBindings.ObjectMapper) private val objectMapper: ObjectMapper,
 ) : DurableJobQueueInternal {
@@ -151,5 +151,19 @@ public class DurableJobQueueImpl @Inject constructor(
         )
 
         unitOfWork.commit()
+    }
+
+    override suspend fun getQueueStatus(queueId: DurableJobQueueId): WorkQueueStatus {
+        val workQueue = workQueuesDAO.getWorkQueue(queueId.toWorkItemQueueId())
+            ?: return WorkQueueStatus( // TODO extract WorkQueueStatus.DEFAULT
+                state = WorkQueueState.ACTIVE,
+                stateChangedAt = Instant.EPOCH,
+            )
+
+        return WorkQueueStatus(
+            state = WorkQueueState.valueOf(workQueue.state),
+            stateChangedAt = workQueue.stateChangedAt,
+
+        )
     }
 }

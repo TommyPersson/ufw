@@ -2,11 +2,9 @@ package io.tpersson.ufw.databasequeue.guice
 
 import com.google.inject.Binder
 import com.google.inject.Module
+import io.tpersson.ufw.databasequeue.DatabaseQueueComponent
 import io.tpersson.ufw.databasequeue.DatabaseQueueConfig
-import io.tpersson.ufw.databasequeue.internal.WorkItemFailuresDAO
-import io.tpersson.ufw.databasequeue.internal.WorkItemFailuresDAOImpl
-import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
-import io.tpersson.ufw.databasequeue.internal.WorkItemsDAOImpl
+import io.tpersson.ufw.databasequeue.internal.*
 import io.tpersson.ufw.databasequeue.worker.DatabaseQueueWorkerFactory
 import io.tpersson.ufw.databasequeue.worker.DatabaseQueueWorkerFactoryImpl
 import io.tpersson.ufw.databasequeue.worker.SingleWorkItemProcessorFactory
@@ -18,8 +16,10 @@ public class DatabaseQueueGuiceModule(private val config: DatabaseQueueConfig = 
             bind(DatabaseQueueConfig::class.java).toInstance(config)
             bind(WorkItemsDAO::class.java).to(WorkItemsDAOImpl::class.java)
             bind(WorkItemFailuresDAO::class.java).to(WorkItemFailuresDAOImpl::class.java)
+            bind(WorkQueuesDAO::class.java).to(WorkQueuesDAOImpl::class.java)
             bind(DatabaseQueueWorkerFactory::class.java).to(DatabaseQueueWorkerFactoryImpl::class.java)
             bind(SingleWorkItemProcessorFactory::class.java).to(SingleWorkItemProcessorFactoryImpl::class.java)
+            bind(DatabaseQueueComponent::class.java).asEagerSingleton()
         }
     }
 }

@@ -5,12 +5,9 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.tpersson.ufw.admin.AdminModule
-import io.tpersson.ufw.admin.contracts.PaginatedListDTO
 import io.tpersson.ufw.admin.contracts.toDTO
 import io.tpersson.ufw.admin.utils.getPaginationOptions
 import io.tpersson.ufw.core.logging.createLogger
-import io.tpersson.ufw.core.utils.PaginatedList
-import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.databasequeue.WorkItemState
 import io.tpersson.ufw.durablejobs.DurableJobId
 import io.tpersson.ufw.durablejobs.DurableJobQueueId
@@ -49,12 +46,17 @@ public class DurableJobsAdminModule @Inject constructor(
                     val listItems = queueIds.map { queueId ->
                         async {
                             val stats = jobQueue.getQueueStatistics(queueId)
+                            val status = jobQueue.getQueueStatus(queueId)
                             QueueListItemDTO(
                                 queueId = queueId,
                                 numScheduled = stats.numScheduled,
                                 numPending = stats.numPending,
                                 numInProgress = stats.numInProgress,
                                 numFailed = stats.numFailed,
+                                status = JobQueueStatusDTO(
+                                    state = status.state,
+                                    stateChangedAt = status.stateChangedAt,
+                                )
                             )
                         }
                     }.awaitAll()
@@ -69,6 +71,7 @@ public class DurableJobsAdminModule @Inject constructor(
                 val handlers = jobHandlerDefinitions.filter { it.queueId == queueId }
 
                 val stats = jobQueue.getQueueStatistics(queueId)
+                val status = jobQueue.getQueueStatus(queueId)
 
                 val details = QueueDetailsDTO(
                     queueId = queueId,
@@ -76,6 +79,12 @@ public class DurableJobsAdminModule @Inject constructor(
                     numPending = stats.numPending,
                     numInProgress = stats.numInProgress,
                     numFailed = stats.numFailed,
+                    status = status.let {
+                        JobQueueStatusDTO(
+                            state = it.state,
+                            stateChangedAt = it.stateChangedAt,
+                        )
+                    },
                     jobTypes = handlers.map {
                         QueueDetailsDTO.JobType(
                             type = it.type,

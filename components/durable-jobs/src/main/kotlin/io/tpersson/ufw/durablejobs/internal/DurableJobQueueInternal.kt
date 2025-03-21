@@ -3,6 +3,7 @@ package io.tpersson.ufw.durablejobs.internal
 import io.tpersson.ufw.core.utils.PaginatedList
 import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.databasequeue.WorkItemState
+import io.tpersson.ufw.databasequeue.WorkQueueStatus
 import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
 import io.tpersson.ufw.databasequeue.internal.WorkItemFailureDbEntity
 import io.tpersson.ufw.durablejobs.DurableJobId
@@ -50,6 +51,10 @@ public interface DurableJobQueueInternal : DurableJobQueue {
         jobId: DurableJobId,
         now: Instant
     )
+
+    public suspend fun getQueueStatus(
+        queueId: DurableJobQueueId
+    ): WorkQueueStatus
 }
 
 public data class JobQueueStatistics(

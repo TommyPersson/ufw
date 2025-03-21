@@ -1,4 +1,4 @@
-import { Box, Card, CardActionArea, CardContent, Skeleton, Typography } from "@mui/material"
+import { Alert, AlertTitle, Box, Card, CardActionArea, CardContent, Skeleton, Typography } from "@mui/material"
 import { useQuery } from "@tanstack/react-query"
 import * as React from "react"
 import { useMemo } from "react"
@@ -6,8 +6,10 @@ import Markdown from "react-markdown"
 import { Link, LinkProps, useParams } from "react-router"
 import {
   CommandButton,
+  DateTimeText,
   Page,
-  PageBreadcrumb, PageSectionCard,
+  PageBreadcrumb,
+  PageSectionCard,
   PageSectionHeader,
   PropertyGroup,
   PropertyText
@@ -15,6 +17,7 @@ import {
 import { DeleteAllFailedJobsCommand, RescheduleAllFailedJobsCommand } from "../../commands"
 import { JobQueueDetails, JobType } from "../../models"
 import { JobQueueDetailsQuery } from "../../queries"
+import { getQueueStateColor } from "../utils/colors"
 
 import classes from "./JobQueueDetailsPage.module.css"
 
@@ -39,10 +42,37 @@ export const JobQueueDetailsPage = () => {
       autoRefresh={true}
       breadcrumbs={breadcrumbs}
     >
+      <JobQueueStatusSection details={queueDetails} />
       <QueueStatisticsSection details={queueDetails} />
       <QueueActionsSection queueId={queueId!} />
       <JobTypesSection jobTypes={queueDetails?.jobTypes ?? []} />
     </Page>
+  )
+}
+
+const JobQueueStatusSection = (props: { details: JobQueueDetails | null }) => {
+  const { details } = props
+  if (!details) {
+    return null
+  }
+
+  const state = details.status.state
+
+  const color = getQueueStateColor(state)
+
+  return (
+    <Alert severity={color}>
+      <AlertTitle>{state}</AlertTitle>
+      {state === "ACTIVE" &&
+          <>The queue is active and will process jobs until paused.</>
+      }
+      {state === "PAUSED" &&
+          <>
+              The queue has been paused since <DateTimeText dateTime={details.status.stateChangedAt} />{" "}
+              and will not process jobs until unpaused.
+          </>
+      }
+    </Alert>
   )
 }
 

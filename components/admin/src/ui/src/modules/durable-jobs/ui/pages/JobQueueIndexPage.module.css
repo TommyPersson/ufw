@@ -3,11 +3,13 @@
         width: 0;
     }
 
-    td:nth-child(n+3) {
+    td:nth-child(n+4) {
         text-align: right;
     }
 
-    th:nth-child(n+3) {
+    th:nth-child(n+4) {
         text-align: right;
     }
+
+    white-space: nowrap;
 }

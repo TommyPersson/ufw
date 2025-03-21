@@ -8,6 +8,7 @@ public data class QueueDetailsDTO(
     val numPending: Int,
     val numInProgress: Int,
     val numFailed: Int,
+    val status: JobQueueStatusDTO,
     val jobTypes: List<JobType>,
 ) {
     public data class JobType(

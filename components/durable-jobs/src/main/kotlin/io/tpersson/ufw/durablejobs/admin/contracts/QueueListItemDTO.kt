@@ -8,4 +8,5 @@ public data class QueueListItemDTO(
     val numPending: Int,
     val numInProgress: Int,
     val numFailed: Int,
+    val status: JobQueueStatusDTO,
 )
