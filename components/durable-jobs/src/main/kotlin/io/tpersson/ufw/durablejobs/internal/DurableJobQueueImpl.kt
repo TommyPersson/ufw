@@ -166,4 +166,30 @@ public class DurableJobQueueImpl @Inject constructor(
 
         )
     }
+
+    override suspend fun pauseQueue(queueId: DurableJobQueueId) {
+        val state = getQueueStatus(queueId).state
+        if (state == WorkQueueState.PAUSED) {
+            return
+        }
+
+        workQueuesDAO.setWorkQueueState(
+            queueId = queueId.toWorkItemQueueId(),
+            state = WorkQueueState.PAUSED,
+            now = clock.instant()
+        )
+    }
+
+    override suspend fun unpauseQueue(queueId: DurableJobQueueId) {
+        val state = getQueueStatus(queueId).state
+        if (state != WorkQueueState.PAUSED) {
+            return
+        }
+
+        workQueuesDAO.setWorkQueueState(
+            queueId = queueId.toWorkItemQueueId(),
+            state = WorkQueueState.ACTIVE,
+            now = clock.instant()
+        )
+    }
 }

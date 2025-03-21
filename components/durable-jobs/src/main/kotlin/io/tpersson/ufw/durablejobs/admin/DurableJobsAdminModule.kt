@@ -117,6 +117,26 @@ public class DurableJobsAdminModule @Inject constructor(
                 call.respond(HttpStatusCode.NoContent)
             }
 
+            post("/admin/api/durable-jobs/queues/{queueId}/actions/pause") {
+                val queueId = call.parameters.queueId!!
+
+                jobQueue.pauseQueue(queueId)
+
+                logger.info("Paused queue: $queueId")
+
+                call.respond(HttpStatusCode.NoContent)
+            }
+
+            post("/admin/api/durable-jobs/queues/{queueId}/actions/unpause") {
+                val queueId = call.parameters.queueId!!
+
+                jobQueue.unpauseQueue(queueId)
+
+                logger.info("Paused queue: $queueId")
+
+                call.respond(HttpStatusCode.NoContent)
+            }
+
             get("/admin/api/durable-jobs/queues/{queueId}/jobs") {
                 val queueId = call.parameters.queueId!!
                 val jobState = call.parameters.state!!

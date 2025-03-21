@@ -39,7 +39,7 @@ public class PrintJob2Handler @Inject constructor() : DurableJobHandler<PrintJob
     override suspend fun onFailure(job: PrintJob2, error: Exception, context: DurableJobFailureContext): FailureAction {
         logger.error(":( Error during the job: $job (${context.failureCount})", error)
 
-        if (context.failureCount > 5) {
+        if (context.failureCount > 2) {
             return FailureAction.GiveUp
         }
 

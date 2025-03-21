@@ -1,4 +1,14 @@
-import { Alert, AlertTitle, Box, Card, CardActionArea, CardContent, Skeleton, Typography } from "@mui/material"
+import {
+  Alert,
+  AlertTitle,
+  Box,
+  ButtonProps,
+  Card,
+  CardActionArea,
+  CardContent,
+  Skeleton,
+  Typography
+} from "@mui/material"
 import { useQuery } from "@tanstack/react-query"
 import * as React from "react"
 import { useMemo } from "react"
@@ -15,6 +25,8 @@ import {
   PropertyText
 } from "../../../../common/components"
 import { DeleteAllFailedJobsCommand, RescheduleAllFailedJobsCommand } from "../../commands"
+import { PauseJobQueueCommand } from "../../commands/PauseQueueCommand"
+import { UnpauseJobQueueCommand } from "../../commands/UnpauseQueueCommand"
 import { JobQueueDetails, JobType } from "../../models"
 import { JobQueueDetailsQuery } from "../../queries"
 import { getQueueStateColor } from "../utils/colors"
@@ -60,15 +72,24 @@ const JobQueueStatusSection = (props: { details: JobQueueDetails | null }) => {
 
   const color = getQueueStateColor(state)
 
+  const actionButtonProps: Partial<ButtonProps> = {
+    color: "inherit"
+  }
+
+  const action = state === "ACTIVE"
+    ? <CommandButton command={PauseJobQueueCommand} args={{ queueId: details.queueId }} {...actionButtonProps} />
+    : <CommandButton command={UnpauseJobQueueCommand} args={{ queueId: details.queueId }} {...actionButtonProps} />
+
   return (
-    <Alert severity={color}>
+    <Alert severity={color} action={action}>
       <AlertTitle>{state}</AlertTitle>
       {state === "ACTIVE" &&
           <>The queue is active and will process jobs until paused.</>
       }
       {state === "PAUSED" &&
           <>
-              The queue has been paused since <DateTimeText dateTime={details.status.stateChangedAt} />{" "}
+              The queue has been paused since
+              <strong><DateTimeText dateTime={details.status.stateChangedAt} /></strong>{" "}
               and will not process jobs until unpaused.
           </>
       }

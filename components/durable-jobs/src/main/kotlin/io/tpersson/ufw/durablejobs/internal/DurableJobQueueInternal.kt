@@ -55,6 +55,10 @@ public interface DurableJobQueueInternal : DurableJobQueue {
     public suspend fun getQueueStatus(
         queueId: DurableJobQueueId
     ): WorkQueueStatus
+
+    public suspend fun pauseQueue(queueId: DurableJobQueueId)
+
+    public suspend fun unpauseQueue(queueId: DurableJobQueueId)
 }
 
 public data class JobQueueStatistics(
