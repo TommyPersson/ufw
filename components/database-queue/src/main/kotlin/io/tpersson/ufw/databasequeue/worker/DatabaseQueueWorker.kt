@@ -5,6 +5,7 @@ import io.tpersson.ufw.core.utils.forever
 import io.tpersson.ufw.databasequeue.DatabaseQueueAdapterSettings
 import io.tpersson.ufw.databasequeue.WorkItemHandler
 import io.tpersson.ufw.databasequeue.WorkItemQueueId
+import io.tpersson.ufw.databasequeue.worker.SingleWorkItemProcessor.ProcessingResult
 import kotlinx.coroutines.*
 import java.time.Duration
 import java.util.*
@@ -32,10 +33,10 @@ public class DatabaseQueueWorker(
         return coroutineScope.launch {
             forever(logger, interval = fallbackPollInterval) {
                 do {
-                    val itemWasAvailable = withContext(NonCancellable) {
+                    val result = withContext(NonCancellable) {
                         singleItemProcessor.processSingleItem(queueId, handlersByType)
                     }
-                } while (itemWasAvailable && isActive)
+                } while (result == ProcessingResult.PROCESSED && isActive)
             }
         }
     }

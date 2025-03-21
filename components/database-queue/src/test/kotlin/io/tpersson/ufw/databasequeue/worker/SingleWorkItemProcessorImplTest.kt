@@ -9,6 +9,7 @@ import io.tpersson.ufw.databasequeue.*
 import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
 import io.tpersson.ufw.databasequeue.internal.WorkItemFailuresDAO
 import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
+import io.tpersson.ufw.databasequeue.worker.SingleWorkItemProcessor.ProcessingResult
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -25,6 +26,7 @@ internal class SingleWorkItemProcessorImplTest {
     private lateinit var unitOfWorkFactory: UnitOfWorkFactory
     private lateinit var workItemFailuresDAO: WorkItemFailuresDAO
     private lateinit var workItemsDAO: WorkItemsDAO
+    private lateinit var queueStateChecker: QueueStateChecker
     private lateinit var watchdogId: String
 
     private lateinit var clock: InstantSource
@@ -35,10 +37,13 @@ internal class SingleWorkItemProcessorImplTest {
     private val config = DatabaseQueueConfig()
 
     @BeforeEach
-    fun setUp() {
+    fun setUp(): Unit = runBlocking {
         watchdogId = UUID.randomUUID().toString()
         workItemsDAO = mock()
         workItemFailuresDAO = mock()
+        queueStateChecker = mock()
+
+        whenever(queueStateChecker.isQueuePaused(any())).thenReturn(false)
 
         unitOfWorkFactory = mock()
         whenever(unitOfWorkFactory.create()).then { mock<UnitOfWork>() }
@@ -54,6 +59,7 @@ internal class SingleWorkItemProcessorImplTest {
             watchdogId = watchdogId,
             workItemsDAO = workItemsDAO,
             workItemFailuresDAO = workItemFailuresDAO,
+            queueStateChecker = queueStateChecker,
             unitOfWorkFactory = unitOfWorkFactory,
             meterRegistry = SimpleMeterRegistry(),
             clock = clock,
@@ -63,7 +69,7 @@ internal class SingleWorkItemProcessorImplTest {
     }
 
     @Test
-    fun `processSingleItem - Returns false if no item was taken from the queue`(): Unit = runBlocking {
+    fun `processSingleItem - Returns 'SKIPPED_NO_ITEM_AVAILABLE' if no item was taken from the queue`(): Unit = runBlocking {
         val queueId = "queue-1".toWorkItemQueueId()
 
         stubNextWorkItem(
@@ -73,13 +79,32 @@ internal class SingleWorkItemProcessorImplTest {
 
         val result = processor.processSingleItem(queueId, emptyMap())
 
-        assertThat(result).isFalse()
+        assertThat(result).isEqualTo(ProcessingResult.SKIPPED_NO_ITEM_AVAILABLE)
 
         verify(workItemsDAO).takeNext(eq(queueId), eq(watchdogId), eq(now))
     }
 
     @Test
-    fun `processSingleItem - Returns true if an item was taken from the queue but no mapping was found`(): Unit =
+    fun `processSingleItem - Returns 'SKIPPED_QUEUE_PAUSED' if the queue is paused`(): Unit = runBlocking {
+        val queueId = "queue-1".toWorkItemQueueId()
+
+        stubNextWorkItem(
+            item = null,
+            queueId = queueId.value
+        )
+
+        whenever(queueStateChecker.isQueuePaused(eq(queueId))).thenReturn(true)
+
+        val result = processor.processSingleItem(queueId, emptyMap())
+
+        assertThat(result).isEqualTo(ProcessingResult.SKIPPED_QUEUE_PAUSED)
+
+        verify(workItemsDAO, never()).markInProgressItemAsSuccessful(any(), any(), any(), any(), any(), any())
+        verify(workItemsDAO, never()).markInProgressItemAsFailed(any(), any(), any(), any(), any(), any())
+    }
+
+    @Test
+    fun `processSingleItem - Returns 'PROCESSED' if an item was taken from the queue but no mapping was found`(): Unit =
         runBlocking {
             val stubbedWorkItem = stubNextWorkItem(
                 item = UnmappedTestWorkItem(),
@@ -88,14 +113,14 @@ internal class SingleWorkItemProcessorImplTest {
 
             val result = processor.processSingleItem(stubbedWorkItem.queueId.toWorkItemQueueId(), typeHandlerMap)
 
-            assertThat(result).isTrue()
+            assertThat(result).isEqualTo(ProcessingResult.PROCESSED)
 
             verify(workItemsDAO, never()).markInProgressItemAsSuccessful(any(), any(), any(), any(), any(), any())
             verify(workItemsDAO, never()).markInProgressItemAsFailed(any(), any(), any(), any(), any(), any())
         }
 
     @Test
-    fun `processSingleItem - Returns true if an item was taken from the queue and successfully processed`(): Unit =
+    fun `processSingleItem - Returns 'PROCESSED' if an item was taken from the queue and successfully processed`(): Unit =
         runBlocking {
             val stubbedWorkItem = stubNextWorkItem(
                 item = TestWorkItem1(shouldFail = false),
@@ -104,11 +129,11 @@ internal class SingleWorkItemProcessorImplTest {
 
             val result = processor.processSingleItem(stubbedWorkItem.queueId.toWorkItemQueueId(), typeHandlerMap)
 
-            assertThat(result).isTrue()
+            assertThat(result).isEqualTo(ProcessingResult.PROCESSED)
         }
 
     @Test
-    fun `processSingleItem - Returns true if an item was taken from the queue and failing processed`(): Unit =
+    fun `processSingleItem - Returns 'PROCESSED' if an item was taken from the queue and failing processed`(): Unit =
         runBlocking {
             val stubbedWorkItem = stubNextWorkItem(
                 item = TestWorkItem1(shouldFail = true),
@@ -117,7 +142,7 @@ internal class SingleWorkItemProcessorImplTest {
 
             val result = processor.processSingleItem(stubbedWorkItem.queueId.toWorkItemQueueId(), typeHandlerMap)
 
-            assertThat(result).isTrue()
+            assertThat(result).isEqualTo(ProcessingResult.PROCESSED)
         }
 
     @Test

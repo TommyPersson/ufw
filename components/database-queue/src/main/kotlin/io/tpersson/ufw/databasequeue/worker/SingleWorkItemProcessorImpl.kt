@@ -6,10 +6,8 @@ import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.databasequeue.*
-import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
-import io.tpersson.ufw.databasequeue.internal.WorkItemFailureDbEntity
-import io.tpersson.ufw.databasequeue.internal.WorkItemFailuresDAO
-import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
+import io.tpersson.ufw.databasequeue.internal.*
+import io.tpersson.ufw.databasequeue.worker.SingleWorkItemProcessor.ProcessingResult
 import kotlinx.coroutines.slf4j.MDCContext
 import kotlinx.coroutines.withContext
 import org.slf4j.MDC
@@ -24,6 +22,7 @@ public class SingleWorkItemProcessorImpl(
     private val watchdogId: String,
     private val workItemsDAO: WorkItemsDAO,
     private val workItemFailuresDAO: WorkItemFailuresDAO,
+    private val queueStateChecker: QueueStateChecker,
     private val unitOfWorkFactory: UnitOfWorkFactory,
     private val meterRegistry: MeterRegistry,
     private val clock: InstantSource,
@@ -38,9 +37,13 @@ public class SingleWorkItemProcessorImpl(
     override suspend fun processSingleItem(
         queueId: WorkItemQueueId,
         typeHandlerMappings: Map<String, WorkItemHandler<*>>
-    ): Boolean {
+    ): ProcessingResult {
+        if (queueStateChecker.isQueuePaused(queueId)) {
+            return ProcessingResult.SKIPPED_QUEUE_PAUSED
+        }
+
         val workItem = workItemsDAO.takeNext(queueId, watchdogId, clock.instant())
-            ?: return false
+            ?: return ProcessingResult.SKIPPED_NO_ITEM_AVAILABLE
 
         MDC.put(adapterSettings.mdcQueueIdLabel, adapterSettings.convertQueueId(WorkItemQueueId(workItem.queueId)))
         MDC.put(adapterSettings.mdcItemIdLabel, workItem.itemId)
@@ -56,7 +59,7 @@ public class SingleWorkItemProcessorImpl(
             timer.record(duration.toJavaDuration())
         }
 
-        return true
+        return ProcessingResult.PROCESSED
     }
 
     private suspend fun invokeHandlerFor(

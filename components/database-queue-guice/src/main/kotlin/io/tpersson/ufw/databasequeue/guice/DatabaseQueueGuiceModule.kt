@@ -5,10 +5,7 @@ import com.google.inject.Module
 import io.tpersson.ufw.databasequeue.DatabaseQueueComponent
 import io.tpersson.ufw.databasequeue.DatabaseQueueConfig
 import io.tpersson.ufw.databasequeue.internal.*
-import io.tpersson.ufw.databasequeue.worker.DatabaseQueueWorkerFactory
-import io.tpersson.ufw.databasequeue.worker.DatabaseQueueWorkerFactoryImpl
-import io.tpersson.ufw.databasequeue.worker.SingleWorkItemProcessorFactory
-import io.tpersson.ufw.databasequeue.worker.SingleWorkItemProcessorFactoryImpl
+import io.tpersson.ufw.databasequeue.worker.*
 
 public class DatabaseQueueGuiceModule(private val config: DatabaseQueueConfig = DatabaseQueueConfig()) : Module {
     override fun configure(binder: Binder) {
@@ -19,6 +16,7 @@ public class DatabaseQueueGuiceModule(private val config: DatabaseQueueConfig = 
             bind(WorkQueuesDAO::class.java).to(WorkQueuesDAOImpl::class.java)
             bind(DatabaseQueueWorkerFactory::class.java).to(DatabaseQueueWorkerFactoryImpl::class.java)
             bind(SingleWorkItemProcessorFactory::class.java).to(SingleWorkItemProcessorFactoryImpl::class.java)
+            bind(QueueStateChecker::class.java).to(CachingQueueStateCheckerImpl::class.java)
             bind(DatabaseQueueComponent::class.java).asEagerSingleton()
         }
     }

@@ -4,9 +4,7 @@ import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.databasequeue.internal.*
-import io.tpersson.ufw.databasequeue.worker.DatabaseQueueWorkerFactory
-import io.tpersson.ufw.databasequeue.worker.DatabaseQueueWorkerFactoryImpl
-import io.tpersson.ufw.databasequeue.worker.SingleWorkItemProcessorFactoryImpl
+import io.tpersson.ufw.databasequeue.worker.*
 import jakarta.inject.Inject
 
 public class DatabaseQueueComponent @Inject constructor(
@@ -42,9 +40,14 @@ public class DatabaseQueueComponent @Inject constructor(
                 database = databaseComponent.database,
             )
 
+            val queueStateChecker = CachingQueueStateCheckerImpl(
+                workQueuesDAO = workQueuesDAO,
+            )
+
             val processorFactory = SingleWorkItemProcessorFactoryImpl(
                 workItemsDAO = workItemsDAO,
                 workItemFailuresDAO = workItemFailuresDAO,
+                queueStateChecker = queueStateChecker,
                 unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
                 meterRegistry = coreComponent.meterRegistry,
                 clock = coreComponent.clock,

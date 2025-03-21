@@ -7,5 +7,11 @@ public interface SingleWorkItemProcessor {
     public suspend fun processSingleItem(
         queueId: WorkItemQueueId,
         typeHandlerMappings: Map<String, WorkItemHandler<*>>
-    ): Boolean
+    ): ProcessingResult
+
+    public enum class ProcessingResult {
+        SKIPPED_NO_ITEM_AVAILABLE,
+        SKIPPED_QUEUE_PAUSED,
+        PROCESSED,
+    }
 }

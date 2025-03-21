@@ -3,6 +3,7 @@ package io.tpersson.ufw.databasequeue.worker
 import io.tpersson.ufw.databasequeue.WorkItemHandler
 import io.tpersson.ufw.databasequeue.WorkItemQueueId
 import io.tpersson.ufw.databasequeue.toWorkItemQueueId
+import io.tpersson.ufw.databasequeue.worker.SingleWorkItemProcessor.ProcessingResult
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.isActive
@@ -68,11 +69,11 @@ internal class DatabaseQueueWorkerTest {
             override suspend fun processSingleItem(
                 queueId: WorkItemQueueId,
                 typeHandlerMappings: Map<String, WorkItemHandler<*>>
-            ): Boolean {
+            ): ProcessingResult {
                 startedProcessingLatch.complete(Unit)
                 cancellationLatch.await()
                 wasActiveDeferred.complete(isActive)
-                return true
+                return ProcessingResult.PROCESSED
             }
         })
 

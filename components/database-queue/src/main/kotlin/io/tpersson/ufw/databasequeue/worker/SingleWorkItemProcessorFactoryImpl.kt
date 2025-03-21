@@ -12,6 +12,7 @@ import java.time.InstantSource
 public class SingleWorkItemProcessorFactoryImpl @Inject constructor(
     private val workItemsDAO: WorkItemsDAO,
     private val workItemFailuresDAO: WorkItemFailuresDAO,
+    private val queueStateChecker: QueueStateChecker,
     private val unitOfWorkFactory: UnitOfWorkFactory,
     private val meterRegistry: MeterRegistry,
     private val clock: InstantSource,
@@ -26,6 +27,7 @@ public class SingleWorkItemProcessorFactoryImpl @Inject constructor(
             watchdogId = watchdogId,
             workItemsDAO = workItemsDAO,
             workItemFailuresDAO = workItemFailuresDAO,
+            queueStateChecker = queueStateChecker,
             unitOfWorkFactory = unitOfWorkFactory,
             meterRegistry = meterRegistry,
             clock = clock,
