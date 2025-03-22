@@ -23,6 +23,7 @@ public interface WorkItemsDAO {
     ): WorkItemDbEntity?
 
     public suspend fun listAllItems(
+        queueId: WorkItemQueueId,
         state: WorkItemState? = null,
         paginationOptions: PaginationOptions = PaginationOptions.DEFAULT
     ): PaginatedList<WorkItemDbEntity>
@@ -119,6 +120,10 @@ public interface WorkItemsDAO {
     ): WorkItemQueueStatistics
 
     public suspend fun deleteExpiredItems(now: Instant): Int
+
+    public suspend fun debugListAllItems(
+        paginationOptions: PaginationOptions = PaginationOptions.DEFAULT
+    ): PaginatedList<WorkItemDbEntity>
 
     public suspend fun debugInsert(
         item: WorkItemDbEntity,

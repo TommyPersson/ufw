@@ -59,13 +59,14 @@ public class WorkItemsDAOImpl @Inject constructor(
     }
 
     override suspend fun listAllItems(
+        queueId: WorkItemQueueId,
         state: WorkItemState?,
         paginationOptions: PaginationOptions
     ): PaginatedList<WorkItemDbEntity> {
         return if (state == null) {
-            database.select(Queries.Selects.ListAllItems(paginationOptions))
+            database.select(Queries.Selects.ListAllItems(queueId, paginationOptions))
         } else {
-            database.select(Queries.Selects.ListAllItemsByState(state, paginationOptions))
+            database.select(Queries.Selects.ListAllItemsByState(queueId, state, paginationOptions))
         }
     }
 
@@ -258,6 +259,10 @@ public class WorkItemsDAOImpl @Inject constructor(
         return database.update(Queries.Updates.DeleteExpiredItems(now))
     }
 
+    override suspend fun debugListAllItems(paginationOptions: PaginationOptions): PaginatedList<WorkItemDbEntity> {
+        return database.select(Queries.Selects.DebugListAllItems(paginationOptions))
+    }
+
     override suspend fun debugInsert(item: WorkItemDbEntity, unitOfWork: UnitOfWork?) {
         if (unitOfWork != null) {
             unitOfWork.add(
@@ -318,23 +323,27 @@ public class WorkItemsDAOImpl @Inject constructor(
             )
 
             data class ListAllItems(
+                val queueId: WorkItemQueueId,
                 override val paginationOptions: PaginationOptions,
             ) : TypedSelectList<WorkItemDbEntity>(
                 """
                 SELECT $columnsWithoutEventsSql  
                 FROM $TableName
+                WHERE queue_id = :queueId.value
                 ORDER BY created_at ASC
                 """.trimIndent()
             )
 
             data class ListAllItemsByState(
+                val queueId: WorkItemQueueId,
                 val state: WorkItemState,
                 override val paginationOptions: PaginationOptions,
             ) : TypedSelectList<WorkItemDbEntity>(
                 """
                 SELECT $columnsWithoutEventsSql  
                 FROM $TableName
-                WHERE state = :state.dbOrdinal
+                WHERE queue_id = :queueId.value
+                  AND state = :state.dbOrdinal
                 ORDER BY created_at ASC
                 """.trimIndent(),
             )
@@ -361,6 +370,16 @@ public class WorkItemsDAOImpl @Inject constructor(
                 FROM $TableName
                 WHERE queue_id = :queueId
                 GROUP BY state
+                """.trimIndent()
+            )
+
+            data class DebugListAllItems(
+                override val paginationOptions: PaginationOptions,
+            ) : TypedSelectList<WorkItemDbEntity>(
+                """
+                SELECT $columnsWithoutEventsSql  
+                FROM $TableName
+                ORDER BY created_at ASC
                 """.trimIndent()
             )
         }

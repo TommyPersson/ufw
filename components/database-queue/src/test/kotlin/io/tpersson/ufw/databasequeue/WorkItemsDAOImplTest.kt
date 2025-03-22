@@ -151,6 +151,42 @@ internal class WorkItemsDAOImplTest {
     }
 
     @Test
+    fun `listAllItems - Shall return items in the correct queue`(): Unit = runBlocking {
+        debugInsertItems(makeWorkItem(itemId = "1", queueId = "queue-1"))
+        debugInsertItems(makeWorkItem(itemId = "2", queueId = "queue-1"))
+        debugInsertItems(makeWorkItem(itemId = "3", queueId = "queue-2"))
+
+        val itemIds1 = dao.listAllItems(queueId = "queue-1".toWorkItemQueueId())
+            .items.map { it.itemId }.toSet()
+
+        val itemIds2 = dao.listAllItems(queueId = "queue-2".toWorkItemQueueId())
+            .items.map { it.itemId }.toSet()
+
+        assertThat(itemIds1).isEqualTo(setOf("1", "2"))
+        assertThat(itemIds2).isEqualTo(setOf("3"))
+    }
+
+    @Test
+    fun `listAllItems - Shall return items in the correct queue & state`(): Unit = runBlocking {
+        debugInsertItems(makeWorkItem(itemId = "1", queueId = "queue-1", state = WorkItemState.IN_PROGRESS.dbOrdinal))
+        debugInsertItems(makeWorkItem(itemId = "2", queueId = "queue-1", state = WorkItemState.SUCCESSFUL.dbOrdinal))
+        debugInsertItems(makeWorkItem(itemId = "3", queueId = "queue-2", state = WorkItemState.IN_PROGRESS.dbOrdinal))
+
+        val itemIds1 = dao.listAllItems(queueId = "queue-1".toWorkItemQueueId(), state = WorkItemState.IN_PROGRESS)
+            .items.map { it.itemId }.toSet()
+
+        val itemIds2 = dao.listAllItems(queueId = "queue-1".toWorkItemQueueId(), state = WorkItemState.SUCCESSFUL)
+            .items.map { it.itemId }.toSet()
+
+        val itemIds3 = dao.listAllItems(queueId = "queue-2".toWorkItemQueueId(), state = WorkItemState.SUCCESSFUL)
+            .items.map { it.itemId }.toSet()
+
+        assertThat(itemIds1).isEqualTo(setOf("1"))
+        assertThat(itemIds2).isEqualTo(setOf("2"))
+        assertThat(itemIds3).isEqualTo(emptySet<String>())
+    }
+
+    @Test
     fun `takeNext - Takes a SCHEDULED item and moves it to IN_PROGRESS`(): Unit = runBlocking {
         debugInsertItems(makeWorkItem(itemId = "testId", queueId = "testQueueId"))
         testClock.advance(Duration.ofMinutes(2))
@@ -167,7 +203,7 @@ internal class WorkItemsDAOImplTest {
         }
 
         run {
-            val item = dao.listAllItems().items.first { it.itemId == "testId" }
+            val item = dao.debugListAllItems().items.first { it.itemId == "testId" }
 
             assertThat(item.state).isEqualTo(WorkItemState.IN_PROGRESS.dbOrdinal)
             assertThat(item.stateChangedAt).isEqualTo(now)
@@ -301,7 +337,7 @@ internal class WorkItemsDAOImplTest {
 
         unitOfWork.commit()
 
-        val item2 = dao.listAllItems().items.first { it.itemId == "testId1" }
+        val item2 = dao.debugListAllItems().items.first { it.itemId == "testId1" }
 
         assertThat(item2.state).isEqualTo(WorkItemState.SUCCESSFUL.dbOrdinal)
         assertThat(item2.watchdogOwner).isNull()
@@ -400,7 +436,7 @@ internal class WorkItemsDAOImplTest {
 
         unitOfWork.commit()
 
-        val item2 = dao.listAllItems().items.first { it.itemId == "testId1" }
+        val item2 = dao.debugListAllItems().items.first { it.itemId == "testId1" }
 
         assertThat(item2.state).isEqualTo(WorkItemState.FAILED.dbOrdinal)
         assertThat(item2.watchdogOwner).isNull()
@@ -476,7 +512,7 @@ internal class WorkItemsDAOImplTest {
 
         unitOfWork.commit()
 
-        val item2 = dao.listAllItems().items.first { it.itemId == item.itemId }
+        val item2 = dao.debugListAllItems().items.first { it.itemId == item.itemId }
 
         assertThat(item2.numFailures).isEqualTo(3)
     }
@@ -570,7 +606,7 @@ internal class WorkItemsDAOImplTest {
 
         unitOfWork.commit()
 
-        val item2 = dao.listAllItems().items.first { it.itemId == "testId1" }
+        val item2 = dao.debugListAllItems().items.first { it.itemId == "testId1" }
 
         assertThat(item2.state).isEqualTo(WorkItemState.SCHEDULED.dbOrdinal)
         assertThat(item2.watchdogOwner).isNull()
@@ -609,7 +645,7 @@ internal class WorkItemsDAOImplTest {
 
         unitOfWork.commit()
 
-        val item2 = dao.listAllItems().items.first { it.itemId == item.itemId }
+        val item2 = dao.debugListAllItems().items.first { it.itemId == item.itemId }
 
         assertThat(item2.numFailures).isEqualTo(3)
     }
@@ -1053,7 +1089,7 @@ internal class WorkItemsDAOImplTest {
 
             assertThat(numDeleted).isEqualTo(2)
 
-            val allItems = dao.listAllItems().items
+            val allItems = dao.debugListAllItems().items
             assertThat(allItems).hasSize(1)
             assertThat(allItems[0].itemId).isEqualTo("3")
         }
@@ -1075,7 +1111,7 @@ internal class WorkItemsDAOImplTest {
         assertThat(dao.deleteFailedItem(queueId, "3".toWorkItemId())).isFalse()
         assertThat(dao.deleteFailedItem(queueId, "4".toWorkItemId())).isFalse()
 
-        val allItemIds = dao.listAllItems().items.map { it.itemId }.toSet()
+        val allItemIds = dao.debugListAllItems().items.map { it.itemId }.toSet()
         assertThat(allItemIds).isEqualTo(setOf("2", "3", "4"))
     }
 

@@ -31,8 +31,7 @@ public class DatabaseQueueAdminFacadeImpl @Inject constructor(
         state: WorkItemState,
         paginationOptions: PaginationOptions
     ): PaginatedList<WorkItemDbEntity> {
-        // TODO use queueId
-        return workItemsDAO.listAllItems(state, paginationOptions)
+        return workItemsDAO.listAllItems(queueId, state, paginationOptions)
     }
 
     override suspend fun getWorkItemFailures(
