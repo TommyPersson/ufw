@@ -3,6 +3,8 @@ package io.tpersson.ufw.databasequeue
 import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
+import io.tpersson.ufw.databasequeue.admin.DatabaseQueueAdminFacade
+import io.tpersson.ufw.databasequeue.admin.DatabaseQueueAdminFacadeImpl
 import io.tpersson.ufw.databasequeue.internal.*
 import io.tpersson.ufw.databasequeue.worker.*
 import jakarta.inject.Inject
@@ -12,6 +14,7 @@ public class DatabaseQueueComponent @Inject constructor(
     public val workItemsDAO: WorkItemsDAO, // TODO cleaner queue interface
     public val workItemFailuresDAO: WorkItemFailuresDAO, // TODO cleaner queue interface
     public val workQueuesDAO: WorkQueuesDAO,
+    public val adminManager: DatabaseQueueAdminFacade,
     public val config: DatabaseQueueConfig,
 ) {
     init {
@@ -58,11 +61,20 @@ public class DatabaseQueueComponent @Inject constructor(
                 processorFactory = processorFactory
             )
 
+            val databaseQueueAdminManager = DatabaseQueueAdminFacadeImpl(
+                workItemsDAO = workItemsDAO,
+                workQueuesDAO = workQueuesDAO,
+                workItemFailuresDAO = workItemFailuresDAO,
+                clock = coreComponent.clock,
+                unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
+            )
+
             return DatabaseQueueComponent(
                 databaseQueueWorkerFactory = databaseQueueWorkerFactory,
                 workItemsDAO = workItemsDAO,
                 workItemFailuresDAO = workItemFailuresDAO,
                 workQueuesDAO = workQueuesDAO,
+                adminManager = databaseQueueAdminManager,
                 config = config
             )
         }

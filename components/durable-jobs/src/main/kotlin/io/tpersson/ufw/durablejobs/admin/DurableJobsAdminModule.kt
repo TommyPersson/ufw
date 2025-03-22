@@ -7,28 +7,25 @@ import io.ktor.server.routing.*
 import io.tpersson.ufw.admin.AdminModule
 import io.tpersson.ufw.admin.contracts.toDTO
 import io.tpersson.ufw.admin.utils.getPaginationOptions
-import io.tpersson.ufw.core.logging.createLogger
+import io.tpersson.ufw.databasequeue.WorkItemQueueId
 import io.tpersson.ufw.databasequeue.WorkItemState
+import io.tpersson.ufw.databasequeue.admin.DatabaseQueueAdminFacade
+import io.tpersson.ufw.databasequeue.convertQueueId
+import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
+import io.tpersson.ufw.databasequeue.internal.WorkItemFailureDbEntity
 import io.tpersson.ufw.durablejobs.DurableJobId
 import io.tpersson.ufw.durablejobs.DurableJobQueueId
 import io.tpersson.ufw.durablejobs.admin.contracts.*
-import io.tpersson.ufw.durablejobs.internal.DurableJobDefinition
-import io.tpersson.ufw.durablejobs.internal.DurableJobHandlersProvider
-import io.tpersson.ufw.durablejobs.internal.DurableJobQueueInternal
-import io.tpersson.ufw.durablejobs.internal.jobDefinition
+import io.tpersson.ufw.durablejobs.internal.*
 import jakarta.inject.Inject
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import java.time.InstantSource
 
 public class DurableJobsAdminModule @Inject constructor(
     private val durableJobHandlersProvider: DurableJobHandlersProvider,
-    private val jobQueue: DurableJobQueueInternal,
-    private val clock: InstantSource
+    private val databaseQueueAdminFacade: DatabaseQueueAdminFacade,
 ) : AdminModule {
-
-    private val logger = createLogger()
 
     public override val moduleId: String = "durable-jobs"
 
@@ -45,8 +42,9 @@ public class DurableJobsAdminModule @Inject constructor(
                     val queueIds = jobHandlerDefinitions.map { it.queueId }
                     val listItems = queueIds.map { queueId ->
                         async {
-                            val stats = jobQueue.getQueueStatistics(queueId)
-                            val status = jobQueue.getQueueStatus(queueId)
+                            val stats = databaseQueueAdminFacade.getQueueStatistics(queueId.toWorkItemQueueId())
+                            val status = databaseQueueAdminFacade.getQueueStatus(queueId.toWorkItemQueueId())
+
                             QueueListItemDTO(
                                 queueId = queueId,
                                 numScheduled = stats.numScheduled,
@@ -70,8 +68,8 @@ public class DurableJobsAdminModule @Inject constructor(
 
                 val handlers = jobHandlerDefinitions.filter { it.queueId == queueId }
 
-                val stats = jobQueue.getQueueStatistics(queueId)
-                val status = jobQueue.getQueueStatus(queueId)
+                val stats = databaseQueueAdminFacade.getQueueStatistics(queueId.toWorkItemQueueId())
+                val status = databaseQueueAdminFacade.getQueueStatus(queueId.toWorkItemQueueId())
 
                 val details = QueueDetailsDTO(
                     queueId = queueId,
@@ -100,9 +98,7 @@ public class DurableJobsAdminModule @Inject constructor(
             post("/admin/api/durable-jobs/queues/{queueId}/actions/reschedule-all-failed-jobs") {
                 val queueId = call.parameters.queueId!!
 
-                jobQueue.rescheduleAllFailedJobs(queueId)
-
-                logger.info("Rescheduled all failed jobs for queue: $queueId")
+                databaseQueueAdminFacade.rescheduleAllFailedItems(queueId.toWorkItemQueueId())
 
                 call.respond(HttpStatusCode.NoContent)
             }
@@ -110,9 +106,7 @@ public class DurableJobsAdminModule @Inject constructor(
             post("/admin/api/durable-jobs/queues/{queueId}/actions/delete-all-failed-jobs") {
                 val queueId = call.parameters.queueId!!
 
-                jobQueue.deleteAllFailedJobs(queueId)
-
-                logger.info("Deleted all failed jobs for queue: $queueId")
+                databaseQueueAdminFacade.deleteAllFailedItems(queueId.toWorkItemQueueId())
 
                 call.respond(HttpStatusCode.NoContent)
             }
@@ -120,9 +114,7 @@ public class DurableJobsAdminModule @Inject constructor(
             post("/admin/api/durable-jobs/queues/{queueId}/actions/pause") {
                 val queueId = call.parameters.queueId!!
 
-                jobQueue.pauseQueue(queueId)
-
-                logger.info("Paused queue: $queueId")
+                databaseQueueAdminFacade.pauseQueue(queueId.toWorkItemQueueId())
 
                 call.respond(HttpStatusCode.NoContent)
             }
@@ -130,9 +122,7 @@ public class DurableJobsAdminModule @Inject constructor(
             post("/admin/api/durable-jobs/queues/{queueId}/actions/unpause") {
                 val queueId = call.parameters.queueId!!
 
-                jobQueue.unpauseQueue(queueId)
-
-                logger.info("Paused queue: $queueId")
+                databaseQueueAdminFacade.unpauseQueue(queueId.toWorkItemQueueId())
 
                 call.respond(HttpStatusCode.NoContent)
             }
@@ -143,19 +133,13 @@ public class DurableJobsAdminModule @Inject constructor(
 
                 val paginationOptions = call.getPaginationOptions()
 
-                val paginatedJobs = jobQueue.getJobs(queueId, jobState, paginationOptions)
+                val paginatedItems = databaseQueueAdminFacade.getWorkItems(
+                    queueId = queueId.toWorkItemQueueId(),
+                    state = jobState,
+                    paginationOptions = paginationOptions
+                )
 
-                val jobList = paginatedJobs.toDTO {
-                    JobItemDTO(
-                        jobId = it.itemId,
-                        jobType = it.type,
-                        createdAt = it.createdAt,
-                        firstScheduledFor = it.firstScheduledFor,
-                        nextScheduledFor = it.nextScheduledFor,
-                        stateChangedAt = it.stateChangedAt,
-                        numFailures = it.numFailures,
-                    )
-                }
+                val jobList = paginatedItems.toDTO { it.toItemDTO() }
 
                 call.respond(jobList)
             }
@@ -164,25 +148,10 @@ public class DurableJobsAdminModule @Inject constructor(
                 val queueId = call.parameters.queueId!!
                 val jobId = call.parameters.jobId!!
 
-                val job = jobQueue.getJob(queueId, jobId)?.let {
-                    JobDetailsDTO(
-                        queueId = queueId.value,
-                        jobId = it.itemId,
-                        jobType = it.type,
-                        state = WorkItemState.fromDbOrdinal(it.state).name,
-                        dataJson = it.dataJson,
-                        metadataJson = it.metadataJson,
-                        concurrencyKey = it.concurrencyKey,
-                        createdAt = it.createdAt,
-                        firstScheduledFor = it.firstScheduledFor,
-                        nextScheduledFor = it.nextScheduledFor,
-                        stateChangedAt = it.stateChangedAt,
-                        watchdogTimestamp = it.watchdogTimestamp,
-                        watchdogOwner = it.watchdogOwner,
-                        numFailures = it.numFailures,
-                        expiresAt = it.expiresAt,
-                    )
-                }
+                val job = databaseQueueAdminFacade.getWorkItem(
+                    queueId = queueId.toWorkItemQueueId(),
+                    itemId = jobId.toWorkItemId()
+                )?.toDetailsDTO()
 
                 if (job == null) {
                     call.respond(HttpStatusCode.NotFound)
@@ -198,16 +167,11 @@ public class DurableJobsAdminModule @Inject constructor(
 
                 val paginationOptions = call.getPaginationOptions(defaultLimit = 5)
 
-                val failures = jobQueue.getJobFailures(queueId, jobId, paginationOptions).toDTO {
-                    JobFailureDTO(
-                        failureId = it.id,
-                        jobId = jobId.value,
-                        timestamp = it.timestamp,
-                        errorType = it.errorType,
-                        errorMessage = it.errorMessage,
-                        errorStackTrace = it.errorStackTrace,
-                    )
-                }
+                val failures = databaseQueueAdminFacade.getWorkItemFailures(
+                    queueId = queueId.toWorkItemQueueId(),
+                    itemId = jobId.toWorkItemId(),
+                    paginationOptions = paginationOptions
+                ).toDTO { it.toDTO(jobId) }
 
                 call.respond(failures)
             }
@@ -216,9 +180,7 @@ public class DurableJobsAdminModule @Inject constructor(
                 val queueId = call.parameters.queueId!!
                 val jobId = call.parameters.jobId!!
 
-                jobQueue.deleteFailedJob(queueId, jobId)
-
-                logger.info("Deleted job: <$queueId/$jobId>")
+                databaseQueueAdminFacade.deleteFailedJob(queueId.toWorkItemQueueId(), jobId.toWorkItemId())
 
                 call.respond(HttpStatusCode.NoContent)
             }
@@ -227,9 +189,7 @@ public class DurableJobsAdminModule @Inject constructor(
                 val queueId = call.parameters.queueId!!
                 val jobId = call.parameters.jobId!!
 
-                jobQueue.rescheduleFailedJob(queueId, jobId, clock.instant())
-
-                logger.info("Rescheduled job: <$queueId/$jobId>")
+                databaseQueueAdminFacade.rescheduleFailedJob(queueId.toWorkItemQueueId(), jobId.toWorkItemId())
 
                 call.respond(HttpStatusCode.NoContent)
             }
@@ -238,16 +198,54 @@ public class DurableJobsAdminModule @Inject constructor(
                 val queueId = call.parameters.queueId!!
                 val jobId = call.parameters.jobId!!
 
-                jobQueue.cancelJob(queueId, jobId, clock.instant())
-
-                logger.info("Cancelled job: <$queueId/$jobId>")
+                databaseQueueAdminFacade.cancelJob(queueId.toWorkItemQueueId(), jobId.toWorkItemId())
 
                 call.respond(HttpStatusCode.NoContent)
             }
         }
     }
+
+    private fun WorkItemDbEntity.toItemDTO() = JobItemDTO(
+        jobId = this.itemId,
+        jobType = this.type,
+        createdAt = this.createdAt,
+        firstScheduledFor = this.firstScheduledFor,
+        nextScheduledFor = this.nextScheduledFor,
+        stateChangedAt = this.stateChangedAt,
+        numFailures = this.numFailures,
+    )
+
+    private fun WorkItemFailureDbEntity.toDTO(
+        jobId: DurableJobId
+    ) = JobFailureDTO(
+        failureId = this.id,
+        jobId = jobId.value,
+        timestamp = this.timestamp,
+        errorType = this.errorType,
+        errorMessage = this.errorMessage,
+        errorStackTrace = this.errorStackTrace,
+    )
+
+    private fun WorkItemDbEntity.toDetailsDTO() = JobDetailsDTO(
+        queueId = DurableJobsDatabaseQueueAdapterSettings.convertQueueId(WorkItemQueueId(queueId)),
+        jobId = this.itemId,
+        jobType = this.type,
+        state = WorkItemState.fromDbOrdinal(this.state).name,
+        dataJson = this.dataJson,
+        metadataJson = this.metadataJson,
+        concurrencyKey = this.concurrencyKey,
+        createdAt = this.createdAt,
+        firstScheduledFor = this.firstScheduledFor,
+        nextScheduledFor = this.nextScheduledFor,
+        stateChangedAt = this.stateChangedAt,
+        watchdogTimestamp = this.watchdogTimestamp,
+        watchdogOwner = this.watchdogOwner,
+        numFailures = this.numFailures,
+        expiresAt = this.expiresAt,
+    )
 }
 
 private val Parameters.queueId: DurableJobQueueId? get() = this["queueId"]?.let { DurableJobQueueId.fromString(it) }
 private val Parameters.jobId: DurableJobId? get() = this["jobId"]?.let { DurableJobId.fromString(it) }
 private val Parameters.state: WorkItemState? get() = this["state"]?.let { WorkItemState.fromString(it) }
+

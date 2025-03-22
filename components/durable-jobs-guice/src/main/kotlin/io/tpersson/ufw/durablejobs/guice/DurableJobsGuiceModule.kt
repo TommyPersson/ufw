@@ -2,6 +2,8 @@ package io.tpersson.ufw.durablejobs.guice
 
 import com.google.inject.Binder
 import com.google.inject.Module
+import io.tpersson.ufw.databasequeue.admin.DatabaseQueueAdminFacade
+import io.tpersson.ufw.databasequeue.admin.DatabaseQueueAdminFacadeImpl
 import io.tpersson.ufw.durablejobs.DurableJobQueue
 import io.tpersson.ufw.durablejobs.DurableJobsComponent
 import io.tpersson.ufw.durablejobs.DurableJobsConfig
@@ -13,8 +15,8 @@ public class DurableJobsGuiceModule(private val config: DurableJobsConfig = Dura
         with(binder) {
             bind(DurableJobsConfig::class.java).toInstance(config)
             bind(DurableJobQueue::class.java).to(DurableJobQueueImpl::class.java)
-            bind(DurableJobQueueInternal::class.java).to(DurableJobQueueImpl::class.java)
             bind(DurableJobHandlersProvider::class.java).to(GuiceDurableJobHandlersProvider::class.java).asEagerSingleton()
+            bind(DatabaseQueueAdminFacade::class.java).to(DatabaseQueueAdminFacadeImpl::class.java)
             bind(DurableJobsComponent::class.java).asEagerSingleton()
         }
     }

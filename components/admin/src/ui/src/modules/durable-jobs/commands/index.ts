@@ -1,5 +1,7 @@
 export * from "./CancelJobCommand"
 export * from "./DeleteAllFailedJobsCommand"
 export * from "./DeleteJobCommand"
+export * from "./PauseQueueCommand"
 export * from "./RescheduleAllJobsCommand"
 export * from "./RescheduleJobNowCommand"
+export * from "./UnpauseQueueCommand"

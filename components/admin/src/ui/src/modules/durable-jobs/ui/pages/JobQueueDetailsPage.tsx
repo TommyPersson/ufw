@@ -24,9 +24,12 @@ import {
   PropertyGroup,
   PropertyText
 } from "../../../../common/components"
-import { DeleteAllFailedJobsCommand, RescheduleAllFailedJobsCommand } from "../../commands"
-import { PauseJobQueueCommand } from "../../commands/PauseQueueCommand"
-import { UnpauseJobQueueCommand } from "../../commands/UnpauseQueueCommand"
+import {
+  DeleteAllFailedJobsCommand,
+  PauseJobQueueCommand,
+  RescheduleAllFailedJobsCommand,
+  UnpauseJobQueueCommand
+} from "../../commands"
 import { JobQueueDetails, JobType } from "../../models"
 import { JobQueueDetailsQuery } from "../../queries"
 import { getQueueStateColor } from "../utils/colors"

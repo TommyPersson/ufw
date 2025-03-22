@@ -2,14 +2,13 @@ package io.tpersson.ufw.durablejobs
 
 import io.tpersson.ufw.admin.AdminComponent
 import io.tpersson.ufw.core.CoreComponent
-import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.databasequeue.DatabaseQueueComponent
 import io.tpersson.ufw.durablejobs.admin.DurableJobsAdminModule
-import io.tpersson.ufw.durablejobs.internal.*
-import io.tpersson.ufw.durablejobs.internal.metrics.JobStateMetric
+import io.tpersson.ufw.durablejobs.internal.DurableJobQueueImpl
 import io.tpersson.ufw.durablejobs.internal.DurableJobQueueWorkersManager
 import io.tpersson.ufw.durablejobs.internal.SimpleDurableJobHandlersProvider
+import io.tpersson.ufw.durablejobs.internal.metrics.JobStateMetric
 import io.tpersson.ufw.managed.ManagedComponent
 import jakarta.inject.Inject
 
@@ -27,7 +26,6 @@ public class DurableJobsComponent @Inject constructor(
         public fun create(
             coreComponent: CoreComponent,
             managedComponent: ManagedComponent,
-            databaseComponent: DatabaseComponent,
             databaseQueueComponent: DatabaseQueueComponent,
             adminComponent: AdminComponent?,
             config: DurableJobsConfig,
@@ -46,9 +44,6 @@ public class DurableJobsComponent @Inject constructor(
                 config = config,
                 clock = coreComponent.clock,
                 workItemsDAO = databaseQueueComponent.workItemsDAO,
-                workItemFailuresDAO = databaseQueueComponent.workItemFailuresDAO,
-                workQueuesDAO = databaseQueueComponent.workQueuesDAO,
-                unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
                 objectMapper = coreComponent.objectMapper,
             )
 
@@ -62,11 +57,12 @@ public class DurableJobsComponent @Inject constructor(
             managedComponent.register(jobStateMetric)
             managedComponent.register(durableJobQueueWorkersManager)
 
-            adminComponent?.register(DurableJobsAdminModule(
-                durableJobHandlersProvider = durableJobHandlersProvider,
-                jobQueue = jobQueue,
-                clock = coreComponent.clock
-            ))
+            adminComponent?.register(
+                DurableJobsAdminModule(
+                    durableJobHandlersProvider = durableJobHandlersProvider,
+                    databaseQueueAdminFacade = databaseQueueComponent.adminManager,
+                )
+            )
 
             return DurableJobsComponent(
                 jobQueue = jobQueue,
