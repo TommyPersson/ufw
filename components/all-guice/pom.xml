@@ -64,5 +64,9 @@
             <groupId>io.tpersson.ufw</groupId>
             <artifactId>ufw-admin-guice</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.tpersson.ufw</groupId>
+            <artifactId>ufw-feature-toggles-guice</artifactId>
+        </dependency>
     </dependencies>
 </project>

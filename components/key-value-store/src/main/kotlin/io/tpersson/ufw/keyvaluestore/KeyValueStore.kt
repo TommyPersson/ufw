@@ -18,6 +18,7 @@ public interface KeyValueStore {
         unitOfWork: UnitOfWork? = null
     )
 
+    // TODO paginated result
     public suspend fun list(prefix: String, limit: Int, offset: Int = 0): List<UnparsedEntry>
 
     public interface UnparsedEntry {

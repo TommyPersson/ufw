@@ -11,7 +11,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>ufw-all</artifactId>
+    <artifactId>ufw-feature-toggles</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -26,47 +26,17 @@
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-database</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-database-queue</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-managed</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-durable-jobs</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-mediator</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-mediator-middleware-transactional</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.tpersson.ufw</groupId>
             <artifactId>ufw-key-value-store</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-aggregates</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-durable-events</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
             <artifactId>ufw-admin</artifactId>
         </dependency>
+
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-feature-toggles</artifactId>
+            <artifactId>ufw-test</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

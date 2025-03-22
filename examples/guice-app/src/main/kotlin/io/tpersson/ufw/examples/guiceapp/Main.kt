@@ -35,6 +35,7 @@ import io.tpersson.ufw.durableevents.guice.DurableEventsGuiceModule
 import io.tpersson.ufw.durableevents.publisher.OutgoingEventTransport
 import io.tpersson.ufw.durableevents.publisher.DurableEventPublisher
 import io.tpersson.ufw.durableevents.publisher.transports.DirectOutgoingEventTransport
+import io.tpersson.ufw.featuretoggles.guice.FeatureTogglesGuiceModule
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.slf4j.MDCContext
 import org.slf4j.bridge.SLF4JBridgeHandler
@@ -89,6 +90,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
         ),
         AggregatesGuiceModule(),
         DurableEventsGuiceModule(),
+        FeatureTogglesGuiceModule(),
         ManagedGuiceModule(),
     )
 

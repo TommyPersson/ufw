@@ -33,6 +33,8 @@
         <module>components/durable-events-guice</module>
         <module>components/admin</module>
         <module>components/admin-guice</module>
+        <module>components/feature-toggles</module>
+        <module>components/feature-toggles-guice</module>
         <module>components/test</module>
         <module>examples/common</module>
         <module>examples/guice-app</module>
@@ -192,6 +194,16 @@
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>ufw-admin-guice</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.tpersson.ufw</groupId>
+                <artifactId>ufw-feature-toggles</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.tpersson.ufw</groupId>
+                <artifactId>ufw-feature-toggles-guice</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

@@ -31,6 +31,8 @@ import io.tpersson.ufw.managed.dsl.managed
 import io.tpersson.ufw.mediator.dsl.mediator
 import io.tpersson.ufw.mediator.middleware.transactional.TransactionalMiddleware
 import io.tpersson.ufw.durableevents.dsl.durableEvents
+import io.tpersson.ufw.examples.common.managed.PeriodicJobScheduler
+import io.tpersson.ufw.featuretoggles.dsl.featureToggles
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.slf4j.MDCContext
 import org.slf4j.bridge.SLF4JBridgeHandler
@@ -96,6 +98,8 @@ public fun main(): Unit = runBlocking(MDCContext()) {
         }
         aggregates {
         }
+        featureToggles {
+        }
     }
 
     ufw.database.runMigrations()
@@ -104,7 +108,16 @@ public fun main(): Unit = runBlocking(MDCContext()) {
         PeriodicEventPublisher(
             unitOfWorkFactory = ufw.database.unitOfWorkFactory,
             transactionalEventPublisher = ufw.durableEvents.eventPublisher,
+            featureToggles = ufw.featureToggles.featureToggles,
             clock = ufw.core.clock
+        )
+    )
+
+    ufw.managed.register(
+        PeriodicJobScheduler(
+            jobQueue = ufw.jobQueue.jobQueue,
+            featureToggles = ufw.featureToggles.featureToggles,
+            unitOfWorkFactory = ufw.database.unitOfWorkFactory,
         )
     )
 
