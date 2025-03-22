@@ -17,6 +17,7 @@ export const EnableFeatureToggleCommand: Command<{ featureToggleId: string }> = 
   }),
   label: "Enable",
   errorTitle: "Unable to enable feature toggle",
-  confirmText: <>Are you sure you want to <strong>enable</strong> this feature toggle?</>, // TODO which toggle?
+  confirmText: ({ featureToggleId }) =>
+    <>Are you sure you want to <strong>enable</strong> the <code>{featureToggleId}</code> feature toggle?</>,
   confirmColor: "primary",
 }

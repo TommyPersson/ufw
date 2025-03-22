@@ -5,7 +5,7 @@ import { queryClient } from "../../../common/utils/tsq"
 
 export const RescheduleAllFailedJobsCommand: Command<{ queueId: string }> = {
   mutationOptions: ({
-    mutationKey: ['durable-jobs', 'RescheduleAllFailedJobs'],
+    mutationKey: ["durable-jobs", "RescheduleAllFailedJobs"],
     mutationFn: async ({ queueId }) => {
       await makeApiRequest(`/admin/api/durable-jobs/queues/${queueId}/actions/reschedule-all-failed-jobs`, {
         method: "POST"
@@ -18,5 +18,6 @@ export const RescheduleAllFailedJobsCommand: Command<{ queueId: string }> = {
   label: "Reschedule all failed jobs",
   icon: <PlaylistPlayIcon />,
   errorTitle: "Unable to reschedule jobs",
-  confirmText: <>Are you sure you want to <strong>reschedule</strong> all jobs?</>,
+  confirmText: ({ queueId }) =>
+    <>Are you sure you want to <strong>reschedule</strong> all jobs in the <code>{queueId}</code> queue?</>,
 }

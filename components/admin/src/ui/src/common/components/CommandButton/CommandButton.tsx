@@ -2,7 +2,7 @@ import { Button, ButtonProps, Popover } from "@mui/material"
 import { useMutation } from "@tanstack/react-query"
 import { useRef } from "react"
 import { useConfirm } from "../../hooks"
-import { Command } from "../../utils/commands"
+import { Command, executeCommand } from "../../utils/commands"
 import { ErrorAlert } from "../ErrorAlert"
 
 
@@ -21,20 +21,7 @@ export const CommandButton = <TArgs, >(props: CommandButton2Props<TArgs>) => {
   const buttonRef = useRef<HTMLButtonElement | null>(null)
 
   const handleClick = async () => {
-    if (args) {
-      if (command.confirmText) {
-        const { confirmed } = await confirm({
-          content: command.confirmText,
-          color: command.confirmColor ?? undefined
-        })
-
-        if (!confirmed) {
-          return
-        }
-      }
-
-      mutation.mutate(args)
-    }
+    await executeCommand(command, mutation, args, confirm)
   }
 
   return (

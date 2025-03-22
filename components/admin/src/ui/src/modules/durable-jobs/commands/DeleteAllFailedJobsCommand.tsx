@@ -19,6 +19,7 @@ export const DeleteAllFailedJobsCommand: Command<{ queueId: string }> = {
   color: "error",
   icon: <DeleteOutlineIcon />,
   errorTitle: "Unable to delete jobs",
-  confirmText: <>Are you sure you want to <strong>delete</strong> all failed jobs?</>,
+  confirmText: ({ queueId }) =>
+    <>Are you sure you want to <strong>delete</strong> all failed jobs in the <code>{queueId}</code> queue?</>,
   confirmColor: "error",
 }

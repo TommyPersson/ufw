@@ -2,7 +2,7 @@ import { Switch, Tooltip } from "@mui/material"
 import { useMutation } from "@tanstack/react-query"
 import { useCallback } from "react"
 import { useConfirm } from "../../hooks"
-import { Command } from "../../utils/commands"
+import { Command, executeCommand } from "../../utils/commands"
 
 export type CommandSwitchProps<TArgs> = {
   enableCommand: Command<TArgs>,
@@ -28,16 +28,7 @@ export const CommandSwitch = <TArgs, >(props: CommandSwitchProps<TArgs>) => {
   const mutation = useMutation(command.mutationOptions)
 
   const handleClick = useCallback(async () => {
-    if (args) {
-      const { confirmed } = await confirm({
-        content: command.confirmText,
-        color: command.confirmColor,
-      })
-
-      if (confirmed) {
-        mutation.mutate(args)
-      }
-    }
+    await executeCommand(command, mutation, args, confirm)
   }, [mutation, args])
 
   return (

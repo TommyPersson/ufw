@@ -19,5 +19,6 @@ export const PauseJobQueueCommand: Command<{ queueId: string }> = {
   icon: <PauseIcon />,
   color: "error",
   errorTitle: "Unable to pause queue",
-  confirmText: <>Are you sure you want to <strong>pause</strong> the queue?</>, // TODO pass args to be able to customize text?
+  confirmText: ({ queueId }) =>
+    <>Are you sure you want to <strong>pause</strong> the <code>{queueId}</code> queue?</>,
 }
