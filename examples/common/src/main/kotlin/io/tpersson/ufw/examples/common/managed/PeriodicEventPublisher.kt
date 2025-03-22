@@ -3,10 +3,10 @@ package io.tpersson.ufw.examples.common.managed
 import io.tpersson.ufw.core.utils.forever
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.database.unitofwork.use
+import io.tpersson.ufw.durableevents.common.DurableEventId
 import io.tpersson.ufw.examples.common.events.ExampleEventV1
 import io.tpersson.ufw.managed.ManagedJob
-import io.tpersson.ufw.transactionalevents.EventId
-import io.tpersson.ufw.transactionalevents.publisher.TransactionalEventPublisher
+import io.tpersson.ufw.durableevents.publisher.DurableEventPublisher
 import jakarta.inject.Inject
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.coroutineScope
@@ -16,7 +16,7 @@ import java.time.InstantSource
 
 public class PeriodicEventPublisher @Inject constructor(
     private val unitOfWorkFactory: UnitOfWorkFactory,
-    private val transactionalEventPublisher: TransactionalEventPublisher,
+    private val transactionalEventPublisher: DurableEventPublisher,
     private val clock: InstantSource
 ) : ManagedJob() {
 
@@ -29,7 +29,7 @@ public class PeriodicEventPublisher @Inject constructor(
             withContext(NonCancellable) {
                 unitOfWorkFactory.use { uow ->
                     val event = ExampleEventV1(
-                        id = EventId(),
+                        id = DurableEventId(),
                         timestamp = clock.instant(),
                         myContent = "$i"
                     )

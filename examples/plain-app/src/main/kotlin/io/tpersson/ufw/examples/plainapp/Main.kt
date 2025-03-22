@@ -15,7 +15,7 @@ import io.tpersson.ufw.examples.common.aggregate.CounterAggregate
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregateRepository
 import io.tpersson.ufw.examples.common.commands.PerformGreetingCommand
 import io.tpersson.ufw.examples.common.commands.PerformGreetingCommandHandler
-import io.tpersson.ufw.examples.common.events.ExampleEventHandler
+import io.tpersson.ufw.examples.common.events.ExampleDurableEventHandler
 import io.tpersson.ufw.examples.common.events.ExampleEventV1
 import io.tpersson.ufw.examples.common.jobs.PrintJob
 import io.tpersson.ufw.examples.common.jobs.PrintJob2
@@ -30,7 +30,7 @@ import io.tpersson.ufw.keyvaluestore.dsl.keyValueStore
 import io.tpersson.ufw.managed.dsl.managed
 import io.tpersson.ufw.mediator.dsl.mediator
 import io.tpersson.ufw.mediator.middleware.transactional.TransactionalMiddleware
-import io.tpersson.ufw.transactionalevents.dsl.transactionalEvents
+import io.tpersson.ufw.durableevents.dsl.durableEvents
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.slf4j.MDCContext
 import org.slf4j.bridge.SLF4JBridgeHandler
@@ -89,9 +89,9 @@ public fun main(): Unit = runBlocking(MDCContext()) {
                 PrintJob2Handler()
             )
         }
-        transactionalEvents {
+        durableEvents {
             handlers = setOf(
-                ExampleEventHandler(components.keyValueStore.keyValueStore)
+                ExampleDurableEventHandler(components.keyValueStore.keyValueStore)
             )
         }
         aggregates {
@@ -103,7 +103,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
     ufw.managed.register(
         PeriodicEventPublisher(
             unitOfWorkFactory = ufw.database.unitOfWorkFactory,
-            transactionalEventPublisher = ufw.transactionalEvents.eventPublisher,
+            transactionalEventPublisher = ufw.durableEvents.eventPublisher,
             clock = ufw.core.clock
         )
     )
@@ -127,7 +127,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
 }
 
 private suspend fun testTransactionalEvents(ufw: UFWRegistry) {
-    val transactionalEventPublisher = ufw.transactionalEvents.eventPublisher
+    val transactionalEventPublisher = ufw.durableEvents.eventPublisher
     val unitOfWorkFactory = ufw.database.unitOfWorkFactory
 
     val event = ExampleEventV1(myContent = "Hello, World!")

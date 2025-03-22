@@ -6,7 +6,7 @@ import io.tpersson.ufw.core.dsl.UfwDslMarker
 import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.aggregates.AggregatesComponent
-import io.tpersson.ufw.transactionalevents.dsl.transactionalEvents
+import io.tpersson.ufw.durableevents.dsl.durableEvents
 
 @UfwDslMarker
 public fun UFWBuilder.RootBuilder.aggregates(builder: AggregatesComponentBuilder.() -> Unit) {
@@ -19,7 +19,7 @@ public class AggregatesComponentBuilder(public val components: UFWRegistry) {
         return AggregatesComponent.create(
             coreComponent = components.core,
             databaseComponent = components.database,
-            transactionalEventsComponent = components.transactionalEvents
+            transactionalEventsComponent = components.durableEvents
         )
     }
 }

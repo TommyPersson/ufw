@@ -1,6 +1,6 @@
 package io.tpersson.ufw.aggregates
 
-import io.tpersson.ufw.transactionalevents.Event
+import io.tpersson.ufw.durableevents.common.DurableEvent
 
 public abstract class AbstractAggregate<TFactType>(
     id: AggregateId,
@@ -12,7 +12,7 @@ public abstract class AbstractAggregate<TFactType>(
     }
 
     public val pendingFacts: MutableList<TFactType> = mutableListOf()
-    public val pendingEvents: MutableList<Event> = mutableListOf()
+    public val pendingEvents: MutableList<DurableEvent> = mutableListOf()
 
     protected fun record(fact: TFactType) {
         pendingFacts.add(fact)
@@ -22,10 +22,10 @@ public abstract class AbstractAggregate<TFactType>(
 
     protected abstract fun mutate(fact: TFactType)
 
-    protected open fun mapFactToEvent(fact: TFactType): List<Event> = emptyList()
+    protected open fun mapFactToEvent(fact: TFactType): List<DurableEvent> = emptyList()
 }
 
 public data class PendingEvent(
     val topic: String,
-    val event: Event,
+    val event: DurableEvent,
 )

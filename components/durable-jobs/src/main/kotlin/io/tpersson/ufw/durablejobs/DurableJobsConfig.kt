@@ -2,7 +2,7 @@ package io.tpersson.ufw.durablejobs
 
 import java.time.Duration
 
-public data class DurableJobsConfig(
+public data class DurableJobsConfig( // TODO actually pass these to the unerlying database queue component
     val stalenessDetectionInterval: Duration = Duration.ofMinutes(1),
     val stalenessAge: Duration = Duration.ofMinutes(10),
     val watchdogRefreshInterval: Duration = Duration.ofSeconds(5),

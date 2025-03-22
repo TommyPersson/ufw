@@ -29,8 +29,8 @@
         <module>components/durable-jobs-guice</module>
         <module>components/aggregates</module>
         <module>components/aggregates-guice</module>
-        <module>components/transactional-events</module>
-        <module>components/transactional-events-guice</module>
+        <module>components/durable-events</module>
+        <module>components/durable-events-guice</module>
         <module>components/admin</module>
         <module>components/admin-guice</module>
         <module>components/test</module>
@@ -176,12 +176,12 @@
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
-                <artifactId>ufw-transactional-events</artifactId>
+                <artifactId>ufw-durable-events</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
-                <artifactId>ufw-transactional-events-guice</artifactId>
+                <artifactId>ufw-durable-events-guice</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

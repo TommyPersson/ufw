@@ -25,6 +25,10 @@
     <file url="file://$PROJECT_DIR$/components/database-queue/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/components/database/src/main/kotlin" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/components/database/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/durable-events-guice/src/main/kotlin" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/durable-events-guice/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/durable-events/src/main/kotlin" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/durable-events/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/components/durable-jobs-guice/src/main/kotlin" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/components/durable-jobs-guice/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/components/durable-jobs/src/main/kotlin" charset="UTF-8" />

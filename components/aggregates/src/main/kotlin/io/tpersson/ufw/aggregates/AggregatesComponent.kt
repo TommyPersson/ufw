@@ -4,13 +4,13 @@ import io.tpersson.ufw.aggregates.internal.AggregateFactRepositoryImpl
 import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
-import io.tpersson.ufw.transactionalevents.TransactionalEventsComponent
-import io.tpersson.ufw.transactionalevents.publisher.TransactionalEventPublisher
+import io.tpersson.ufw.durableevents.DurableEventsComponent
+import io.tpersson.ufw.durableevents.publisher.DurableEventPublisher
 import jakarta.inject.Inject
 
 public class AggregatesComponent @Inject constructor(
     public val factRepository: AggregateFactRepository,
-    public val eventPublisher: TransactionalEventPublisher,
+    public val eventPublisher: DurableEventPublisher,
 ) {
     init {
         Migrator.registerMigrationScript(
@@ -23,7 +23,7 @@ public class AggregatesComponent @Inject constructor(
         public fun create(
             coreComponent: CoreComponent,
             databaseComponent: DatabaseComponent,
-            transactionalEventsComponent: TransactionalEventsComponent,
+            transactionalEventsComponent: DurableEventsComponent,
         ): AggregatesComponent {
             val factRepository = AggregateFactRepositoryImpl(
                 database = databaseComponent.database,

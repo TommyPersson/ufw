@@ -1,14 +1,13 @@
 package io.tpersson.ufw.examples.common.events
 
-import com.fasterxml.jackson.annotation.JsonTypeName
-import io.tpersson.ufw.transactionalevents.Event
-import io.tpersson.ufw.transactionalevents.EventDefinition
-import io.tpersson.ufw.transactionalevents.EventId
+import io.tpersson.ufw.durableevents.common.DurableEvent
+import io.tpersson.ufw.durableevents.common.DurableEventId
+import io.tpersson.ufw.durableevents.common.EventDefinition
 import java.time.Instant
 
-@EventDefinition("ExampleEventV1", "example-topic")
+@EventDefinition(type = "example-event-v1", topic = "example-topic")
 public data class ExampleEventV1(
-    override val id: EventId = EventId(),
+    override val id: DurableEventId = DurableEventId(),
     override val timestamp: Instant = Instant.now(),
     val myContent: String,
-) : Event()
+) : DurableEvent()

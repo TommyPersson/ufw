@@ -1,20 +1,20 @@
 package io.tpersson.ufw.examples.common.events
 
 import io.tpersson.ufw.core.logging.createLogger
+import io.tpersson.ufw.durableevents.handler.DurableEventContext
+import io.tpersson.ufw.durableevents.handler.DurableEventHandler
+import io.tpersson.ufw.durableevents.handler.annotations.EventHandler
 import io.tpersson.ufw.keyvaluestore.KeyValueStore
-import io.tpersson.ufw.transactionalevents.handler.EventContext
-import io.tpersson.ufw.transactionalevents.handler.EventHandler
-import io.tpersson.ufw.transactionalevents.handler.TransactionalEventHandler
 import jakarta.inject.Inject
 
-public class ExampleEventHandler @Inject constructor(
+public class ExampleDurableEventHandler @Inject constructor(
     private val keyValueStore: KeyValueStore,
-) : TransactionalEventHandler() {
+) : DurableEventHandler {
 
     private val logger = createLogger()
 
     @EventHandler(topic = "example-topic")
-    public suspend fun handle(event: ExampleEventV1, context: EventContext): Unit {
+    public suspend fun handle(event: ExampleEventV1, context: DurableEventContext): Unit {
         logger.info("Counting: $event")
 
         val key = KeyValueStore.Key.of<Int>("num-example-events-processed")

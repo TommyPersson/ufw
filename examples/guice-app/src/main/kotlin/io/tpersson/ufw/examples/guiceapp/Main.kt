@@ -31,10 +31,10 @@ import io.tpersson.ufw.managed.ManagedComponent
 import io.tpersson.ufw.managed.guice.ManagedGuiceModule
 import io.tpersson.ufw.mediator.Mediator
 import io.tpersson.ufw.mediator.guice.MediatorGuiceModule
-import io.tpersson.ufw.transactionalevents.guice.TransactionalEventsGuiceModule
-import io.tpersson.ufw.transactionalevents.publisher.OutgoingEventTransport
-import io.tpersson.ufw.transactionalevents.publisher.TransactionalEventPublisher
-import io.tpersson.ufw.transactionalevents.publisher.transports.DirectOutgoingEventTransport
+import io.tpersson.ufw.durableevents.guice.DurableEventsGuiceModule
+import io.tpersson.ufw.durableevents.publisher.OutgoingEventTransport
+import io.tpersson.ufw.durableevents.publisher.DurableEventPublisher
+import io.tpersson.ufw.durableevents.publisher.transports.DirectOutgoingEventTransport
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.slf4j.MDCContext
 import org.slf4j.bridge.SLF4JBridgeHandler
@@ -88,7 +88,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
             )
         ),
         AggregatesGuiceModule(),
-        TransactionalEventsGuiceModule(),
+        DurableEventsGuiceModule(),
         ManagedGuiceModule(),
     )
 
@@ -159,7 +159,7 @@ private suspend fun testAggregates(injector: Injector) {
 }
 
 private suspend fun testTransactionalEvents(injector: Injector) {
-    val transactionalEventPublisher = injector.getInstance(TransactionalEventPublisher::class.java)
+    val transactionalEventPublisher = injector.getInstance(DurableEventPublisher::class.java)
     val unitOfWorkFactory = injector.getInstance(UnitOfWorkFactory::class.java)
 
     val event = ExampleEventV1(myContent = "Hello, World!")

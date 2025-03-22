@@ -58,7 +58,7 @@
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-transactional-events-guice</artifactId>
+            <artifactId>ufw-durable-events-guice</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>

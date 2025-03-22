@@ -10,15 +10,16 @@ import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.database.unitofwork.use
+import io.tpersson.ufw.databasequeue.dsl.databaseQueue
+import io.tpersson.ufw.durableevents.common.DurableEvent
+import io.tpersson.ufw.durableevents.common.DurableEventId
+import io.tpersson.ufw.durableevents.common.EventDefinition
+import io.tpersson.ufw.durableevents.common.eventDefinition
 import io.tpersson.ufw.managed.dsl.managed
 import io.tpersson.ufw.test.TestInstantSource
-import io.tpersson.ufw.transactionalevents.Event
-import io.tpersson.ufw.transactionalevents.EventDefinition
-import io.tpersson.ufw.transactionalevents.EventId
-import io.tpersson.ufw.transactionalevents.dsl.transactionalEvents
-import io.tpersson.ufw.transactionalevents.eventDefinition
-import io.tpersson.ufw.transactionalevents.publisher.OutgoingEvent
-import io.tpersson.ufw.transactionalevents.publisher.OutgoingEventTransport
+import io.tpersson.ufw.durableevents.dsl.durableEvents
+import io.tpersson.ufw.durableevents.publisher.OutgoingEvent
+import io.tpersson.ufw.durableevents.publisher.OutgoingEventTransport
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -59,8 +60,10 @@ internal class IntegrationTests {
             database {
                 dataSource = HikariDataSource(config)
             }
+            databaseQueue {
+            }
             managed()
-            transactionalEvents {
+            durableEvents {
                 outgoingEventTransport = testOutgoingEventTransport
             }
             aggregates {
@@ -273,10 +276,10 @@ internal class IntegrationTests {
             }
         }
 
-        override fun mapFactToEvent(fact: Facts): List<Event> {
+        override fun mapFactToEvent(fact: Facts): List<DurableEvent> {
             val event = when (fact) {
-                is Facts.Incremented -> IncrementedEvent(EventId(), fact.timestamp)
-                is Facts.Decremented -> DecrementedEvent(EventId(), fact.timestamp)
+                is Facts.Incremented -> IncrementedEvent(DurableEventId(), fact.timestamp)
+                is Facts.Decremented -> DecrementedEvent(DurableEventId(), fact.timestamp)
             }
 
             return listOf(event)
@@ -285,15 +288,15 @@ internal class IntegrationTests {
 
     @EventDefinition("IncrementedEventV1", "test-topic")
     data class IncrementedEvent(
-        override val id: EventId = EventId(),
+        override val id: DurableEventId = DurableEventId(),
         override val timestamp: Instant
-    ) : Event()
+    ) : DurableEvent()
 
     @EventDefinition("DecrementedEventV1", "test-topic")
     data class DecrementedEvent(
-        override val id: EventId = EventId(),
+        override val id: DurableEventId = DurableEventId(),
         override val timestamp: Instant
-    ) : Event()
+    ) : DurableEvent()
 
     class TestAggregateRepository(
         component: AggregatesComponent
