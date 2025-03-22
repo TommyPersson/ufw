@@ -46,11 +46,11 @@ public class DatabaseQueueAdminFacadeImpl @Inject constructor(
         return workItemFailuresDAO.listFailuresForWorkItem(item.uid, paginationOptions)
     }
 
-    override suspend fun deleteFailedJob(queueId: WorkItemQueueId, itemId: WorkItemId) {
+    override suspend fun deleteFailedWorkItem(queueId: WorkItemQueueId, itemId: WorkItemId) {
         workItemsDAO.deleteFailedItem(queueId, itemId)
     }
 
-    override suspend fun rescheduleFailedJob(queueId: WorkItemQueueId, itemId: WorkItemId) {
+    override suspend fun rescheduleFailedWorkItem(queueId: WorkItemQueueId, itemId: WorkItemId) {
         val uow = unitOfWorkFactory.create()
         val now = clock.instant()
 
@@ -65,7 +65,7 @@ public class DatabaseQueueAdminFacadeImpl @Inject constructor(
         uow.commit()
     }
 
-    override suspend fun cancelJob(queueId: WorkItemQueueId, itemId: WorkItemId) {
+    override suspend fun cancelWorkItem(queueId: WorkItemQueueId, itemId: WorkItemId) {
         val uow = unitOfWorkFactory.create()
         val now = clock.instant()
         val expireAt = now.plus(Duration.ofDays(1)) // TODO config
@@ -81,11 +81,11 @@ public class DatabaseQueueAdminFacadeImpl @Inject constructor(
         uow.commit()
     }
 
-    override suspend fun rescheduleAllFailedItems(queueId: WorkItemQueueId) {
+    override suspend fun rescheduleAllFailedWorkItems(queueId: WorkItemQueueId) {
         workItemsDAO.rescheduleAllFailedItems(queueId, clock.instant())
     }
 
-    override suspend fun deleteAllFailedItems(queueId: WorkItemQueueId) {
+    override suspend fun deleteAllFailedWorkItems(queueId: WorkItemQueueId) {
         workItemsDAO.deleteAllFailedItems(queueId)
     }
 

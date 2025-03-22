@@ -98,7 +98,7 @@ public class DurableJobsAdminModule @Inject constructor(
             post("/admin/api/durable-jobs/queues/{queueId}/actions/reschedule-all-failed-jobs") {
                 val queueId = call.parameters.queueId!!
 
-                databaseQueueAdminFacade.rescheduleAllFailedItems(queueId.toWorkItemQueueId())
+                databaseQueueAdminFacade.rescheduleAllFailedWorkItems(queueId.toWorkItemQueueId())
 
                 call.respond(HttpStatusCode.NoContent)
             }
@@ -106,7 +106,7 @@ public class DurableJobsAdminModule @Inject constructor(
             post("/admin/api/durable-jobs/queues/{queueId}/actions/delete-all-failed-jobs") {
                 val queueId = call.parameters.queueId!!
 
-                databaseQueueAdminFacade.deleteAllFailedItems(queueId.toWorkItemQueueId())
+                databaseQueueAdminFacade.deleteAllFailedWorkItems(queueId.toWorkItemQueueId())
 
                 call.respond(HttpStatusCode.NoContent)
             }
@@ -180,7 +180,7 @@ public class DurableJobsAdminModule @Inject constructor(
                 val queueId = call.parameters.queueId!!
                 val jobId = call.parameters.jobId!!
 
-                databaseQueueAdminFacade.deleteFailedJob(queueId.toWorkItemQueueId(), jobId.toWorkItemId())
+                databaseQueueAdminFacade.deleteFailedWorkItem(queueId.toWorkItemQueueId(), jobId.toWorkItemId())
 
                 call.respond(HttpStatusCode.NoContent)
             }
@@ -189,7 +189,7 @@ public class DurableJobsAdminModule @Inject constructor(
                 val queueId = call.parameters.queueId!!
                 val jobId = call.parameters.jobId!!
 
-                databaseQueueAdminFacade.rescheduleFailedJob(queueId.toWorkItemQueueId(), jobId.toWorkItemId())
+                databaseQueueAdminFacade.rescheduleFailedWorkItem(queueId.toWorkItemQueueId(), jobId.toWorkItemId())
 
                 call.respond(HttpStatusCode.NoContent)
             }
@@ -198,7 +198,7 @@ public class DurableJobsAdminModule @Inject constructor(
                 val queueId = call.parameters.queueId!!
                 val jobId = call.parameters.jobId!!
 
-                databaseQueueAdminFacade.cancelJob(queueId.toWorkItemQueueId(), jobId.toWorkItemId())
+                databaseQueueAdminFacade.cancelWorkItem(queueId.toWorkItemQueueId(), jobId.toWorkItemId())
 
                 call.respond(HttpStatusCode.NoContent)
             }
