@@ -3,6 +3,7 @@ import { Box, Breadcrumbs, Button, LinearProgress, Menu, MenuItem, Typography } 
 import classNames from "classnames"
 import { useEffect, useState } from "react"
 import { Link } from "react-router"
+import { ErrorAlert } from "../ErrorAlert"
 import { NavBarPortal } from "../NavBarPortal"
 
 import classes from "./Page.module.css"
@@ -19,6 +20,7 @@ export type PageProps = {
   isLoading?: boolean
   autoRefresh?: boolean
   onRefresh?: () => void
+  error?: Error | null
   fill?: boolean
   children: any
 }
@@ -30,6 +32,7 @@ export const Page = (props: PageProps) => {
     isLoading = false,
     onRefresh,
     autoRefresh = false,
+    error,
     fill = false,
     children
   } = props
@@ -46,6 +49,7 @@ export const Page = (props: PageProps) => {
         isLoading={isLoading}
         breadcrumbs={breadcrumbs}
       />
+      <ErrorAlert error={error ?? null} />
       {children}
       <NavBarPortal>
         {onRefresh && <AutoRefreshControl
