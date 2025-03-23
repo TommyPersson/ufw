@@ -92,7 +92,7 @@ const FeatureToggleRow = (props: {
       </TableCell>
       <TableCell>
         <Typography variant={"subtitle2"}>{featureToggle.title}</Typography>
-        <Typography variant={"body2"}>
+        <Typography variant={"body2"} component={"div"}>
           <Markdown>{featureToggle.description}</Markdown>
         </Typography>
         <Typography variant={"caption"}>ID: <code>{featureToggle.id}</code></Typography>
