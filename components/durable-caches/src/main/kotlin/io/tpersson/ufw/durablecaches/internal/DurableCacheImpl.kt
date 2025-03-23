@@ -1,6 +1,7 @@
 package io.tpersson.ufw.durablecaches.internal
 
 import com.github.benmanes.caffeine.cache.Caffeine
+import io.tpersson.ufw.core.utils.InstantSourceTicker
 import io.tpersson.ufw.core.utils.PaginatedList
 import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.durablecaches.CacheEntry

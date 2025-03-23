@@ -45,6 +45,7 @@ public class DatabaseQueueComponent @Inject constructor(
 
             val queueStateChecker = CachingQueueStateCheckerImpl(
                 workQueuesDAO = workQueuesDAO,
+                clock = coreComponent.clock,
             )
 
             val processorFactory = SingleWorkItemProcessorFactoryImpl(

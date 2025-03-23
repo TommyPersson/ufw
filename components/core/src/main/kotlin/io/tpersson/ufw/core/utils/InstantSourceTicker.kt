@@ -1,4 +1,4 @@
-package io.tpersson.ufw.durablecaches.internal
+package io.tpersson.ufw.core.utils
 
 import com.github.benmanes.caffeine.cache.Ticker
 import java.time.InstantSource
