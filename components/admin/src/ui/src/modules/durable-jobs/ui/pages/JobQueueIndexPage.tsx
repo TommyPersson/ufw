@@ -1,20 +1,16 @@
 import WarningIcon from "@mui/icons-material/Warning"
-import {
-  Box,
-  Chip,
-  Paper,
-  Skeleton,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Tooltip
-} from "@mui/material"
+import { Box, Chip, Paper, TableCell, TableContainer, TableRow, Tooltip } from "@mui/material"
 import { useQuery } from "@tanstack/react-query"
-import { useMemo } from "react"
-import { DateTimeText, ErrorAlert, LinkTableCell, Page, PageBreadcrumb } from "../../../../common/components"
+import { useMemo, useState } from "react"
+import {
+  DateTimeText,
+  ErrorAlert,
+  LinkTableCell,
+  Page,
+  PageBreadcrumb,
+  PaginatedTable,
+  TableRowSkeleton
+} from "../../../../common/components"
 import { JobQueueListItem } from "../../models"
 import { JobQueueListQuery } from "../../queries"
 import { getQueueStateColor } from "../utils/colors"
@@ -22,6 +18,9 @@ import { getQueueStateColor } from "../utils/colors"
 import classes from "./JobQueueIndexPage.module.css"
 
 export const JobQueueIndexPage = () => {
+
+  const [page, setPage] = useState(1)
+  // TODO paginate
   const queuesQuery = useQuery(JobQueueListQuery)
 
   const breadcrumbs = useMemo<PageBreadcrumb[]>(() => [
@@ -39,8 +38,11 @@ export const JobQueueIndexPage = () => {
       <ErrorAlert error={queuesQuery.error} />
       <Paper>
         <TableContainer>
-          <Table className={classes.Table}>
-            <TableHead>
+          <PaginatedTable
+            page={page}
+            onPageChanged={setPage}
+            totalItemCount={queuesQuery.data?.length ?? 0}
+            tableHead={
               <TableRow>
                 <TableCell style={{ width: 0 }}></TableCell>
                 <TableCell>Queue ID</TableCell>
@@ -50,28 +52,17 @@ export const JobQueueIndexPage = () => {
                 <TableCell style={{ width: 0 }}># In Progress</TableCell>
                 <TableCell style={{ width: 0 }}># Failed</TableCell>
               </TableRow>
-            </TableHead>
-            <TableBody>
-              {queuesQuery.isLoading && (
-                <TableRow>
-                  <TableCell>
-                    <Box width={24} height={24}>
-                      <WarningIcon style={{ visibility: "hidden" }} />
-                    </Box>
-                  </TableCell>
-                  <TableCell><Skeleton variant="text" /></TableCell>
-                  <TableCell><Skeleton variant="text" /></TableCell>
-                  <TableCell><Skeleton variant="text" /></TableCell>
-                  <TableCell><Skeleton variant="text" /></TableCell>
-                  <TableCell><Skeleton variant="text" /></TableCell>
-                  <TableCell><Skeleton variant="text" /></TableCell>
-                </TableRow>
-              )}
-              {queuesQuery.data?.map(it => (
-                <QueueTableRow key={it.queueId} queue={it} />
-              ))}
-            </TableBody>
-          </Table>
+            }
+            tableBody={
+              <>
+                {queuesQuery.isLoading && <TableRowSkeleton numColumns={7} />}
+                {queuesQuery.data?.map(it => (
+                  <QueueTableRow key={it.queueId} queue={it} />
+                ))}
+              </>
+            }
+            className={classes.Table}
+          />
         </TableContainer>
       </Paper>
     </Page>
@@ -105,7 +96,7 @@ const QueueTableRow = (props: { queue: JobQueueListItem }) => {
   )
 }
 
-const QueueStatusChip = (props: { queue: JobQueueListItem })=> {
+const QueueStatusChip = (props: { queue: JobQueueListItem }) => {
   const { queue } = props
   const status = queue.status
   const state = status.state

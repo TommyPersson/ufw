@@ -15,7 +15,7 @@ export const PaginatedTable = (props: PaginatedTableProps) => {
   const { totalItemCount, page, onPageChanged, tableHead, tableBody, tableFooter, className } = props
 
   const handlePageChanged = useCallback((_: any, page: number) => {
-    onPageChanged(page)
+    onPageChanged(page + 1)
   }, [onPageChanged])
 
   return (

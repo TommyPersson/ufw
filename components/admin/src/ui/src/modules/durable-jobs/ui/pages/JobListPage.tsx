@@ -1,21 +1,16 @@
 import WarningIcon from "@mui/icons-material/Warning"
-import {
-  Box,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableFooter,
-  TableHead,
-  TablePagination,
-  TableRow
-} from "@mui/material"
+import { Box, Paper, TableCell, TableContainer, TableRow } from "@mui/material"
 import { useQuery } from "@tanstack/react-query"
-import * as React from "react"
-import { useCallback, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { useParams } from "react-router"
-import { DateTimeText, LinkTableCell, Page, PageBreadcrumb, TableRowSkeleton } from "../../../../common/components"
+import {
+  DateTimeText,
+  LinkTableCell,
+  Page,
+  PageBreadcrumb,
+  PaginatedTable,
+  TableRowSkeleton
+} from "../../../../common/components"
 import { JobListItem, JobQueueDetails, JobState } from "../../models"
 import { JobListQuery, JobQueueDetailsQuery } from "../../queries"
 
@@ -33,10 +28,6 @@ export const JobListPage = () => {
     jobListQuery.refetch().then()
     queueDetailsQuery.refetch().then()
   }
-
-  const handlePageChanged = useCallback((_: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
-    setPage(newPage + 1)
-  }, [setPage])
 
   const isLoading = queueDetailsQuery.isLoading || jobListQuery.isLoading
   const isFetching = queueDetailsQuery.isFetching || jobListQuery.isFetching
@@ -60,17 +51,11 @@ export const JobListPage = () => {
       breadcrumbs={breadcrumbs}
     >
       <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TablePagination
-                count={totalItemCount}
-                onPageChange={handlePageChanged}
-                page={page-1}
-                rowsPerPage={100}
-                rowsPerPageOptions={[]}
-              />
-            </TableRow>
+        <PaginatedTable
+          page={page}
+          onPageChanged={setPage}
+          totalItemCount={totalItemCount}
+          tableHead={
             <TableRow>
               <TableCell></TableCell>
               <TableCell>ID</TableCell>
@@ -79,26 +64,17 @@ export const JobListPage = () => {
               <TableCell>Next Scheduled For</TableCell>
               <TableCell># Failures</TableCell>
             </TableRow>
-          </TableHead>
-          <TableBody>
-            {isLoading && <TableRowSkeleton numColumns={6} />}
-            {isEmpty && emptyTableRow}
-            {jobListQuery.data?.items?.map(it =>
-              <JobTableRow key={it.jobId} queueId={queueId} job={it} />
-            )}
-          </TableBody>
-          <TableFooter>
-            <TableRow>
-              <TablePagination
-                count={totalItemCount}
-                onPageChange={handlePageChanged}
-                page={page-1}
-                rowsPerPage={100}
-                rowsPerPageOptions={[]}
-              />
-            </TableRow>
-          </TableFooter>
-        </Table>
+          }
+          tableBody={
+            <>
+              {isLoading && <TableRowSkeleton numColumns={6} />}
+              {isEmpty && emptyTableRow}
+              {jobListQuery.data?.items?.map(it =>
+                <JobTableRow key={it.jobId} queueId={queueId} job={it} />
+              )}
+            </>
+          }
+        />
       </TableContainer>
     </Page>
   )
@@ -159,4 +135,6 @@ function getTotalItemCountForState(queueDetails: JobQueueDetails | null, jobStat
   }
 }
 
-const emptyTableRow = <TableRow><TableCell colSpan={6}><center><em>No items found</em></center></TableCell></TableRow>
+const emptyTableRow = <TableRow><TableCell colSpan={6}>
+  <center><em>No items found</em></center>
+</TableCell></TableRow>
