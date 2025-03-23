@@ -21,6 +21,7 @@ public class DurableCachesComponent @Inject constructor(
         ): DurableCachesComponent {
             val durableCaches = DurableCachesImpl(
                 keyValueStore = keyValueStoreComponent.keyValueStore,
+                clock = coreComponent.clock,
             )
 
             val durableCachesAdminModule = DurableCachesAdminModule(

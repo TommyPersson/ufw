@@ -6,8 +6,8 @@ import java.time.InstantSource
 import java.time.temporal.ChronoUnit
 import kotlin.time.toJavaDuration
 
-public class TestInstantSource : InstantSource {
-    private var now = Instant.now()
+public class TestInstantSource(initial: Instant? = null) : InstantSource {
+    private var now = initial ?: Instant.now()
 
     override fun instant(): Instant {
         return now

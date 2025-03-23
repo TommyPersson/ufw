@@ -5,11 +5,13 @@ import io.tpersson.ufw.durablecaches.DurableCacheDefinition
 import io.tpersson.ufw.keyvaluestore.KeyValueStore
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
+import java.time.InstantSource
 import java.util.concurrent.ConcurrentHashMap
 
 @Singleton
 public class DurableCachesImpl @Inject constructor(
     private val keyValueStore: KeyValueStore,
+    private val clock: InstantSource,
 ) : DurableCachesInternal {
 
     private val _knownCaches = ConcurrentHashMap<String, DurableCacheDefinition<*>>()
@@ -23,6 +25,6 @@ public class DurableCachesImpl @Inject constructor(
             // TODO some kind of registration behavior? 'get' might not get called directly on app start
         }
 
-        return DurableCacheImpl(definition, keyValueStore)
+        return DurableCacheImpl(definition, keyValueStore, clock)
     }
 }

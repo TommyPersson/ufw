@@ -6,14 +6,17 @@ import io.tpersson.ufw.core.utils.PaginationOptions
 public interface DurableCache<TValue : Any> {
     public val definition: DurableCacheDefinition<TValue>
 
+    /**
+     * @note Will bypass the in-memory cache, if any.
+     */
     public suspend fun list(keyPrefix: String, paginationOptions: PaginationOptions): PaginatedList<CacheEntry<TValue>>
 
-    public suspend fun get(key: String): CacheEntry<TValue>?
+    public suspend fun get(key: String): TValue?
 
     public suspend fun getOrPut(
         key: String,
         factory: suspend (key: String) -> TValue
-    ): CacheEntry<TValue>
+    ): TValue
 
     public suspend fun put(key: String, value: TValue)
 

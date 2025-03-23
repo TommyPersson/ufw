@@ -54,7 +54,6 @@ public fun main(): Unit = runBlocking(MDCContext()) {
         }
         managed {
             instances = setOf(
-                PeriodicLogger(),
                 PrometheusServer(Globals.meterRegistry),
             )
         }
@@ -104,6 +103,12 @@ public fun main(): Unit = runBlocking(MDCContext()) {
     }
 
     ufw.database.runMigrations()
+
+    ufw.managed.register(
+        PeriodicLogger(
+            featureToggles = ufw.featureToggles.featureToggles
+        ),
+    )
 
     ufw.managed.register(
         PeriodicEventPublisher(

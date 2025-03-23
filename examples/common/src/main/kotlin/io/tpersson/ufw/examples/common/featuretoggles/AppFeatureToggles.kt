@@ -21,4 +21,11 @@ Looks like we need to make it **even longer**?
         description = "Will enable the periodic event publisher.",
         default = true,
     )
+
+    public val PeriodicLogger: FeatureToggleDefinition = FeatureToggleDefinition(
+        id = "PeriodicLogger",
+        title = "Periodic Logger",
+        description = "Logs a heartbeat message in a short interval.",
+        default = true,
+    )
 }

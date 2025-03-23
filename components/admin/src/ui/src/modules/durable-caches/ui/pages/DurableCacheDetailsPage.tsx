@@ -88,7 +88,7 @@ const DetailsSection = (props: {
 }) => {
   return (
     <PageSectionCard heading={props.cacheDetails?.title ?? <Skeleton />}>
-      <Typography variant={"body2"}>
+      <Typography variant={"body2"} component={"div"}>
         <Markdown>{props.cacheDetails?.description}</Markdown>
       </Typography>
       <PropertyGroup horizontal>

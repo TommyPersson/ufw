@@ -10,6 +10,6 @@ public object AppCaches {
         description = "Stores the results of expensive calculations.",
         valueType = Long::class,
         expiration = Duration.ofHours(1),
-        inMemoryExpiration = Duration.ofSeconds(10),
+        inMemoryExpiration = Duration.ofSeconds(30),
     )
 }

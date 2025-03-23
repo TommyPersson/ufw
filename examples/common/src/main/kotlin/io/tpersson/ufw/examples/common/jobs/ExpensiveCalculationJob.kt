@@ -35,7 +35,7 @@ public class ExpensiveCalculationJobHandler @Inject constructor(
             val result = calculationInput.toLong() * 2
             logger.info("Done!")
             result
-        }.value
+        }
 
         logger.info("Calculated: $result")
     }

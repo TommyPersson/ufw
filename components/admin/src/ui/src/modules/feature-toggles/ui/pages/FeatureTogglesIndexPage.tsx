@@ -86,7 +86,7 @@ const FeatureToggleRow = (props: {
   const commandArgs = { featureToggleId: featureToggle.id }
 
   return (
-    <TableRow>
+    <TableRow hover>
       <TableCell>
         <FeatureToggleStateChip featureToggle={featureToggle} />
       </TableCell>
