@@ -47,8 +47,8 @@ public class PostgresStorageEngine @Inject constructor(
             json = if (entry.value is EntryValue.Json) entry.value.json else null,
             bytes = if (entry.value is EntryValue.Bytes) entry.value.bytes else null,
             expiresAt = entry.expiresAt,
-            updatedAt = entry.updatedAt,
-            createdAt = entry.createdAt,
+            updatedAt = entry.now,
+            createdAt = entry.now, // Will be ignored by update-statement
             version = 0 // Doesn't matter
         )
 

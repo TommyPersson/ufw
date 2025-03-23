@@ -52,8 +52,7 @@ public class KeyValueStoreImpl @Inject constructor(
         val data = EntryDataForWrite(
             value = entryValue,
             expiresAt = expiresAt,
-            updatedAt = clock.instant(),
-            createdAt = clock.instant(), // Will be ignored for updates
+            now = clock.instant(),
         )
 
         storageEngine.put(key.name, data, expectedVersion, unitOfWork)

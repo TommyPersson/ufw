@@ -8,7 +8,7 @@ import io.tpersson.ufw.admin.AdminModule
 import io.tpersson.ufw.admin.contracts.toDTO
 import io.tpersson.ufw.admin.utils.getPaginationOptions
 import io.tpersson.ufw.featuretoggles.admin.contracts.FeatureToggleItemDTO
-import io.tpersson.ufw.featuretoggles.internal.FeatureToggle
+import io.tpersson.ufw.featuretoggles.FeatureToggle
 import jakarta.inject.Inject
 
 public class FeatureTogglesAdminModule @Inject constructor(

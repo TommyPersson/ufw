@@ -1,5 +1,6 @@
 package io.tpersson.ufw.featuretoggles.internal
 
+import io.tpersson.ufw.featuretoggles.FeatureToggle
 import io.tpersson.ufw.featuretoggles.FeatureToggleDefinition
 import io.tpersson.ufw.featuretoggles.FeatureToggleHandle
 import io.tpersson.ufw.keyvaluestore.KeyValueStore
@@ -13,20 +14,44 @@ public class FeatureToggleHandleImpl(
 
     private val key = KeyValueStore.Key.of<FeatureToggleData>("${Constants.KEY_PREFIX}${definition.id}")
 
-    override suspend fun isEnabled(): Boolean {
+    override suspend fun get(): FeatureToggle {
         val data = keyValueStore.get(key)
         if (data == null) {
-            val default = definition.default
-            val defaultData = FeatureToggleData(definition, default, clock.instant())
+            val now = clock.instant()
+            val defaultData = FeatureToggleData(
+                definition = definition,
+                isEnabled = definition.default,
+                stateChangedAt = now
+            )
+
             keyValueStore.put(key, defaultData)
-            return defaultData.isEnabled
+
+            return FeatureToggle(
+                id = definition.id,
+                title = definition.title,
+                description = definition.description,
+                stateChangedAt = now,
+                createdAt = now,
+                isEnabled = defaultData.isEnabled,
+            )
         }
 
         if (data.value.definition != definition) {
             keyValueStore.put(key, data.value.copy(definition = definition))
         }
 
-        return data.value.isEnabled
+        return FeatureToggle(
+            id = definition.id,
+            title = definition.title,
+            description = definition.description,
+            stateChangedAt = data.value.stateChangedAt,
+            createdAt = data.createdAt,
+            isEnabled = data.value.isEnabled,
+        )
+    }
+
+    override suspend fun isEnabled(): Boolean {
+        return get().isEnabled
     }
 
     override suspend fun enable() {

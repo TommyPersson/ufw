@@ -1,4 +1,4 @@
-package io.tpersson.ufw.featuretoggles.internal
+package io.tpersson.ufw.featuretoggles
 
 import java.time.Instant
 
