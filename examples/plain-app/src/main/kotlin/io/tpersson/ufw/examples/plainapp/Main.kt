@@ -10,6 +10,10 @@ import io.tpersson.ufw.core.dsl.objectMapper
 import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.database.unitofwork.use
 import io.tpersson.ufw.databasequeue.dsl.databaseQueue
+import io.tpersson.ufw.durablecaches.dsl.durableCaches
+import io.tpersson.ufw.durableevents.dsl.durableEvents
+import io.tpersson.ufw.durablejobs.dsl.durableJobs
+import io.tpersson.ufw.durablejobs.dsl.jobQueue
 import io.tpersson.ufw.examples.common.Globals
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregate
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregateRepository
@@ -17,22 +21,16 @@ import io.tpersson.ufw.examples.common.commands.PerformGreetingCommand
 import io.tpersson.ufw.examples.common.commands.PerformGreetingCommandHandler
 import io.tpersson.ufw.examples.common.events.ExampleDurableEventHandler
 import io.tpersson.ufw.examples.common.events.ExampleEventV1
-import io.tpersson.ufw.examples.common.jobs.PrintJob
-import io.tpersson.ufw.examples.common.jobs.PrintJob2
-import io.tpersson.ufw.examples.common.jobs.PrintJobHandler
-import io.tpersson.ufw.examples.common.jobs.PrintJob2Handler
+import io.tpersson.ufw.examples.common.jobs.*
 import io.tpersson.ufw.examples.common.managed.PeriodicEventPublisher
+import io.tpersson.ufw.examples.common.managed.PeriodicJobScheduler
 import io.tpersson.ufw.examples.common.managed.PeriodicLogger
 import io.tpersson.ufw.examples.common.managed.PrometheusServer
-import io.tpersson.ufw.durablejobs.dsl.jobQueue
-import io.tpersson.ufw.durablejobs.dsl.durableJobs
+import io.tpersson.ufw.featuretoggles.dsl.featureToggles
 import io.tpersson.ufw.keyvaluestore.dsl.keyValueStore
 import io.tpersson.ufw.managed.dsl.managed
 import io.tpersson.ufw.mediator.dsl.mediator
 import io.tpersson.ufw.mediator.middleware.transactional.TransactionalMiddleware
-import io.tpersson.ufw.durableevents.dsl.durableEvents
-import io.tpersson.ufw.examples.common.managed.PeriodicJobScheduler
-import io.tpersson.ufw.featuretoggles.dsl.featureToggles
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.slf4j.MDCContext
 import org.slf4j.bridge.SLF4JBridgeHandler
@@ -73,6 +71,8 @@ public fun main(): Unit = runBlocking(MDCContext()) {
                 expiredEntryReapingInterval = Duration.ofMinutes(1)
             }
         }
+        durableCaches {
+        }
         mediator {
             handlers = setOf(
                 PerformGreetingCommandHandler(components.keyValueStore.keyValueStore)
@@ -88,7 +88,8 @@ public fun main(): Unit = runBlocking(MDCContext()) {
             }
             durableJobHandlers = setOf(
                 PrintJobHandler(),
-                PrintJob2Handler()
+                PrintJob2Handler(),
+                ExpensiveCalculationJobHandler(components.durableCaches.durableCaches)
             )
         }
         durableEvents {

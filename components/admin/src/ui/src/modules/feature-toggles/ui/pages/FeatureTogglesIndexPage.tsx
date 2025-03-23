@@ -51,8 +51,8 @@ export const FeatureTogglesIndexPage = () => {
           onPageChanged={setPage}
           tableHead={
             <TableRow>
-              <TableCell></TableCell>
-              <TableCell></TableCell>
+              <TableCell>State</TableCell>
+              <TableCell>Feature Toggle</TableCell>
               <TableCell>Created At</TableCell>
               <TableCell>Last Changed At</TableCell>
               <TableCell></TableCell>

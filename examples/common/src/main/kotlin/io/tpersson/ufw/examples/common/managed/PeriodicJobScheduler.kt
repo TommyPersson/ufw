@@ -5,6 +5,7 @@ import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.database.unitofwork.use
 import io.tpersson.ufw.durablejobs.DurableJobQueue
 import io.tpersson.ufw.examples.common.featuretoggles.AppFeatureToggles
+import io.tpersson.ufw.examples.common.jobs.ExpensiveCalculationJob
 import io.tpersson.ufw.examples.common.jobs.PrintJob2
 import io.tpersson.ufw.featuretoggles.FeatureToggles
 import io.tpersson.ufw.managed.ManagedJob
@@ -41,8 +42,8 @@ public class PeriodicJobScheduler @Inject constructor(
         }
 
         unitOfWorkFactory.use { uow ->
-            val job = PrintJob2("$i")
-            jobQueue.enqueue(job, uow)
+            jobQueue.enqueue(PrintJob2("$i"), uow)
+            jobQueue.enqueue(ExpensiveCalculationJob(), uow)
         }
     }
 }

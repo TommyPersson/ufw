@@ -1,4 +1,4 @@
-import { Table, TableBody, TableFooter, TableHead, TablePagination, TableRow } from "@mui/material"
+import { Table, TableBody, TableFooter, TableHead, TablePagination, TableProps, TableRow } from "@mui/material"
 import { useCallback } from "react"
 
 export type PaginatedTableProps = {
@@ -9,6 +9,7 @@ export type PaginatedTableProps = {
   tableBody?: any
   tableFooter?: any
   className?: string
+  tableProps?: TableProps
 }
 export const PaginatedTable = (props: PaginatedTableProps) => {
   const { totalItemCount, page, onPageChanged, tableHead, tableBody, tableFooter, className } = props
@@ -18,7 +19,7 @@ export const PaginatedTable = (props: PaginatedTableProps) => {
   }, [onPageChanged])
 
   return (
-    <Table className={className}>
+    <Table className={className} {...props.tableProps}>
       <TableHead>
         <TableRow>
           <TablePagination

@@ -1,0 +1,13 @@
+
+.LinkTableCell {
+    padding: 0 !important;
+
+    a {
+        color: inherit;
+        text-decoration: inherit;
+    }
+
+    div {
+        padding: 16px;
+    }
+}

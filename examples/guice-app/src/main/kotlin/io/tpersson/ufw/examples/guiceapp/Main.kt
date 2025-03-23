@@ -15,6 +15,7 @@ import io.tpersson.ufw.database.guice.DatabaseGuiceModule
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.database.unitofwork.use
 import io.tpersson.ufw.databasequeue.guice.DatabaseQueueGuiceModule
+import io.tpersson.ufw.durablecaches.guice.DurableCachesGuiceModule
 import io.tpersson.ufw.examples.common.Globals
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregate
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregateRepository
@@ -91,6 +92,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
         AggregatesGuiceModule(),
         DurableEventsGuiceModule(),
         FeatureTogglesGuiceModule(),
+        DurableCachesGuiceModule(),
         ManagedGuiceModule(),
     )
 

@@ -8,9 +8,9 @@ public data class PaginatedListDTO<TItem>(
 )
 
 
-public fun <TItem, TItemDTO> PaginatedList<TItem>.toDTO(transform: (TItem) -> TItemDTO): PaginatedListDTO<TItemDTO> {
+public suspend fun <TItem, TItemDTO> PaginatedList<TItem>.toDTO(transform: suspend (TItem) -> TItemDTO): PaginatedListDTO<TItemDTO> {
     return PaginatedListDTO(
-        items = items.map(transform),
+        items = items.map { transform(it) },
         hasMoreItems = hasMoreItems,
     )
 }

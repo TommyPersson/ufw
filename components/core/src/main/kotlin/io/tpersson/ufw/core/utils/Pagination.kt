@@ -12,10 +12,10 @@ public data class PaginationOptions(
     }
 }
 
-public data class PaginatedList<TItem>(
+public data class PaginatedList<out TItem>(
     val items: List<TItem>,
     val options: PaginationOptions,
-    val hasMoreItems: Boolean,
+    val hasMoreItems: Boolean, // TODO add totalItemCount?
 ) {
     public companion object {
         public fun <TItem> empty(options: PaginationOptions?): PaginatedList<TItem> {

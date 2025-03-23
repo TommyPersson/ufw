@@ -68,5 +68,9 @@
             <groupId>io.tpersson.ufw</groupId>
             <artifactId>ufw-feature-toggles</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.tpersson.ufw</groupId>
+            <artifactId>ufw-durable-caches</artifactId>
+        </dependency>
     </dependencies>
 </project>

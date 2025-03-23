@@ -61,6 +61,28 @@ public class PostgresStorageEngine @Inject constructor(
         )
     }
 
+    override suspend fun remove(key: String, unitOfWork: UnitOfWork?) {
+        if (unitOfWork == null) {
+            val uow = unitOfWorkFactory.create()
+            remove(key, uow)
+            uow.commit()
+            return
+        }
+
+        unitOfWork.add(Queries.Updates.Delete(key))
+    }
+
+    override suspend fun removeAll(keyPrefix: String, unitOfWork: UnitOfWork?) {
+        if (unitOfWork == null) {
+            val uow = unitOfWorkFactory.create()
+            removeAll(keyPrefix, uow)
+            uow.commit()
+            return
+        }
+
+        unitOfWork.add(Queries.Updates.DeleteAllWithPrefix(keyPrefix))
+    }
+
     override suspend fun deleteExpiredEntries(now: Instant): Int {
         return database.update(Queries.Updates.DeleteAllExpired(now))
     }
@@ -70,6 +92,10 @@ public class PostgresStorageEngine @Inject constructor(
         return database.select(Queries.Selects.ListByPrefix(prefix, paginationOptions))
             .items
             .map { it.asEntryDataFromRead() }
+    }
+
+    override suspend fun getNumEntries(keyPrefix: String): Long {
+        return database.select(Queries.Selects.GetNumberOfEntriesWithPrefix(keyPrefix))?.count ?: 0
     }
 
     public suspend fun debugTruncate(): Unit {
@@ -138,6 +164,16 @@ public class PostgresStorageEngine @Inject constructor(
                 """.trimIndent()
             )
 
+            class GetNumberOfEntriesWithPrefix(
+                val prefix: String,
+            ) : TypedSelectSingle<Count>(
+                """
+                SELECT count(*) as count
+                FROM $TableName 
+                WHERE key LIKE (:prefix || '%')
+                """.trimIndent()
+            )
+
             class DebugDumpTable(
                 override val paginationOptions: PaginationOptions
             ) : TypedSelectList<Map<String, Any?>>("SELECT * FROM $TableName")
@@ -177,11 +213,43 @@ public class PostgresStorageEngine @Inject constructor(
                 """.trimIndent(),
             )
 
+            class Delete(
+                val key: String
+            ) : TypedUpdate(
+                """
+                DELETE 
+                FROM $TableName 
+                WHERE key = :key
+                """.trimIndent(),
+                minimumAffectedRows = 0
+            )
+
+
+            class DeleteAllWithPrefix(
+                val keyPrefix: String
+            ) : TypedUpdate(
+                """
+                DELETE 
+                FROM $TableName
+                WHERE key LIKE (:keyPrefix || '%')
+                """.trimIndent(),
+                minimumAffectedRows = 0
+            )
+
             class DeleteAllExpired(
                 val now: Instant
-            ) : TypedUpdate("DELETE FROM $TableName WHERE expires_at < :now", minimumAffectedRows = 0)
+            ) : TypedUpdate(
+                """
+                DELETE 
+                FROM $TableName
+                WHERE expires_at < :now
+                """.trimIndent(),
+                minimumAffectedRows = 0
+            )
 
             object TruncateTable : TypedUpdate("DELETE FROM $TableName", minimumAffectedRows = 0)
         }
     }
+
+    internal data class Count(val count: Long)
 }

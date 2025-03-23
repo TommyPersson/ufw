@@ -91,7 +91,7 @@ const JobQueueStatusSection = (props: { details: JobQueueDetails | null }) => {
       }
       {state === "PAUSED" &&
           <>
-              The queue has been paused since
+              The queue has been paused since{" "}
               <strong><DateTimeText dateTime={details.status.stateChangedAt} /></strong>{" "}
               and will not process jobs until unpaused.
           </>

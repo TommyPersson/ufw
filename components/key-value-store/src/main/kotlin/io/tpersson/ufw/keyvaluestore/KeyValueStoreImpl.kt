@@ -58,6 +58,14 @@ public class KeyValueStoreImpl @Inject constructor(
         storageEngine.put(key.name, data, expectedVersion, unitOfWork)
     }
 
+    override suspend fun <TValue> remove(kvsKey: KeyValueStore.Key<TValue>, unitOfWork: UnitOfWork?) {
+        storageEngine.remove(kvsKey.name, unitOfWork)
+    }
+
+    override suspend fun removeAll(keyPrefix: String, unitOfWork: UnitOfWork?) {
+        storageEngine.removeAll(keyPrefix, unitOfWork)
+    }
+
     override suspend fun list(prefix: String, limit: Int, offset: Int): List<KeyValueStore.UnparsedEntry> {
         val data = storageEngine.list(prefix, limit, offset)
         return data.map {
@@ -71,6 +79,10 @@ public class KeyValueStoreImpl @Inject constructor(
                 objectMapper = objectMapper
             )
         }
+    }
+
+    override suspend fun getNumEntries(keyPrefix: String): Long {
+        return storageEngine.getNumEntries(keyPrefix)
     }
 
     private class UnparsedEntryImpl(

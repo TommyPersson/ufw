@@ -102,13 +102,13 @@ public class DatabaseQueueAdminFacadeImpl @Inject constructor(
 
     public override suspend fun pauseQueue(queueId: WorkItemQueueId) {
         val state = getQueueStatus(queueId).state
-        if (state != WorkQueueState.PAUSED) {
+        if (state == WorkQueueState.PAUSED) {
             return
         }
 
         workQueuesDAO.setWorkQueueState(
             queueId = queueId,
-            state = WorkQueueState.ACTIVE,
+            state = WorkQueueState.PAUSED,
             now = clock.instant()
         )
     }

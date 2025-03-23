@@ -18,8 +18,20 @@ public interface KeyValueStore {
         unitOfWork: UnitOfWork? = null
     )
 
+    public suspend fun <TValue> remove(
+        kvsKey: Key<TValue>,
+        unitOfWork: UnitOfWork? = null,
+    )
+
+    public suspend fun removeAll(
+        keyPrefix: String,
+        unitOfWork: UnitOfWork? = null,
+    )
+
     // TODO paginated result
     public suspend fun list(prefix: String, limit: Int, offset: Int = 0): List<UnparsedEntry>
+
+    public suspend fun getNumEntries(keyPrefix: String): Long
 
     public interface UnparsedEntry {
         public val key: String

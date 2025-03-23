@@ -24,23 +24,50 @@ public class InMemoryStorageEngine : StorageEngine {
         }
     }
 
+    override suspend fun remove(key: String, unitOfWork: UnitOfWork?) {
+        if (unitOfWork != null) {
+            unitOfWork.addPostCommitHook {
+                storage.remove(key)
+            }
+        } else {
+            storage.remove(key)
+        }
+    }
+
+    override suspend fun removeAll(keyPrefix: String, unitOfWork: UnitOfWork?) {
+        val keysToRemove = storage.values
+            .filter { entry -> entry.key.startsWith(keyPrefix) }
+            .map { it.key }
+
+        if (unitOfWork != null) {
+            unitOfWork.addPostCommitHook {
+                doRemoveAll(keysToRemove)
+            }
+        } else {
+            doRemoveAll(keysToRemove)
+        }
+    }
+
     override suspend fun deleteExpiredEntries(now: Instant): Int {
         val keysToRemove = storage.values
             .filter { entry -> entry.expiresAt != null && entry.expiresAt > now }
             .map { it.key }
 
-        for (key in keysToRemove) {
-            storage.remove(key)
-        }
+        doRemoveAll(keysToRemove)
 
         return keysToRemove.size
     }
 
     override suspend fun list(prefix: String, limit: Int, offset: Int): List<EntryDataFromRead> {
         return storage.values
+            .sortedBy { it.key }
             .filter { it.key.startsWith(prefix) }
             .drop(offset)
             .take(limit)
+    }
+
+    override suspend fun getNumEntries(keyPrefix: String): Long {
+        return storage.values.filter { it.key.startsWith(keyPrefix) }.size.toLong()
     }
 
     private fun doPut(key: String, entry: EntryDataForWrite) {
@@ -53,5 +80,11 @@ public class InMemoryStorageEngine : StorageEngine {
             expiresAt = entry.expiresAt,
             version = existing?.version ?: 1,
         )
+    }
+
+    private fun doRemoveAll(keysToRemove: List<String>) {
+        for (key in keysToRemove) {
+            storage.remove(key)
+        }
     }
 }

@@ -2,7 +2,7 @@
     white-space: nowrap;
 
 
-    td:first-child {
+    td:first-child, th:first-child {
         width: 150px;
         text-align: center;
         vertical-align: middle;

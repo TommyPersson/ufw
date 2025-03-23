@@ -18,7 +18,7 @@ public fun UFWBuilder.RootBuilder.durableJobs(builder: DurableJobsComponentBuild
 }
 
 @UfwDslMarker
-public class DurableJobsComponentBuilder(private val components: UFWRegistry) {
+public class DurableJobsComponentBuilder(public val components: UFWRegistry) {
     public var durableJobHandlers: Set<DurableJobHandler<*>> = emptySet()
     public var config: DurableJobsConfig = DurableJobsConfig()
 

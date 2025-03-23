@@ -16,10 +16,22 @@ public interface StorageEngine {
         unitOfWork: UnitOfWork? = null
     )
 
+    public suspend fun remove(
+        key: String,
+        unitOfWork: UnitOfWork? = null
+    )
+
+    public suspend fun removeAll(
+        keyPrefix: String,
+        unitOfWork: UnitOfWork? = null
+    )
+
     public suspend fun deleteExpiredEntries(
         now: Instant
     ): Int
 
     public suspend fun list(prefix: String, limit: Int, offset: Int): List<EntryDataFromRead>
+
+    public suspend fun getNumEntries(keyPrefix: String): Long
 }
 

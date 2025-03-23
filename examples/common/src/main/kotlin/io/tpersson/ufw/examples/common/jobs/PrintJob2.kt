@@ -10,7 +10,7 @@ import kotlin.random.Random
 
 @DurableJobTypeDefinition(
     description = """
-This is a very **cool** job that prints *things*!
+This is a very **cool** job that prints *things*! Though, it is unable to print texts containing unlucky numbers.
     """
 )
 public data class PrintJob2(
@@ -18,7 +18,8 @@ public data class PrintJob2(
     override val id: DurableJobId = DurableJobId.new()
 ) : DurableJob
 
-public class PrintJob2Handler @Inject constructor() : DurableJobHandler<PrintJob2> {
+public class PrintJob2Handler @Inject constructor(
+) : DurableJobHandler<PrintJob2> {
 
     private val logger = createLogger()
 
@@ -29,7 +30,9 @@ public class PrintJob2Handler @Inject constructor() : DurableJobHandler<PrintJob
 
         logger.info("Todays unlucky number: $unluckyNumber")
 
-        if (job.text.contains(unluckyNumber.toString())) {
+        val isUnlucky = job.text.contains(unluckyNumber.toString())
+
+        if (isUnlucky) {
             error("oh no, there was a unlucky ${unluckyNumber}!")
         }
 
