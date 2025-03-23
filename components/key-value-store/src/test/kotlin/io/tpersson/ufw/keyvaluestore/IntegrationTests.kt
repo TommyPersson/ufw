@@ -6,6 +6,7 @@ import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.keyvaluestore.storageengine.PostgresStorageEngine
 import io.tpersson.ufw.managed.ManagedComponent
+import io.tpersson.ufw.test.isEqualToIgnoringNanos
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -125,7 +126,7 @@ internal class IntegrationTests {
         keyValueStore.put(key, "2")
 
         val entry = keyValueStore.get(key)!!
-        assertThat(entry.createdAt).isEqualTo(time1)
+        assertThat(entry.createdAt).isEqualToIgnoringNanos(time1)
     }
 
     @Test
@@ -140,7 +141,7 @@ internal class IntegrationTests {
         keyValueStore.put(key, "2")
 
         val entry = keyValueStore.get(key)!!
-        assertThat(entry.updatedAt).isEqualTo(time2)
+        assertThat(entry.updatedAt).isEqualToIgnoringNanos(time2)
     }
 
     @Test
