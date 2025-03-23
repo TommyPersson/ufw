@@ -48,6 +48,7 @@ public class PostgresStorageEngine @Inject constructor(
             bytes = if (entry.value is EntryValue.Bytes) entry.value.bytes else null,
             expiresAt = entry.expiresAt,
             updatedAt = entry.updatedAt,
+            createdAt = entry.createdAt,
             version = 0 // Doesn't matter
         )
 
@@ -99,6 +100,7 @@ public class PostgresStorageEngine @Inject constructor(
             value = value,
             expiresAt = expiresAt,
             updatedAt = updatedAt,
+            createdAt = createdAt,
             version = version
         )
     }
@@ -110,6 +112,7 @@ public class PostgresStorageEngine @Inject constructor(
         val bytes: ByteArray?,
         val expiresAt: Instant?,
         val updatedAt: Instant,
+        val createdAt: Instant,
         val version: Int
     )
 
@@ -152,7 +155,8 @@ public class PostgresStorageEngine @Inject constructor(
                     json, 
                     bytes, 
                     expires_at, 
-                    updated_at, 
+                    updated_at,
+                    created_at,
                     version
                 ) VALUES (
                     :data.key, 
@@ -160,7 +164,8 @@ public class PostgresStorageEngine @Inject constructor(
                     :data.json::jsonb, 
                     :data.bytes::bytea, 
                     :data.expiresAt, 
-                    :data.updatedAt, 
+                    :data.updatedAt,
+                    :data.createdAt, 
                     1
                 ) ON CONFLICT (key) DO UPDATE
                     SET json       = :data.json::jsonb,

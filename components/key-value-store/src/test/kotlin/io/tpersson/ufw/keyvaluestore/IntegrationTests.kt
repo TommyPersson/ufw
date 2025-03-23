@@ -113,6 +113,37 @@ internal class IntegrationTests {
     }
 
     @Test
+    fun `Timestamps - createdAt is only set for initial creation`(): Unit = runBlocking {
+        val key = KeyValueStore.Key.of<String>("entry")
+
+        val time1 = testClock.instant()
+
+        keyValueStore.put(key, "1")
+
+        testClock.advance(Duration.ofMinutes(1))
+
+        keyValueStore.put(key, "2")
+
+        val entry = keyValueStore.get(key)!!
+        assertThat(entry.createdAt).isEqualTo(time1)
+    }
+
+    @Test
+    fun `Timestamps - updatedAt is updated for each update`(): Unit = runBlocking {
+        val key = KeyValueStore.Key.of<String>("entry")
+
+        keyValueStore.put(key, "1")
+
+        testClock.advance(Duration.ofMinutes(1))
+        val time2 = testClock.instant()
+
+        keyValueStore.put(key, "2")
+
+        val entry = keyValueStore.get(key)!!
+        assertThat(entry.updatedAt).isEqualTo(time2)
+    }
+
+    @Test
     fun `Transactions - Participates in 'UnitOfWork'`(): Unit = runBlocking {
         val uow = unitOfWorkFactory.create()
 

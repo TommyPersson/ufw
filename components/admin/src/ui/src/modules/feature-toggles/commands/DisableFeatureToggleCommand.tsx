@@ -1,3 +1,4 @@
+import CloseIcon from "@mui/icons-material/Close"
 import { makeApiRequest } from "../../../common/utils/api"
 import { Command } from "../../../common/utils/commands"
 import { queryClient } from "../../../common/utils/tsq"
@@ -16,6 +17,8 @@ export const DisableFeatureToggleCommand: Command<{ featureToggleId: string }> =
     }
   }),
   label: "Disable",
+  icon: <CloseIcon />,
+  color: "error",
   errorTitle: "Unable to disable feature toggle",
   confirmText: ({ featureToggleId }) =>
     <>Are you sure you want to <strong>disable</strong> the <code>{featureToggleId}</code> feature toggle?</>,

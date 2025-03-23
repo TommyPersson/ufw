@@ -1,13 +1,21 @@
 .FeatureTogglesTable {
     white-space: nowrap;
 
-    td:nth-child(1) {
-        width: 0;
+
+    td:first-child {
+        width: 150px;
+        text-align: center;
+        vertical-align: middle;
     }
+
 
     td:nth-child(2) {
+        width: 500px;
+        white-space: normal;
     }
 
-    td:nth-child(3) {
+    td:last-child {
+        text-align: right;
+        width: 150px;
     }
 }

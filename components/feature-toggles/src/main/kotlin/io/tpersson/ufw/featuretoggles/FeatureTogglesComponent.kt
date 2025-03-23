@@ -7,7 +7,9 @@ import io.tpersson.ufw.featuretoggles.admin.FeatureTogglesAdminModule
 import io.tpersson.ufw.featuretoggles.internal.FeatureTogglesImpl
 import io.tpersson.ufw.keyvaluestore.KeyValueStoreComponent
 import jakarta.inject.Inject
+import jakarta.inject.Singleton
 
+@Singleton
 public class FeatureTogglesComponent @Inject constructor(
     public val featureToggles: FeatureToggles
 ) {

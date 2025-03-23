@@ -26,6 +26,8 @@ public interface KeyValueStore {
         public val value: EntryValue
         public val version: Int
         public val expiresAt: Instant?
+        public val updatedAt: Instant
+        public val createdAt: Instant
         public fun <T : Any?> parseAs(type: KClass<T & Any>): Entry<T>
     }
 
@@ -34,6 +36,8 @@ public interface KeyValueStore {
         public val value: T,
         public val version: Int,
         public val expiresAt: Instant?,
+        public val updatedAt: Instant,
+        public val createdAt: Instant,
     )
 
     public class Key<T : Any?>(

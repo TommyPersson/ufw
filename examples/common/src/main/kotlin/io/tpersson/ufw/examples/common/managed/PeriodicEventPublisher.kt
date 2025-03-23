@@ -7,6 +7,7 @@ import io.tpersson.ufw.durableevents.common.DurableEventId
 import io.tpersson.ufw.examples.common.events.ExampleEventV1
 import io.tpersson.ufw.managed.ManagedJob
 import io.tpersson.ufw.durableevents.publisher.DurableEventPublisher
+import io.tpersson.ufw.examples.common.featuretoggles.AppFeatureToggles
 import io.tpersson.ufw.featuretoggles.FeatureToggles
 import jakarta.inject.Inject
 import kotlinx.coroutines.NonCancellable
@@ -22,7 +23,7 @@ public class PeriodicEventPublisher @Inject constructor(
     private val clock: InstantSource
 ) : ManagedJob() {
 
-    private val toggleHandle = featureToggles.get("PeriodicEventPublisher")
+    private val featureToggleHandle = featureToggles.get(AppFeatureToggles.PeriodicEventPublisher)
 
     override suspend fun launch(): Unit = coroutineScope {
         var i = 0
@@ -39,7 +40,7 @@ public class PeriodicEventPublisher @Inject constructor(
     }
 
     private suspend fun runOnce(i: Int) {
-        if (!toggleHandle.isEnabled()) {
+        if (!featureToggleHandle.isEnabled()) {
             return
         }
 

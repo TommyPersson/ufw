@@ -1,23 +1,29 @@
 package io.tpersson.ufw.featuretoggles.internal
 
+import io.tpersson.ufw.featuretoggles.FeatureToggleDefinition
 import io.tpersson.ufw.featuretoggles.FeatureToggleHandle
 import io.tpersson.ufw.keyvaluestore.KeyValueStore
 import java.time.InstantSource
 
 public class FeatureToggleHandleImpl(
-    public override val featureToggleId: String,
+    public override val definition: FeatureToggleDefinition,
     private val keyValueStore: KeyValueStore,
     private val clock: InstantSource,
 ) : FeatureToggleHandle {
 
-    private val key = KeyValueStore.Key.of<FeatureToggleData>("__ft__$featureToggleId")
+    private val key = KeyValueStore.Key.of<FeatureToggleData>("${Constants.KEY_PREFIX}${definition.id}")
 
-    override suspend fun isEnabled(default: Boolean): Boolean {
+    override suspend fun isEnabled(): Boolean {
         val data = keyValueStore.get(key)
         if (data == null) {
-            val defaultData = FeatureToggleData(default, clock.instant())
+            val default = definition.default
+            val defaultData = FeatureToggleData(definition, default, clock.instant())
             keyValueStore.put(key, defaultData)
             return defaultData.isEnabled
+        }
+
+        if (data.value.definition != definition) {
+            keyValueStore.put(key, data.value.copy(definition = definition))
         }
 
         return data.value.isEnabled
@@ -29,7 +35,7 @@ public class FeatureToggleHandleImpl(
             return
         }
 
-        keyValueStore.put(key, FeatureToggleData(true, clock.instant()))
+        keyValueStore.put(key, FeatureToggleData(definition, true, clock.instant()))
     }
 
     override suspend fun disable() {
@@ -38,6 +44,6 @@ public class FeatureToggleHandleImpl(
             return
         }
 
-        keyValueStore.put(key, FeatureToggleData(false, clock.instant()))
+        keyValueStore.put(key, FeatureToggleData(definition, false, clock.instant()))
     }
 }

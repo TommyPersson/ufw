@@ -1,8 +1,11 @@
-import { Paper, TableCell, TableContainer, TableRow } from "@mui/material"
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline"
+import HighlightOffIcon from "@mui/icons-material/HighlightOff"
+import { Chip, ChipProps, Paper, TableCell, TableContainer, TableRow, Typography } from "@mui/material"
 import { useQuery } from "@tanstack/react-query"
 import { useMemo, useState } from "react"
+import Markdown from "react-markdown"
 import {
-  CommandSwitch,
+  CommandButton,
   DateTimeText,
   Page,
   PageBreadcrumb,
@@ -49,13 +52,15 @@ export const FeatureTogglesIndexPage = () => {
           tableHead={
             <TableRow>
               <TableCell></TableCell>
-              <TableCell>Feature Toggle ID</TableCell>
+              <TableCell></TableCell>
+              <TableCell>Created At</TableCell>
               <TableCell>Last Changed At</TableCell>
+              <TableCell></TableCell>
             </TableRow>
           }
           tableBody={
             <>
-              {featureTogglesQuery.isLoading && <TableRowSkeleton numColumns={3} />}
+              {featureTogglesQuery.isLoading && <TableRowSkeleton numColumns={5} />}
               {isEmpty && emptyTableRow}
               {featureToggles.map(it => (
                 <FeatureToggleRow
@@ -78,21 +83,63 @@ const FeatureToggleRow = (props: {
 }) => {
   const { featureToggle, isFetching } = props
 
+  const commandArgs = { featureToggleId: featureToggle.id }
+
   return (
     <TableRow>
       <TableCell>
-        <CommandSwitch
-          enabled={featureToggle.isEnabled}
-          enableCommand={EnableFeatureToggleCommand}
-          disableCommand={DisableFeatureToggleCommand}
-          args={{ featureToggleId: featureToggle.id }}
-          disabled={isFetching}
-        />
+        <FeatureToggleStateChip featureToggle={featureToggle} />
       </TableCell>
-      <TableCell><code>{featureToggle.id}</code></TableCell>
+      <TableCell>
+        <Typography variant={"subtitle2"}>{featureToggle.title}</Typography>
+        <Typography variant={"body2"}>
+          <Markdown>{featureToggle.description}</Markdown>
+        </Typography>
+        <Typography variant={"caption"}>ID: <code>{featureToggle.id}</code></Typography>
+      </TableCell>
+      <TableCell><DateTimeText dateTime={featureToggle.createdAt} /></TableCell>
       <TableCell><DateTimeText dateTime={featureToggle.stateChangedAt} /></TableCell>
+      <TableCell>
+        {!featureToggle.isEnabled &&
+            <CommandButton
+                command={EnableFeatureToggleCommand}
+                args={commandArgs}
+                variant={"contained"}
+                size={"small"}
+                disabled={isFetching}
+            />
+        }
+        {featureToggle.isEnabled &&
+            <CommandButton
+                command={DisableFeatureToggleCommand}
+                args={commandArgs}
+                variant={"contained"}
+                size={"small"}
+                disabled={isFetching}
+            />
+        }
+      </TableCell>
     </TableRow>
   )
 }
 
-const emptyTableRow = <TableRow><TableCell colSpan={3}><center><em>No feature toggles found</em></center></TableCell></TableRow>
+const emptyTableRow = <TableRow><TableCell colSpan={3}>
+  <center><em>No feature toggles found</em></center>
+</TableCell></TableRow>
+
+const FeatureToggleStateChip = (props: { featureToggle: FeatureToggleItem }) => {
+  const { featureToggle } = props
+
+  const color: ChipProps["color"] = featureToggle.isEnabled ? "success" : "error"
+  const label = featureToggle.isEnabled ? "Enabled" : "Disabled"
+  const icon = featureToggle.isEnabled ? <CheckCircleOutlineIcon /> : <HighlightOffIcon />
+
+  return (
+    <Chip
+      variant={"outlined"}
+      icon={icon}
+      color={color}
+      label={label}
+    />
+  )
+}

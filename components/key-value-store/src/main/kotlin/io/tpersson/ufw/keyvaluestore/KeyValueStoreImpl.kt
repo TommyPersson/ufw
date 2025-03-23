@@ -31,7 +31,14 @@ public class KeyValueStoreImpl @Inject constructor(
 
         val parsedValue = data.value.parse(objectMapper, key.type)
 
-        return KeyValueStore.Entry(key, parsedValue, data.version, data.expiresAt)
+        return KeyValueStore.Entry(
+            key = key,
+            value = parsedValue,
+            version = data.version,
+            expiresAt = data.expiresAt,
+            updatedAt = data.updatedAt,
+            createdAt = data.createdAt,
+        )
     }
 
     override suspend fun <T> put(key: KeyValueStore.Key<T>, value: T, expectedVersion: Int?, ttl: Duration?, unitOfWork: UnitOfWork?) {
@@ -45,7 +52,8 @@ public class KeyValueStoreImpl @Inject constructor(
         val data = EntryDataForWrite(
             value = entryValue,
             expiresAt = expiresAt,
-            updatedAt = clock.instant()
+            updatedAt = clock.instant(),
+            createdAt = clock.instant(), // Will be ignored for updates
         )
 
         storageEngine.put(key.name, data, expectedVersion, unitOfWork)
@@ -59,6 +67,8 @@ public class KeyValueStoreImpl @Inject constructor(
                 value = it.value,
                 version = it.version,
                 expiresAt = it.expiresAt,
+                updatedAt = it.updatedAt,
+                createdAt = it.createdAt,
                 objectMapper = objectMapper
             )
         }
@@ -69,14 +79,18 @@ public class KeyValueStoreImpl @Inject constructor(
         override val value: EntryValue,
         override val version: Int,
         override val expiresAt: Instant?,
+        override val updatedAt: Instant,
+        override val createdAt: Instant,
         private val objectMapper: ObjectMapper,
     ) : KeyValueStore.UnparsedEntry {
         override fun <T> parseAs(type: KClass<T & Any>): KeyValueStore.Entry<T> {
-            return KeyValueStore.Entry<T>(
+            return KeyValueStore.Entry(
                 key = KeyValueStore.Key(key, type),
                 value = value.parse(objectMapper, type),
                 version = version,
-                expiresAt = expiresAt
+                expiresAt = expiresAt,
+                updatedAt = updatedAt,
+                createdAt = createdAt,
             )
         }
     }

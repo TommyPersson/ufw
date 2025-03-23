@@ -2,19 +2,22 @@ package io.tpersson.ufw.featuretoggles.admin
 
 import io.tpersson.ufw.core.utils.PaginatedList
 import io.tpersson.ufw.core.utils.PaginationOptions
-import io.tpersson.ufw.featuretoggles.FeatureToggles
+import io.tpersson.ufw.featuretoggles.internal.Constants
 import io.tpersson.ufw.featuretoggles.internal.FeatureToggle
 import io.tpersson.ufw.featuretoggles.internal.FeatureToggleData
+import io.tpersson.ufw.featuretoggles.internal.FeatureTogglesInternal
 import io.tpersson.ufw.keyvaluestore.KeyValueStore
 import jakarta.inject.Inject
+import jakarta.inject.Singleton
 
+@Singleton
 public class FeatureTogglesAdminFacadeImpl @Inject constructor(
-    private val featureToggles: FeatureToggles,
+    private val featureToggles: FeatureTogglesInternal,
     private val keyValueStore: KeyValueStore,
 ) : FeatureTogglesAdminFacade {
     override suspend fun listAll(paginationOptions: PaginationOptions): PaginatedList<FeatureToggle> {
         val toggles = keyValueStore.list(
-            "__ft__",
+            Constants.KEY_PREFIX,
             limit = paginationOptions.limit + 1,
             offset = paginationOptions.offset,
         )
@@ -23,9 +26,12 @@ public class FeatureTogglesAdminFacadeImpl @Inject constructor(
             items = toggles.take(paginationOptions.limit).map {
                 val data = it.parseAs(FeatureToggleData::class)
                 FeatureToggle(
-                    id = it.key.substringAfter("__ft__"),
-                    isEnabled = data.value.isEnabled,
+                    id = it.key.substringAfter(Constants.KEY_PREFIX),
+                    title = data.value.definition.title,
+                    description = data.value.definition.description,
                     stateChangedAt = data.value.stateChangedAt,
+                    createdAt = data.createdAt,
+                    isEnabled = data.value.isEnabled,
                 )
             },
             options = paginationOptions,
@@ -34,11 +40,17 @@ public class FeatureTogglesAdminFacadeImpl @Inject constructor(
     }
 
     override suspend fun disable(featureToggleId: String) {
-        featureToggles.get(featureToggleId).disable()
+        val definition = featureToggles.knownFeatureToggles[featureToggleId]
+            ?: error("Unknown feature toggle ID: $featureToggleId")
+
+        featureToggles.get(definition).disable()
     }
 
     override suspend fun enable(featureToggleId: String) {
-        featureToggles.get(featureToggleId).enable()
+        val definition = featureToggles.knownFeatureToggles[featureToggleId]
+            ?: error("Unknown feature toggle ID: $featureToggleId")
+
+        featureToggles.get(definition).enable()
     }
 
 }

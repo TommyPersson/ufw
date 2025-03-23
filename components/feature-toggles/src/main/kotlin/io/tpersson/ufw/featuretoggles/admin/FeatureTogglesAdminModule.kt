@@ -49,8 +49,11 @@ public class FeatureTogglesAdminModule @Inject constructor(
     private fun FeatureToggle.toItemDTO(): FeatureToggleItemDTO {
         return FeatureToggleItemDTO(
             id = id,
+            title = title,
+            description = description,
+            stateChangedAt = stateChangedAt,
+            createdAt = createdAt,
             isEnabled = isEnabled,
-            stateChangedAt = stateChangedAt
         )
     }
 }
