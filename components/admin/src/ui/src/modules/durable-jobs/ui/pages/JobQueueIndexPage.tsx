@@ -14,8 +14,7 @@ import {
 } from "@mui/material"
 import { useQuery } from "@tanstack/react-query"
 import { useMemo } from "react"
-import { Link } from "react-router"
-import { DateTimeText, ErrorAlert, Page, PageBreadcrumb } from "../../../../common/components"
+import { DateTimeText, ErrorAlert, LinkTableCell, Page, PageBreadcrumb } from "../../../../common/components"
 import { JobQueueListItem } from "../../models"
 import { JobQueueListQuery } from "../../queries"
 import { getQueueStateColor } from "../utils/colors"
@@ -83,10 +82,11 @@ const QueueTableRow = (props: { queue: JobQueueListItem }) => {
   const { queue } = props
 
   const hasFailures = queue.numFailed > 0
+  const link = `queues/${queue.queueId}/details`
 
   return (
     <TableRow hover key={queue.queueId}>
-      <TableCell>
+      <LinkTableCell to={link}>
         <Box width={24} height={24}>
           <WarningIcon
             color={"warning"}
@@ -94,13 +94,13 @@ const QueueTableRow = (props: { queue: JobQueueListItem }) => {
             style={{ visibility: hasFailures ? "visible" : "hidden" }}
           />
         </Box>
-      </TableCell>
-      <TableCell><code><Link to={`queues/${queue.queueId}/details`}>{queue.queueId}</Link></code></TableCell>
-      <TableCell><QueueStatusChip queue={queue} /></TableCell>
-      <TableCell>{queue.numScheduled}</TableCell>
-      <TableCell>{queue.numPending}</TableCell>
-      <TableCell>{queue.numInProgress}</TableCell>
-      <TableCell>{queue.numFailed}</TableCell>
+      </LinkTableCell>
+      <LinkTableCell to={link}><code>{queue.queueId}</code></LinkTableCell>
+      <LinkTableCell to={link}><QueueStatusChip queue={queue} /></LinkTableCell>
+      <LinkTableCell to={link}>{queue.numScheduled}</LinkTableCell>
+      <LinkTableCell to={link}>{queue.numPending}</LinkTableCell>
+      <LinkTableCell to={link}>{queue.numInProgress}</LinkTableCell>
+      <LinkTableCell to={link}>{queue.numFailed}</LinkTableCell>
     </TableRow>
   )
 }

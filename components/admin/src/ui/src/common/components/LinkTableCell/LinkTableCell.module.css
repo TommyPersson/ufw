@@ -7,7 +7,7 @@
         text-decoration: inherit;
     }
 
-    div {
+    a > div {
         padding: 16px;
     }
 }

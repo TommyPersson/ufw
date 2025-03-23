@@ -316,7 +316,7 @@ const JobFailuresSection = (props: {
       <PageSectionHeader>Last 5 Failures</PageSectionHeader>
       {isLoading && <Skeleton />}
       {jobFailures.map(it => (
-        <PageSectionCard>
+        <PageSectionCard key={it.failureId}>
           <PropertyGroup>
             <PropertyGroup horizontal>
               <PropertyText

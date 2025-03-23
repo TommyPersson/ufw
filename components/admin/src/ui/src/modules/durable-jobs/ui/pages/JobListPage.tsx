@@ -14,8 +14,8 @@ import {
 import { useQuery } from "@tanstack/react-query"
 import * as React from "react"
 import { useCallback, useMemo, useState } from "react"
-import { Link, useParams } from "react-router"
-import { DateTimeText, Page, PageBreadcrumb, TableRowSkeleton } from "../../../../common/components"
+import { useParams } from "react-router"
+import { DateTimeText, LinkTableCell, Page, PageBreadcrumb, TableRowSkeleton } from "../../../../common/components"
 import { JobListItem, JobQueueDetails, JobState } from "../../models"
 import { JobListQuery, JobQueueDetailsQuery } from "../../queries"
 
@@ -106,10 +106,13 @@ export const JobListPage = () => {
 
 const JobTableRow = (props: { queueId: string, job: JobListItem }) => {
   const { queueId, job } = props
-  let hasFailures = job.numFailures > 0
+
+  const hasFailures = job.numFailures > 0
+  const link = `/durable-jobs/queues/${queueId}/jobs/by-id/${job.jobId}/details`
+
   return (
-    <TableRow key={job.jobId}>
-      <TableCell>
+    <TableRow key={job.jobId} hover>
+      <LinkTableCell to={link}>
         <Box width={24} height={24}>
           <WarningIcon
             color={"warning"}
@@ -117,22 +120,22 @@ const JobTableRow = (props: { queueId: string, job: JobListItem }) => {
             style={{ visibility: hasFailures ? "visible" : "hidden" }}
           />
         </Box>
-      </TableCell>
-      <TableCell>
-        <Link to={`/durable-jobs/queues/${queueId}/jobs/by-id/${job.jobId}/details`}><code>{job.jobId}</code></Link>
-      </TableCell>
-      <TableCell>
+      </LinkTableCell>
+      <LinkTableCell to={link}>
+        <code>{job.jobId}</code>
+      </LinkTableCell>
+      <LinkTableCell to={link}>
         <DateTimeText dateTime={job.createdAt} />
-      </TableCell>
-      <TableCell>
+      </LinkTableCell>
+      <LinkTableCell to={link}>
         <DateTimeText dateTime={job.stateChangedAt} />
-      </TableCell>
-      <TableCell>
+      </LinkTableCell>
+      <LinkTableCell to={link}>
         <DateTimeText dateTime={job.nextScheduledFor} fallback={<em>Not Currently Scheduled</em>} />
-      </TableCell>
-      <TableCell>
+      </LinkTableCell>
+      <LinkTableCell to={link}>
         {job.numFailures}
-      </TableCell>
+      </LinkTableCell>
     </TableRow>
   )
 }
