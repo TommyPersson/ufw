@@ -1,22 +1,23 @@
 package io.tpersson.ufw.aggregates.internal
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.tpersson.ufw.aggregates.*
+import io.tpersson.ufw.aggregates.AggregateFactRepository
+import io.tpersson.ufw.aggregates.AggregateId
+import io.tpersson.ufw.aggregates.Fact
 import io.tpersson.ufw.aggregates.exceptions.AggregateVersionConflictException
+import io.tpersson.ufw.aggregates.typeName
 import io.tpersson.ufw.core.NamedBindings
+import io.tpersson.ufw.core.utils.PaginatedList
 import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.core.utils.paginate
 import io.tpersson.ufw.database.jdbc.Database
 import io.tpersson.ufw.database.typedqueries.TypedSelectList
-import io.tpersson.ufw.database.typedqueries.TypedSelectSingle
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import jakarta.inject.Inject
 import jakarta.inject.Named
 import kotlinx.coroutines.flow.toList
 import org.postgresql.util.PSQLException
-import java.time.Instant
-import java.util.*
 import kotlin.reflect.KClass
 
 public class AggregateFactRepositoryImpl @Inject constructor(
@@ -42,25 +43,23 @@ public class AggregateFactRepositoryImpl @Inject constructor(
     }
 
     override suspend fun <TFact : Fact> getAll(aggregateId: AggregateId, factClass: KClass<TFact>): List<TFact> {
-        val rawFacts = paginate { 
+        val rawFacts = paginate {
             database.select(Queries.Selects.GetAll(aggregateId.value, it))
         }.toList().flatMap { it.items }
 
         return rawFacts.map { objectMapper.readValue(it.json, factClass.java) }
     }
 
+    override suspend fun getAllRaw(
+        aggregateId: AggregateId,
+        paginationOptions: PaginationOptions,
+    ): PaginatedList<FactData> {
+        return database.select(Queries.Selects.GetAll(aggregateId.value, paginationOptions))
+    }
+
     override suspend fun debugTruncate(unitOfWork: UnitOfWork) {
         unitOfWork.add(Queries.Updates.DebugTruncate)
     }
-
-    internal data class FactData(
-        val id: UUID,
-        val aggregateId: String,
-        val type: String,
-        val json: String,
-        val timestamp: Instant,
-        val version: Long,
-    )
 
     @Suppress("unused")
     private object Queries {
@@ -105,3 +104,5 @@ public class AggregateFactRepositoryImpl @Inject constructor(
         }
     }
 }
+
+

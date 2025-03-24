@@ -1,9 +1,12 @@
 import { Skeleton } from "@mui/material"
+import * as React from "react"
 import { useMemo } from "react"
 
 
 export type JsonBlockProps = {
   json: string | null
+  maxHeight?: number | string
+  scroll?: boolean
   isLoading?: boolean
 }
 
@@ -22,7 +25,12 @@ export const JsonBlock = (props: JsonBlockProps) => {
     )
   }
 
+  const style: React.CSSProperties = {
+    maxHeight: props.maxHeight,
+    overflow: props.maxHeight ? "scroll" : undefined
+  }
+
   return (
-    <pre>{formatted}</pre>
+    <pre style={style}>{formatted}</pre>
   )
 }

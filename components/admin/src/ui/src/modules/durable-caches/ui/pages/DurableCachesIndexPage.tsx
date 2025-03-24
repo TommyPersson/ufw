@@ -35,7 +35,7 @@ export const DurableCachesIndexPage = () => {
           onPageChanged={setPage}
           tableHead={
             <TableRow>
-              <TableCell style={{ width: 0, whiteSpace: "nowrap" }}># Entries</TableCell>
+              <TableCell style={{ width: 150, whiteSpace: "nowrap", textAlign: "center" }}># Entries</TableCell>
               <TableCell>Cache</TableCell>
             </TableRow>
           }

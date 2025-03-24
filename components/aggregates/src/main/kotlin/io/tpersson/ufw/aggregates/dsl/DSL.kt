@@ -1,5 +1,6 @@
 package io.tpersson.ufw.aggregates.dsl
 
+import io.tpersson.ufw.admin.dsl.admin
 import io.tpersson.ufw.core.dsl.UFWBuilder
 import io.tpersson.ufw.core.dsl.UFWRegistry
 import io.tpersson.ufw.core.dsl.UfwDslMarker
@@ -19,7 +20,8 @@ public class AggregatesComponentBuilder(public val components: UFWRegistry) {
         return AggregatesComponent.create(
             coreComponent = components.core,
             databaseComponent = components.database,
-            transactionalEventsComponent = components.durableEvents
+            durableEventsComponent = components.durableEvents,
+            adminComponent = components.admin
         )
     }
 }

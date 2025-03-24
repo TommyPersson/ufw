@@ -1,5 +1,8 @@
 package io.tpersson.ufw.aggregates
 
+import io.tpersson.ufw.admin.AdminComponent
+import io.tpersson.ufw.aggregates.admin.AggregatesAdminFacadeImpl
+import io.tpersson.ufw.aggregates.admin.AggregatesAdminModule
 import io.tpersson.ufw.aggregates.internal.AggregateFactRepositoryImpl
 import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
@@ -23,14 +26,21 @@ public class AggregatesComponent @Inject constructor(
         public fun create(
             coreComponent: CoreComponent,
             databaseComponent: DatabaseComponent,
-            transactionalEventsComponent: DurableEventsComponent,
+            durableEventsComponent: DurableEventsComponent,
+            adminComponent: AdminComponent,
         ): AggregatesComponent {
             val factRepository = AggregateFactRepositoryImpl(
                 database = databaseComponent.database,
                 objectMapper = coreComponent.objectMapper
             )
 
-            val eventPublisher = transactionalEventsComponent.eventPublisher
+            val eventPublisher = durableEventsComponent.eventPublisher
+
+            adminComponent.register(
+                AggregatesAdminModule(
+                    adminFacade = AggregatesAdminFacadeImpl(factRepository)
+                )
+            )
 
             return AggregatesComponent(factRepository, eventPublisher)
         }
