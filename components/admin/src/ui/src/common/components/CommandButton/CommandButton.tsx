@@ -9,10 +9,11 @@ import { ErrorAlert } from "../ErrorAlert"
 export type CommandButton2Props<TArgs> = {
   command: Command<TArgs>,
   args: TArgs | null,
+  onSuccess?: () => void
 } & ButtonProps
 
 export const CommandButton = <TArgs, >(props: CommandButton2Props<TArgs>) => {
-  const { command, args, ...buttonProps } = props
+  const { command, args, onSuccess, ...buttonProps } = props
 
   const confirm = useConfirm()
 
@@ -21,7 +22,7 @@ export const CommandButton = <TArgs, >(props: CommandButton2Props<TArgs>) => {
   const buttonRef = useRef<HTMLButtonElement | null>(null)
 
   const handleClick = async () => {
-    await executeCommand(command, mutation, args, confirm)
+    await executeCommand({ command, mutation, args, confirm, onSuccess })
   }
 
   return (

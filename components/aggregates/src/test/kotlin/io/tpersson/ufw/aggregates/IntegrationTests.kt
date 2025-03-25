@@ -3,6 +3,7 @@ package io.tpersson.ufw.aggregates
 import com.fasterxml.jackson.annotation.JsonTypeName
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.tpersson.ufw.admin.dsl.admin
 import io.tpersson.ufw.aggregates.dsl.aggregates
 import io.tpersson.ufw.aggregates.exceptions.AggregateVersionConflictException
 import io.tpersson.ufw.core.dsl.UFW
@@ -57,12 +58,15 @@ internal class IntegrationTests {
             core {
                 clock = testClock
             }
+            managed {
+            }
+            admin {
+            }
             database {
                 dataSource = HikariDataSource(config)
             }
             databaseQueue {
             }
-            managed()
             durableEvents {
                 outgoingEventTransport = testOutgoingEventTransport
             }
@@ -301,6 +305,9 @@ internal class IntegrationTests {
     class TestAggregateRepository(
         component: AggregatesComponent
     ) : AbstractAggregateRepository<TestAggregate, TestAggregate.Facts>(component) {
+
+        override val aggregateType: String = "TEST"
+
         override suspend fun doSave(aggregate: TestAggregate, version: Long, unitOfWork: UnitOfWork) {
             aggregate.savedVersion = version
         }

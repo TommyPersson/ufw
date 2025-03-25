@@ -31,7 +31,7 @@ public class ManagedAdminServer @Inject constructor(
     private var server: ApplicationEngine? = null
 
     override suspend fun onStarted() {
-        val server = embeddedServer(Netty, port = config.port) {
+        server = embeddedServer(Netty, port = config.port) {
             install(ContentNegotiation) {
                 jackson {
                     configureJackson(this)
@@ -76,11 +76,12 @@ public class ManagedAdminServer @Inject constructor(
             }
         }
 
-        server.start(wait = false)
+        server?.start(wait = false)
     }
 
     override suspend fun onStopped() {
         server?.stop()
+        server = null
     }
 }
 

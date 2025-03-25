@@ -12,7 +12,8 @@ export const AggregateFactsQuery: (aggregateId: String, page: number) => UseQuer
       `/admin/api/aggregates/aggregates/${aggregateId}/facts?limit=${limit}&offset=${offset}`
     ))
   },
-  enabled: aggregateId.trim().length > 0
+  enabled: aggregateId.trim().length > 0,
+  retry: false,
 })
 
 const responseSchema = zx.paginatedList(aggregateFactSchema)

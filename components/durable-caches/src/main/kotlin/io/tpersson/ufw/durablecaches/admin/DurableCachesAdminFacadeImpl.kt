@@ -47,6 +47,15 @@ public class DurableCachesAdminFacadeImpl @Inject constructor(
         return cache.list(keyPrefix, paginationOptions)
     }
 
+    override suspend fun getEntry(cacheId: String, cacheKey: String): CacheEntry<*>? {
+        val definition = durableCaches.knownCaches[cacheId]
+            ?: return null
+
+        val cache = durableCaches.get(definition)
+
+        return cache.getEntry(cacheKey)
+    }
+
     override suspend fun invalidateEntry(cacheId: String, cacheKey: String) {
         val definition = durableCaches.knownCaches[cacheId]
             ?: return

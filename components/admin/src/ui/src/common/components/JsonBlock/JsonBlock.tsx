@@ -13,7 +13,13 @@ export type JsonBlockProps = {
 export const JsonBlock = (props: JsonBlockProps) => {
   const { json, isLoading } = props
 
-  const formatted = useMemo(() => JSON.stringify(JSON.parse(json ?? "{}"), null, 2), [json])
+  const formatted = useMemo(() => {
+    try {
+      return JSON.stringify(JSON.parse(json ?? "{}"), null, 2)
+    } catch (e) {
+      return `<Unable to parse JSON>`
+    }
+  }, [json])
 
   if (isLoading) {
     return (

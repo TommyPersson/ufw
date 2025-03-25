@@ -52,6 +52,21 @@ public class DurableCacheImpl<TValue : Any>(
         )
     }
 
+    // TODO add unit test
+    override suspend fun getEntry(key: String): CacheEntry<TValue>? {
+        val kvsKey = getKvsKey(key)
+
+        val kvsEntry = keyValueStore.get(kvsKey)
+            ?: return null
+
+        return CacheEntry(
+            key = kvsEntry.key.name.substringAfter(this.keyPrefix),
+            value = kvsEntry.value,
+            cachedAt = kvsEntry.updatedAt,
+            expiresAt = kvsEntry.expiresAt
+        )
+    }
+
     override suspend fun get(key: String): TValue? {
         val inMemoryValue = inMemoryCache?.getIfPresent(key)
         if (inMemoryValue != null) {

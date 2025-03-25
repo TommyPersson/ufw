@@ -9,5 +9,6 @@ export const AggregateDetailsQuery: (aggregateId: String) => UseQueryOptions<Agg
       `/admin/api/aggregates/aggregates/${aggregateId}/details`
     ))
   },
-  enabled: aggregateId.trim().length > 0
+  enabled: aggregateId.trim().length > 0,
+  retry: false,
 })

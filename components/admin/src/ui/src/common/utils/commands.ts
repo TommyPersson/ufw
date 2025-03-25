@@ -13,12 +13,21 @@ export type Command<TArgs> = {
   confirmColor?: ButtonProps["color"]
 }
 
-export async function executeCommand<TArgs>(
+export async function executeCommand<TArgs>(options: {
   command: Command<TArgs>,
   mutation: UseMutationResult<any, Error, TArgs>,
   args: TArgs | null,
-  confirm: UseConfirmResult
-) {
+  confirm: UseConfirmResult,
+  onSuccess?: () => void,
+}) {
+  const {
+    command,
+    mutation,
+    args,
+    confirm,
+    onSuccess,
+  } = options
+
   if (!args) {
     return
   }
@@ -39,5 +48,6 @@ export async function executeCommand<TArgs>(
     }
   }
 
-  mutation.mutate(args)
+  await mutation.mutateAsync(args)
+  onSuccess?.()
 }

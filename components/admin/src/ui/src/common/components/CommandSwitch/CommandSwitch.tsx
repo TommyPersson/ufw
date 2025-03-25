@@ -28,7 +28,7 @@ export const CommandSwitch = <TArgs, >(props: CommandSwitchProps<TArgs>) => {
   const mutation = useMutation(command.mutationOptions)
 
   const handleClick = useCallback(async () => {
-    await executeCommand(command, mutation, args, confirm)
+    await executeCommand({ command, mutation, args, confirm })
   }, [mutation, args])
 
   return (

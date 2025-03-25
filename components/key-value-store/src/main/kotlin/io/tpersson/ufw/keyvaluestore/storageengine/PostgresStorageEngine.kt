@@ -116,7 +116,7 @@ public class PostgresStorageEngine @Inject constructor(
 
     private fun EntryData.asEntryDataFromRead(): EntryDataFromRead {
         val value = when (type) {
-            EntryType.Json.int -> EntryValue.Json(json!!)
+            EntryType.JSON.int -> EntryValue.Json(json!!)
             EntryType.Bytes.int -> EntryValue.Bytes(bytes!!)
             else -> error("Unknown EntryValue type: $type")
         }

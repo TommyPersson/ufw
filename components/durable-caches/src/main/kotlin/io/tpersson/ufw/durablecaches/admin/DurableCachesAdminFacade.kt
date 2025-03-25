@@ -19,6 +19,8 @@ public interface DurableCachesAdminFacade {
         paginationOptions: PaginationOptions
     ): PaginatedList<CacheEntry<*>>
 
+    public suspend fun getEntry(cacheId: String, cacheKey: String): CacheEntry<*>?
+
     public suspend fun invalidateEntry(cacheId: String, cacheKey: String)
 
     public suspend fun invalidateAllEntries(cacheId: String)

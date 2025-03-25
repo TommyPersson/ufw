@@ -9,7 +9,7 @@ import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.managed.dsl.managed
 
 @UfwDslMarker
-public fun UFWBuilder.RootBuilder.admin(builder: AdminComponentBuilder.() -> Unit) {
+public fun UFWBuilder.RootBuilder.admin(builder: AdminComponentBuilder.() -> Unit = {}) {
     components["Admin"] = AdminComponentBuilder(UFWRegistry(components)).also(builder).build()
 }
 

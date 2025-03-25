@@ -1,5 +1,6 @@
 package io.tpersson.ufw.durablecaches.admin
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
@@ -7,17 +8,23 @@ import io.ktor.server.routing.*
 import io.tpersson.ufw.admin.AdminModule
 import io.tpersson.ufw.admin.contracts.toDTO
 import io.tpersson.ufw.admin.utils.getPaginationOptions
+import io.tpersson.ufw.core.NamedBindings
 import io.tpersson.ufw.durablecaches.CacheEntry
 import io.tpersson.ufw.durablecaches.DurableCacheDefinition
 import io.tpersson.ufw.durablecaches.admin.contracts.DurableCacheDetailsDTO
 import io.tpersson.ufw.durablecaches.admin.contracts.DurableCacheEntryItemDTO
 import io.tpersson.ufw.durablecaches.admin.contracts.DurableCacheItemDTO
+import io.tpersson.ufw.keyvaluestore.KeyValueStore
+import io.tpersson.ufw.keyvaluestore.storageengine.EntryValue
 import jakarta.inject.Inject
+import jakarta.inject.Named
 import jakarta.inject.Singleton
+import java.time.Instant
 
 @Singleton
 public class DurableCachesAdminModule @Inject constructor(
     private val adminFacade: DurableCachesAdminFacade,
+    @Named(NamedBindings.ObjectMapper) private val objectMapper: ObjectMapper,
 ) : AdminModule {
     override val moduleId: String = "durable-caches"
 
@@ -73,6 +80,25 @@ public class DurableCachesAdminModule @Inject constructor(
 
                 call.respond(HttpStatusCode.NoContent)
             }
+
+            get("/admin/api/durable-caches/caches/{cacheId}/entries/{cacheKey}/details") {
+                val cacheId = call.parameters.cacheId!!
+                val cacheKey = call.parameters.cacheKey!!
+
+                val entry = adminFacade.getEntry(cacheId, cacheKey)
+                if (entry == null) {
+                    call.respond(HttpStatusCode.NotFound)
+                    return@get
+                }
+
+                call.respond(DurableCacheEntryDetailsDTO(
+                    key = cacheKey,
+                    content = objectMapper.writeValueAsString(entry.value!!),
+                    contentType = entry.value::class.simpleName,
+                    cachedAt = entry.cachedAt,
+                    expiresAt = entry.expiresAt,
+                ))
+            }
         }
     }
 }
@@ -105,3 +131,11 @@ private fun CacheEntry<*>.toItemDTO(): DurableCacheEntryItemDTO {
         expiresAt = expiresAt,
     )
 }
+
+public data class DurableCacheEntryDetailsDTO(
+    val key: String,
+    val contentType: String?,
+    val content: String,
+    val cachedAt: Instant,
+    val expiresAt: Instant?,
+)

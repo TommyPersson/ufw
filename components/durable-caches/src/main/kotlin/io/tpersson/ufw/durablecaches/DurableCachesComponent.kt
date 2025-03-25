@@ -26,8 +26,9 @@ public class DurableCachesComponent @Inject constructor(
 
             val durableCachesAdminModule = DurableCachesAdminModule(
                 adminFacade = DurableCachesAdminFacadeImpl(
-                    durableCaches = durableCaches
+                    durableCaches = durableCaches,
                 ),
+                objectMapper = coreComponent.objectMapper,
             )
 
             adminComponent.register(durableCachesAdminModule)
