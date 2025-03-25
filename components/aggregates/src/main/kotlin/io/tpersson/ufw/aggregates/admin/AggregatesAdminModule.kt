@@ -54,7 +54,12 @@ public data class AggregateDetailsDTO(
     val id: String,
     val type: String,
     val json: String,
-)
+    val factTypes: List<FactType>
+) {
+    public data class FactType(
+        val type: String,
+    )
+}
 
 public data class AggregateFactDTO(
     val id: String,
@@ -81,5 +86,8 @@ public fun AggregateData.toDTO(): AggregateDetailsDTO {
         id = id,
         type = type,
         json = json,
+        factTypes = factTypes.map {
+            AggregateDetailsDTO.FactType(type = it.type)
+        },
     )
 }

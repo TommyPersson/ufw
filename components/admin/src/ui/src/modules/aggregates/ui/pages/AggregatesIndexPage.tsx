@@ -108,20 +108,31 @@ const AggregateDetailsSection = (props: {
 }) => {
   const { details, isLoading } = props
 
+  const factTypes = details?.factTypes ?? []
+
   return (
     <>
       <PageSectionCard heading={"Details"}>
-        <PropertyGroup>
-          <PropertyText
-            title={"ID"}
-            subtitle={<code>{details?.id}</code>}
-            isLoading={isLoading}
-          />
-          <PropertyText
-            title={"Type"}
-            subtitle={<code>{details?.type}</code>}
-            isLoading={isLoading}
-          />
+        <PropertyGroup horizontal>
+          <PropertyGroup>
+            <PropertyText
+              title={"ID"}
+              subtitle={<code>{details?.id}</code>}
+              isLoading={isLoading}
+            />
+            <PropertyText
+              title={"Type"}
+              subtitle={<code>{details?.type}</code>}
+              isLoading={isLoading}
+            />
+          </PropertyGroup>
+          <PropertyGroup>
+            <PropertyText
+              title={"Available Fact Types"}
+              subtitle={factTypes.map(it => (<><code key={it.type}>{it.type}</code><br /></>))}
+              isLoading={isLoading}
+            />
+          </PropertyGroup>
         </PropertyGroup>
       </PageSectionCard>
       <PageSectionCard heading={"JSON Representation"}>

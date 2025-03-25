@@ -4,4 +4,9 @@ public data class AggregateData(
     val id: String,
     val type: String,
     val json: String,
-)
+    val factTypes: List<FactType>,
+) {
+    public data class FactType(
+        val type: String,
+    )
+}
