@@ -26,12 +26,12 @@ public class AggregatesAdminModule @Inject constructor(
             get("/admin/api/aggregates/aggregates/{aggregateId}/details") {
                 val aggregateId = call.parameters.aggregateId!!
 
-                call.respond(
-                    AggregateDetailsDTO(
-                        id = aggregateId.toString(),
-                        type = "Test"
-                    )
-                )
+                val aggregateData = adminFacade.getAggregateDetails(aggregateId)
+                if (aggregateData != null) {
+                    call.respond(aggregateData.toDTO())
+                } else {
+                    call.respond(HttpStatusCode.NotFound)
+                }
             }
 
             get("/admin/api/aggregates/aggregates/{aggregateId}/facts") {
@@ -53,6 +53,7 @@ private val Parameters.aggregateId: AggregateId? get() = this["aggregateId"]?.le
 public data class AggregateDetailsDTO(
     val id: String,
     val type: String,
+    val json: String,
 )
 
 public data class AggregateFactDTO(
@@ -72,5 +73,13 @@ public fun FactData.toDTO(): AggregateFactDTO {
         json = json,
         timestamp = timestamp,
         version = version,
+    )
+}
+
+public fun AggregateData.toDTO(): AggregateDetailsDTO {
+    return AggregateDetailsDTO(
+        id = id,
+        type = type,
+        json = json,
     )
 }

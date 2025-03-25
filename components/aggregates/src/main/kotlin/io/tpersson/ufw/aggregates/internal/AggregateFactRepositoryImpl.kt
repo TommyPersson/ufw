@@ -25,10 +25,11 @@ public class AggregateFactRepositoryImpl @Inject constructor(
     @Named(NamedBindings.ObjectMapper) private val objectMapper: ObjectMapper,
 ) : AggregateFactRepository {
 
-    override suspend fun insert(aggregateId: AggregateId, fact: Fact, version: Long, unitOfWork: UnitOfWork) {
+    override suspend fun insert(aggregateId: AggregateId, aggregateType: String, fact: Fact, version: Long, unitOfWork: UnitOfWork) {
         val factData = FactData(
             id = fact.id,
             aggregateId = aggregateId.value,
+            aggregateType = aggregateType,
             type = fact.typeName,
             timestamp = fact.timestamp,
             json = objectMapper.writeValueAsString(fact),
@@ -43,7 +44,7 @@ public class AggregateFactRepositoryImpl @Inject constructor(
     }
 
     override suspend fun <TFact : Fact> getAll(aggregateId: AggregateId, factClass: KClass<TFact>): List<TFact> {
-        val rawFacts = paginate {
+        val rawFacts = paginate { // TODO expose pagination options and make caller do the pagination
             database.select(Queries.Selects.GetAll(aggregateId.value, it))
         }.toList().flatMap { it.items }
 
@@ -85,6 +86,7 @@ public class AggregateFactRepositoryImpl @Inject constructor(
                 INSERT INTO $TableName (
                     id, 
                     aggregate_id, 
+                    aggregate_type,
                     type, 
                     json, 
                     timestamp, 
@@ -92,6 +94,7 @@ public class AggregateFactRepositoryImpl @Inject constructor(
                 ) VALUES (
                     :data.id,
                     :data.aggregateId,
+                    :data.aggregateType,
                     :data.type,
                     :data.json,
                     :data.timestamp,

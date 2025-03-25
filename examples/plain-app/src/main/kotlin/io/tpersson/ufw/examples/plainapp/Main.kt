@@ -104,6 +104,10 @@ public fun main(): Unit = runBlocking(MDCContext()) {
 
     ufw.database.runMigrations()
 
+    val counterRepository = CounterAggregateRepository(ufw.aggregates)
+
+    ufw.aggregates.register(counterRepository)
+
     ufw.managed.register(
         PeriodicLogger(
             featureToggles = ufw.featureToggles.featureToggles
@@ -133,7 +137,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
 
     testJobQueue(ufw)
 
-    testAggregates(ufw)
+    testAggregates(ufw, counterRepository)
 
     testTransactionalEvents(ufw)
 
@@ -172,8 +176,7 @@ private suspend fun testJobQueue(ufw: UFWRegistry) {
     }
 }
 
-private suspend fun testAggregates(ufw: UFWRegistry) {
-    val counterRepository = CounterAggregateRepository(ufw.aggregates)
+private suspend fun testAggregates(ufw: UFWRegistry, counterRepository: CounterAggregateRepository) {
     val unitOfWorkFactory = ufw.database.unitOfWorkFactory
     val clock = ufw.core.clock
 

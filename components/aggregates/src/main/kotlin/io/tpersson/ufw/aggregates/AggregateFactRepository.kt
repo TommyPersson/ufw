@@ -8,9 +8,18 @@ import kotlin.reflect.KClass
 
 public interface AggregateFactRepository {
     // TODO Typed AggregateId per repository?
-    public suspend fun insert(aggregateId: AggregateId, fact: Fact, version: Long, unitOfWork: UnitOfWork)
+    public suspend fun insert(
+        aggregateId: AggregateId,
+        aggregateType: String,
+        fact: Fact,
+        version: Long,
+        unitOfWork: UnitOfWork
+    )
 
-    public suspend fun <TFact : Fact> getAll(aggregateId: AggregateId, factClass: KClass<TFact>): List<TFact>
+    public suspend fun <TFact : Fact> getAll(
+        aggregateId: AggregateId,
+        factClass: KClass<TFact>
+    ): List<TFact>
 
     public suspend fun getAllRaw(
         aggregateId: AggregateId,

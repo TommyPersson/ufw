@@ -4,6 +4,8 @@ import io.tpersson.ufw.admin.AdminComponent
 import io.tpersson.ufw.aggregates.admin.AggregatesAdminFacadeImpl
 import io.tpersson.ufw.aggregates.admin.AggregatesAdminModule
 import io.tpersson.ufw.aggregates.internal.AggregateFactRepositoryImpl
+import io.tpersson.ufw.aggregates.internal.AggregateRepositoryProvider
+import io.tpersson.ufw.aggregates.internal.SimpleAggregateRepositoryProvider
 import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
@@ -14,7 +16,12 @@ import jakarta.inject.Inject
 public class AggregatesComponent @Inject constructor(
     public val factRepository: AggregateFactRepository,
     public val eventPublisher: DurableEventPublisher,
+    private val repositoryProvider: AggregateRepositoryProvider,
 ) {
+    public fun register(repository: AggregateRepository<*, *>) {
+        repositoryProvider.add(repository)
+    }
+
     init {
         Migrator.registerMigrationScript(
             componentName = "aggregates",
@@ -36,13 +43,24 @@ public class AggregatesComponent @Inject constructor(
 
             val eventPublisher = durableEventsComponent.eventPublisher
 
+            val repositoryProvider = SimpleAggregateRepositoryProvider()
+
             adminComponent.register(
                 AggregatesAdminModule(
-                    adminFacade = AggregatesAdminFacadeImpl(factRepository)
+                    adminFacade = AggregatesAdminFacadeImpl(
+                        factRepository = factRepository,
+                        repositoryProvider = repositoryProvider,
+                        objectMapper = coreComponent.objectMapper,
+                    )
                 )
             )
 
-            return AggregatesComponent(factRepository, eventPublisher)
+            return AggregatesComponent(
+                factRepository = factRepository,
+                eventPublisher = eventPublisher,
+                repositoryProvider = repositoryProvider
+            )
         }
     }
 }
+

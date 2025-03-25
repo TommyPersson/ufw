@@ -1,9 +1,11 @@
 package io.tpersson.ufw.aggregates
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import io.tpersson.ufw.durableevents.common.DurableEvent
 
 public abstract class AbstractAggregate<TFactType>(
     id: AggregateId,
+    @JsonIgnore
     public val originalVersion: Long,
     facts: List<TFactType> = emptyList()
 ) : AbstractEntity<AggregateId>(id) {
@@ -11,7 +13,10 @@ public abstract class AbstractAggregate<TFactType>(
         facts.forEach { mutate(it) }
     }
 
+    @JsonIgnore
     public val pendingFacts: MutableList<TFactType> = mutableListOf()
+
+    @JsonIgnore
     public val pendingEvents: MutableList<DurableEvent> = mutableListOf()
 
     protected fun record(fact: TFactType) {

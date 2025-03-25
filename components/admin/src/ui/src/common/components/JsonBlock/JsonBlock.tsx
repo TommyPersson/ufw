@@ -27,7 +27,7 @@ export const JsonBlock = (props: JsonBlockProps) => {
 
   const style: React.CSSProperties = {
     maxHeight: props.maxHeight,
-    overflow: props.maxHeight ? "scroll" : undefined
+    overflow: props.maxHeight ? "auto" : undefined
   }
 
   return (

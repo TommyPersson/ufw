@@ -1,4 +1,4 @@
-import { Pagination, TextField } from "@mui/material"
+import { Pagination, Skeleton, TextField, Typography } from "@mui/material"
 import { useQuery } from "@tanstack/react-query"
 import { useDebounce } from "@uidotdev/usehooks"
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react"
@@ -109,20 +109,34 @@ const AggregateDetailsSection = (props: {
   const { details, isLoading } = props
 
   return (
-    <PageSectionCard heading={"Details"}>
-      <PropertyGroup>
-        <PropertyText
-          title={"ID"}
-          subtitle={<code>{details?.id}</code>}
-          isLoading={isLoading}
-        />
-        <PropertyText
-          title={"Type"}
-          subtitle={<code>{details?.type}</code>}
-          isLoading={isLoading}
-        />
-      </PropertyGroup>
-    </PageSectionCard>
+    <>
+      <PageSectionCard heading={"Details"}>
+        <PropertyGroup>
+          <PropertyText
+            title={"ID"}
+            subtitle={<code>{details?.id}</code>}
+            isLoading={isLoading}
+          />
+          <PropertyText
+            title={"Type"}
+            subtitle={<code>{details?.type}</code>}
+            isLoading={isLoading}
+          />
+        </PropertyGroup>
+      </PageSectionCard>
+      <PageSectionCard heading={"JSON Representation"}>
+        {!details?.json && <Skeleton variant={"text"} />}
+        {!details?.json && <Skeleton variant={"text"} />}
+        {!details?.json && <Skeleton variant={"text"} />}
+        {details?.json && <>
+            <JsonBlock json={details.json} />
+            <Typography variant={"caption"}>
+                <strong>Note</strong>: This JSON representation is created by directly serializing the aggregate object.
+                It may not reflect the complete state of the aggregate object.
+            </Typography>
+        </>}
+      </PageSectionCard>
+    </>
   )
 }
 

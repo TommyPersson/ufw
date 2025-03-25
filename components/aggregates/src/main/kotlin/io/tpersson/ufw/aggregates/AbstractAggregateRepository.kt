@@ -18,7 +18,13 @@ public abstract class AbstractAggregateRepository<TAggregate : AbstractAggregate
         }
 
         for ((i, fact) in newFacts.withIndex()) {
-            factRepository.insert(aggregate.id, fact, aggregate.originalVersion + i + 1, unitOfWork)
+            factRepository.insert(
+                aggregateId = aggregate.id,
+                aggregateType = aggregateType,
+                fact = fact,
+                version = aggregate.originalVersion + i + 1,
+                unitOfWork = unitOfWork
+            )
         }
 
         val version = aggregate.originalVersion + newFacts.size

@@ -6,6 +6,7 @@ import java.util.*
 public data class FactData(
     val id: UUID,
     val aggregateId: String,
+    val aggregateType: String,
     val type: String,
     val json: String,
     val timestamp: Instant,
