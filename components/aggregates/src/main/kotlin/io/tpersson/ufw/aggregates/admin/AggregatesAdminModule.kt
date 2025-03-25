@@ -53,6 +53,7 @@ private val Parameters.aggregateId: AggregateId? get() = this["aggregateId"]?.le
 public data class AggregateDetailsDTO(
     val id: String,
     val type: String,
+    val version: Long,
     val json: String,
     val factTypes: List<FactType>
 ) {
@@ -85,6 +86,7 @@ public fun AggregateData.toDTO(): AggregateDetailsDTO {
     return AggregateDetailsDTO(
         id = id,
         type = type,
+        version = version,
         json = json,
         factTypes = factTypes.map {
             AggregateDetailsDTO.FactType(type = it.type)

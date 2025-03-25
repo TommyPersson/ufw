@@ -45,6 +45,7 @@ public class AggregatesAdminFacadeImpl @Inject constructor(
         val data = AggregateData(
             id = aggregateId.value,
             type = aggregateType,
+            version = aggregate.originalVersion,
             json = objectMapper.writeValueAsString(aggregate),
             factTypes = factTypes
         )

@@ -7,6 +7,7 @@ export const aggregateFactTypeSchema = z.object({
 export const aggregateDetailsSchema = z.object({
   id: z.string(),
   type: z.string(),
+  version: z.number(),
   json: z.string(),
   factTypes: aggregateFactTypeSchema.array()
 })

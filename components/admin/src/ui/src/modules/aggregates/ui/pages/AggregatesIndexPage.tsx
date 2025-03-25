@@ -125,6 +125,11 @@ const AggregateDetailsSection = (props: {
               subtitle={<code>{details?.type}</code>}
               isLoading={isLoading}
             />
+            <PropertyText
+              title={"Version"}
+              subtitle={details?.version}
+              isLoading={isLoading}
+            />
           </PropertyGroup>
           <PropertyGroup>
             <PropertyText
