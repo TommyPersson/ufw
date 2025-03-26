@@ -6,15 +6,20 @@ import classes from "./PropertyText.module.css"
 
 export const PropertyText = (props: {
   title: string,
-  subtitle: any,
+  subtitle: any | null | undefined,
+  fallback?: any
   noSubtitleStyling?: boolean
   isLoading?: boolean
   sx?: SxProps<Theme>
 }) => {
 
-  let subtitle = props.noSubtitleStyling
+  const subtitleText = props.subtitle !== null && props.subtitle !== undefined
     ? props.subtitle
-    : <Typography variant={"subtitle2"}>{props.subtitle}</Typography>
+    : (props.fallback ?? <em>N/A</em> );
+
+  let subtitle = props.noSubtitleStyling
+    ? subtitleText
+    : <Typography variant={"subtitle2"}>{subtitleText}</Typography>
 
   if (props.isLoading) {
     subtitle = <Skeleton />

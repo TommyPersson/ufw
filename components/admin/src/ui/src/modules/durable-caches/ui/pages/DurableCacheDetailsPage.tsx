@@ -1,17 +1,18 @@
+import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined"
+import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined"
 import {
   Button,
   Dialog,
   DialogActions,
   DialogContent,
-  DialogTitle, InputAdornment,
+  DialogTitle,
+  InputAdornment,
   Skeleton,
   TableCell,
   TableRow,
   TextField,
   Typography
 } from "@mui/material"
-import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined"
-import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined"
 import { useQuery } from "@tanstack/react-query"
 import { useDebounce } from "@uidotdev/usehooks"
 import { useCallback, useEffect, useMemo, useState } from "react"
@@ -20,6 +21,7 @@ import { useParams } from "react-router"
 import {
   CommandButton,
   DateTimeText,
+  ErrorAlert,
   JsonBlock,
   Page,
   PageBreadcrumb,
@@ -30,6 +32,7 @@ import {
   PropertyText,
   TableRowSkeleton
 } from "../../../../common/components"
+import { booleanToYesNo } from "../../../../common/utils/translations"
 import { InvalidateAllCacheEntriesCommand, InvalidateCacheEntryCommand } from "../../commands"
 import { DurableCacheDetails, DurableCacheEntryItem } from "../../models"
 import { DurableCacheEntryDetails } from "../../models/DurableCacheEntryDetails"
@@ -90,7 +93,7 @@ export const DurableCacheDetailsPage = () => {
     >
       <DetailsSection
         cacheDetails={cacheDetails}
-        loading={isLoading}
+        isLoading={isLoading}
       />
 
       <ActionsSection
@@ -99,6 +102,7 @@ export const DurableCacheDetailsPage = () => {
 
       <CacheEntriesSection
         cacheId={cacheId}
+        cacheDetails={cacheDetails}
         entries={cacheEntries}
         isLoadingEntries={isLoadingEntries}
         keyPrefix={keyPrefix}
@@ -112,6 +116,7 @@ export const DurableCacheDetailsPage = () => {
         cacheId={cacheId}
         selectedEntryKey={selectedEntryKey}
         cacheEntryDetails={cacheEntryDetailsQuery.data ?? null}
+        error={cacheEntryDetailsQuery.error}
         isLoading={cacheEntryDetailsQuery.isLoading}
         onClose={handleDetailsModalClose}
       />
@@ -121,24 +126,47 @@ export const DurableCacheDetailsPage = () => {
 
 const DetailsSection = (props: {
   cacheDetails: DurableCacheDetails | null,
-  loading: boolean
+  isLoading: boolean
 }) => {
+  const { cacheDetails, isLoading } = props
+
   return (
-    <PageSectionCard heading={props.cacheDetails?.title ?? <Skeleton />}>
+    <PageSectionCard heading={cacheDetails?.title ?? <Skeleton />}>
       <Typography variant={"body2"} component={"div"}>
-        <Markdown>{props.cacheDetails?.description}</Markdown>
+        <Markdown>{cacheDetails?.description}</Markdown>
       </Typography>
       <PropertyGroup horizontal>
-        <PropertyText
-          title={"ID"}
-          subtitle={<code>{props.cacheDetails?.id}</code>}
-          isLoading={props.loading}
-        />
-        <PropertyText
-          title={"# Entries"}
-          subtitle={props.cacheDetails?.numEntries}
-          isLoading={props.loading}
-        />
+        <PropertyGroup>
+          <PropertyText
+            title={"ID"}
+            subtitle={<code>{cacheDetails?.id}</code>}
+            isLoading={isLoading}
+          />
+          <PropertyText
+            title={"# Entries"}
+            subtitle={cacheDetails?.numEntries}
+            isLoading={isLoading}
+          />
+        </PropertyGroup>
+        <PropertyGroup>
+          <PropertyText
+            title={"Expiration Time (Database)"}
+            subtitle={cacheDetails?.expirationDuration?.toHuman()}
+            isLoading={isLoading}
+          />
+          <PropertyText
+            title={"Expiration Time (In-Memory)"}
+            subtitle={cacheDetails?.inMemoryExpirationDuration?.toHuman()}
+            isLoading={isLoading}
+          />
+        </PropertyGroup>
+        <PropertyGroup>
+          <PropertyText
+            title={"Contains Sensitive Data"}
+            subtitle={booleanToYesNo(cacheDetails?.containsSensitiveData ?? true)}
+            isLoading={isLoading}
+          />
+        </PropertyGroup>
       </PropertyGroup>
     </PageSectionCard>
   )
@@ -162,6 +190,7 @@ const ActionsSection = (props: { cacheId: string }) => {
 
 const CacheEntriesSection = (props: {
   cacheId: string
+  cacheDetails: DurableCacheDetails | null,
   entries: DurableCacheEntryItem[]
   isLoadingEntries: boolean
   keyPrefix: string
@@ -170,7 +199,7 @@ const CacheEntriesSection = (props: {
   onPageChanged: (page: number) => void
   onEntrySelected: (cacheKey: string) => void
 }) => {
-  const { cacheId, entries, isLoadingEntries, keyPrefix, onKeyPrefixChanged, page, onPageChanged } = props
+  const { cacheId, cacheDetails, entries, isLoadingEntries, keyPrefix, onKeyPrefixChanged, page, onPageChanged } = props
 
   const isEmpty = !isLoadingEntries && entries.length === 0
 
@@ -210,7 +239,13 @@ const CacheEntriesSection = (props: {
             {isLoadingEntries && <TableRowSkeleton numColumns={4} />}
             {isEmpty && <EmptyTableRow keyPrefix={keyPrefix} />}
             {!isLoadingEntries && entries.map(it => (
-              <CacheEntryTableRow key={it.key} cacheId={cacheId} entry={it} onEntrySelected={props.onEntrySelected} />
+              <CacheEntryTableRow
+                key={it.key}
+                cacheId={cacheId}
+                cacheDetails={cacheDetails}
+                entry={it}
+                onEntrySelected={props.onEntrySelected}
+              />
             ))}
           </>
         }
@@ -221,31 +256,35 @@ const CacheEntriesSection = (props: {
 
 const CacheEntryTableRow = (props: {
   cacheId: string
+  cacheDetails: DurableCacheDetails | null,
   entry: DurableCacheEntryItem
   onEntrySelected: (cacheKey: string) => void
 }) => {
-  const { cacheId, entry, onEntrySelected } = props
+  const { cacheId, cacheDetails, entry, onEntrySelected } = props
+
   return (
     <TableRow hover>
       <TableCell>
-        <code>{props.entry.key}</code>
+        <code>{entry.key}</code>
       </TableCell>
       <TableCell>
-        <DateTimeText dateTime={props.entry.cachedAt} />
+        <DateTimeText dateTime={entry.cachedAt} />
       </TableCell>
       <TableCell>
-        <DateTimeText dateTime={props.entry.expiresAt} />
+        <DateTimeText dateTime={entry.expiresAt} />
       </TableCell>
       <TableCell>
-        <Button
-          onClick={() => onEntrySelected(entry.key)}
-          startIcon={<ArticleOutlinedIcon />}
-          color={"primary"}
-          variant={"outlined"}
-          size={"small"}
-          sx={{ mr: 1 }}
-          children={"View details"}
-        />
+        {cacheDetails?.containsSensitiveData === false && (
+          <Button
+            onClick={() => onEntrySelected(entry.key)}
+            startIcon={<ArticleOutlinedIcon />}
+            color={"primary"}
+            variant={"outlined"}
+            size={"small"}
+            sx={{ mr: 1 }}
+            children={"View details"}
+          />
+        )}
         <CommandButton
           command={InvalidateCacheEntryCommand}
           args={{ cacheId: cacheId, cacheKey: entry.key }}
@@ -275,6 +314,7 @@ const CacheEntryDetailsDialog = (props: {
   cacheId: string
   selectedEntryKey: string | null,
   cacheEntryDetails: DurableCacheEntryDetails | null
+  error: any | null
   isLoading: boolean
   onClose: () => void
 }) => {
@@ -282,13 +322,16 @@ const CacheEntryDetailsDialog = (props: {
     cacheId,
     selectedEntryKey,
     cacheEntryDetails,
+    error,
     isLoading,
     onClose
   } = props
 
   const isOpen = selectedEntryKey != null
 
-  const content = isOpen ? (
+  const content = error ? (
+    <ErrorAlert error={error} />
+  ) : isOpen ? (
     <PropertyGroup>
       <PropertyGroup horizontal>
         <PropertyGroup>

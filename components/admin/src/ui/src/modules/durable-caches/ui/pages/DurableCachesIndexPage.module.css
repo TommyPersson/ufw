@@ -1,0 +1,9 @@
+
+.CacheTable {
+    td {
+        white-space: nowrap;
+    }
+    td:nth-child(2) {
+        white-space: unset;
+    }
+}

@@ -12,7 +12,7 @@ export const PropertyGroup = (props: PropertyGroupProps) => {
   const boxProps: Partial<BoxProps> = {
     display: "flex",
     flexDirection: horizontal ? "row" : "column",
-    gap: 1,
+    gap: horizontal ? 4 : 1,
     ...props.boxProps,
   }
 

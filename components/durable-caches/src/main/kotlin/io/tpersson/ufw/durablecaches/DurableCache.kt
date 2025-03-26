@@ -3,6 +3,8 @@ package io.tpersson.ufw.durablecaches
 import io.tpersson.ufw.core.utils.PaginatedList
 import io.tpersson.ufw.core.utils.PaginationOptions
 
+// TODO allow UOW for put/removals?
+
 public interface DurableCache<TValue : Any> {
     public val definition: DurableCacheDefinition<TValue>
 

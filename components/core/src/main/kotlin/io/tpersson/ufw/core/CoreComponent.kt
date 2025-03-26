@@ -32,6 +32,7 @@ public class CoreComponent @Inject private constructor(
             jacksonObjectMapper().findAndRegisterModules().also {
                 it.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
                 it.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                it.disable(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS)
             }
 
     }

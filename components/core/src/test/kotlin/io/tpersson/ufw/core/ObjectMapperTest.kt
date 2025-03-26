@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.Instant
+import java.time.Duration
 
 internal class ObjectMapperTest {
     @Test
@@ -20,5 +21,20 @@ internal class ObjectMapperTest {
         val deserialized = objectMapper.readValue<Instant>(actual)
         
         assertThat(deserialized).isEqualTo(expectedInstant)
+    }
+    @Test
+    fun `Can serialize and deserialize Durations as ISO-8601`() {
+        val objectMapper = CoreComponent.defaultObjectMapper
+
+        val expectedString = "PT1H2M"
+        val expectedDuration = Duration.parse(expectedString)
+
+        val actual = objectMapper.writeValueAsString(expectedDuration)
+
+        assertThat(actual).isEqualTo("\"$expectedString\"")
+
+        val deserialized = objectMapper.readValue<Duration>(actual)
+
+        assertThat(deserialized).isEqualTo(expectedDuration)
     }
 }

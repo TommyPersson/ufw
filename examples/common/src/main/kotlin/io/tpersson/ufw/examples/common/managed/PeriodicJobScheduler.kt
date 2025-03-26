@@ -7,6 +7,7 @@ import io.tpersson.ufw.durablejobs.DurableJobQueue
 import io.tpersson.ufw.examples.common.featuretoggles.AppFeatureToggles
 import io.tpersson.ufw.examples.common.jobs.ExpensiveCalculationJob
 import io.tpersson.ufw.examples.common.jobs.PrintJob2
+import io.tpersson.ufw.examples.common.jobs.SensitiveDataRefreshJob
 import io.tpersson.ufw.featuretoggles.FeatureToggles
 import io.tpersson.ufw.managed.ManagedJob
 import jakarta.inject.Inject
@@ -44,6 +45,7 @@ public class PeriodicJobScheduler @Inject constructor(
         unitOfWorkFactory.use { uow ->
             jobQueue.enqueue(PrintJob2("$i"), uow)
             jobQueue.enqueue(ExpensiveCalculationJob(), uow)
+            jobQueue.enqueue(SensitiveDataRefreshJob(), uow)
         }
     }
 }

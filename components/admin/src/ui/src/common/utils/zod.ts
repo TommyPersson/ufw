@@ -1,4 +1,4 @@
-import { DateTime } from "luxon"
+import { DateTime, Duration } from "luxon"
 import { z, ZodObject, ZodRawShape } from "zod"
 
 export const zx = {
@@ -9,6 +9,14 @@ export const zx = {
     }
 
     return value as DateTime<true>
+  }),
+  duration: z.string().transform(it => {
+    const value = Duration.fromISO(it)
+    if (!value.isValid) {
+      throw new Error(`Invalid Duration: ${it}`)
+    }
+
+    return value as Duration
   }),
   paginatedList: <T extends ZodRawShape>(itemSchema: ZodObject<T>) => z.object({
     items: itemSchema.array(),

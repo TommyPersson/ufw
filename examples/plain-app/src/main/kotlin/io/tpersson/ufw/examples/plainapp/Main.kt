@@ -88,7 +88,8 @@ public fun main(): Unit = runBlocking(MDCContext()) {
             durableJobHandlers = setOf(
                 PrintJobHandler(),
                 PrintJob2Handler(),
-                ExpensiveCalculationJobHandler(components.durableCaches.durableCaches)
+                ExpensiveCalculationJobHandler(components.durableCaches.durableCaches),
+                SensitiveDataRefreshJobHandler(components.durableCaches.durableCaches)
             )
         }
         durableEvents {

@@ -7,6 +7,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.tpersson.ufw.admin.AdminModule
 import io.tpersson.ufw.admin.contracts.toDTO
+import io.tpersson.ufw.admin.raise
 import io.tpersson.ufw.admin.utils.getPaginationOptions
 import io.tpersson.ufw.core.NamedBindings
 import io.tpersson.ufw.durablecaches.CacheEntry
@@ -14,8 +15,6 @@ import io.tpersson.ufw.durablecaches.DurableCacheDefinition
 import io.tpersson.ufw.durablecaches.admin.contracts.DurableCacheDetailsDTO
 import io.tpersson.ufw.durablecaches.admin.contracts.DurableCacheEntryItemDTO
 import io.tpersson.ufw.durablecaches.admin.contracts.DurableCacheItemDTO
-import io.tpersson.ufw.keyvaluestore.KeyValueStore
-import io.tpersson.ufw.keyvaluestore.storageengine.EntryValue
 import jakarta.inject.Inject
 import jakarta.inject.Named
 import jakarta.inject.Singleton
@@ -45,11 +44,7 @@ public class DurableCachesAdminModule @Inject constructor(
 
                 val cache = adminFacade.getByCacheId(cacheId)
                     ?.toDetailsDTO(adminFacade.getNumEntries(cacheId))
-
-                if (cache == null) {
-                    call.respond(HttpStatusCode.NotFound)
-                    return@get
-                }
+                    ?: HttpStatusCode.NotFound.raise()
 
                 call.respond(cache)
             }
@@ -86,10 +81,7 @@ public class DurableCachesAdminModule @Inject constructor(
                 val cacheKey = call.parameters.cacheKey!!
 
                 val entry = adminFacade.getEntry(cacheId, cacheKey)
-                if (entry == null) {
-                    call.respond(HttpStatusCode.NotFound)
-                    return@get
-                }
+                    ?: HttpStatusCode.NotFound.raise()
 
                 call.respond(DurableCacheEntryDetailsDTO(
                     key = cacheKey,
@@ -111,6 +103,9 @@ private fun DurableCacheDefinition<*>.toItemDTO(numEntries: Long): DurableCacheI
         id = id,
         title = title,
         description = description,
+        containsSensitiveData = containsSensitiveData,
+        expirationDuration = expiration,
+        inMemoryExpirationDuration = inMemoryExpiration,
         numEntries = numEntries,
     )
 }
@@ -120,6 +115,9 @@ private fun DurableCacheDefinition<*>.toDetailsDTO(numEntries: Long): DurableCac
         id = id,
         title = title,
         description = description,
+        containsSensitiveData = containsSensitiveData,
+        expirationDuration = expiration,
+        inMemoryExpirationDuration = inMemoryExpiration,
         numEntries = numEntries,
     )
 }

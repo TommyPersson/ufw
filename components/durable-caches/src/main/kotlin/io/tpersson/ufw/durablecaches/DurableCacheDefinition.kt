@@ -10,6 +10,7 @@ public data class DurableCacheDefinition<TValue : Any>(
     @Language("Markdown")
     public val description: String,
     public val valueType: KClass<out TValue>,
+    public val containsSensitiveData: Boolean = true, // Better name?
     public val expiration: Duration?,
     public val inMemoryExpiration: Duration?
 )

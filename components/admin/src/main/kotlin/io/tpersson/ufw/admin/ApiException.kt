@@ -5,5 +5,5 @@ import io.ktor.http.*
 public class ApiException(
     public val errorCode: String,
     public val errorMessage: String,
-    public val statusCode: HttpStatusCode = HttpStatusCode.BadRequest,
-): Exception(errorMessage)
+    statusCode: HttpStatusCode = HttpStatusCode.BadRequest,
+): HttpException(statusCode)

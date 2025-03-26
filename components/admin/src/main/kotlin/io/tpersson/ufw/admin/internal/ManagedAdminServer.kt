@@ -16,6 +16,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.tpersson.ufw.admin.AdminComponentConfig
 import io.tpersson.ufw.admin.ApiException
+import io.tpersson.ufw.admin.HttpException
 import io.tpersson.ufw.managed.Managed
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
@@ -49,6 +50,15 @@ public class ManagedAdminServer @Inject constructor(
                         message = ApiErrorDTO(
                             errorCode = cause.errorCode,
                             errorMessage = cause.errorMessage
+                        )
+                    )
+                }
+                exception<HttpException> { call, cause ->
+                    call.respond(
+                        status = cause.statusCode,
+                        message = ApiErrorDTO(
+                            errorCode = "http.${cause.statusCode.value}",
+                            errorMessage = cause.statusText
                         )
                     )
                 }
@@ -88,6 +98,8 @@ public class ManagedAdminServer @Inject constructor(
 public fun configureJackson(om: ObjectMapper) {
     om.configure(SerializationFeature.INDENT_OUTPUT, true)
     om.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    om.disable(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS)
+    om.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     om.findAndRegisterModules()
     om.dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
 }

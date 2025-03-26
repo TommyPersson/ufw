@@ -1,5 +1,7 @@
 package io.tpersson.ufw.durablecaches.admin
 
+import io.ktor.http.*
+import io.tpersson.ufw.admin.raise
 import io.tpersson.ufw.core.utils.PaginatedList
 import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.durablecaches.CacheEntry
@@ -50,6 +52,10 @@ public class DurableCachesAdminFacadeImpl @Inject constructor(
     override suspend fun getEntry(cacheId: String, cacheKey: String): CacheEntry<*>? {
         val definition = durableCaches.knownCaches[cacheId]
             ?: return null
+
+        if (definition.containsSensitiveData) {
+            HttpStatusCode.Forbidden.raise()
+        }
 
         val cache = durableCaches.get(definition)
 
