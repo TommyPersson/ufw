@@ -67,16 +67,20 @@ export const AggregatesIndexPage = () => {
         value={aggregateId}
         onChange={handleAggregateSearchValueChanged}
       />
-      <AggregateDetailsSection
-        details={aggregateDetails}
-        isLoading={isLoading}
-      />
-      <AggregateFactsSection
-        facts={aggregateFacts}
-        isLoading={isLoading}
-        page={page}
-        onPageChange={setPage}
-      />
+      {aggregateDetails && (
+        <>
+          <AggregateDetailsSection
+            details={aggregateDetails}
+            isLoading={isLoading}
+          />
+          <AggregateFactsSection
+            facts={aggregateFacts}
+            isLoading={isLoading}
+            page={page}
+            onPageChange={setPage}
+          />
+        </>
+      )}
     </Page>
   )
 }

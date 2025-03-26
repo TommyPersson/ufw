@@ -9,7 +9,7 @@ import {
   DateTimeText,
   Page,
   PageBreadcrumb,
-  PaginatedTable,
+  PaginatedTable, PropertyGroup, PropertyText,
   TableRowSkeleton
 } from "../../../../common/components"
 import { DisableFeatureToggleCommand, EnableFeatureToggleCommand } from "../../commands"
@@ -53,8 +53,7 @@ export const FeatureTogglesIndexPage = () => {
             <TableRow>
               <TableCell>State</TableCell>
               <TableCell>Feature Toggle</TableCell>
-              <TableCell>Created At</TableCell>
-              <TableCell>Last Changed At</TableCell>
+              <TableCell>Events</TableCell>
               <TableCell></TableCell>
             </TableRow>
           }
@@ -97,8 +96,18 @@ const FeatureToggleRow = (props: {
         </Typography>
         <Typography variant={"caption"}>ID: <code>{featureToggle.id}</code></Typography>
       </TableCell>
-      <TableCell><DateTimeText dateTime={featureToggle.createdAt} /></TableCell>
-      <TableCell><DateTimeText dateTime={featureToggle.stateChangedAt} /></TableCell>
+      <TableCell>
+        <PropertyGroup>
+          <PropertyText
+            title={"Created At"}
+            subtitle={<DateTimeText dateTime={featureToggle.createdAt} />}
+          />
+          <PropertyText
+            title={"State Changed At"}
+            subtitle={<DateTimeText dateTime={featureToggle.stateChangedAt} />}
+          />
+        </PropertyGroup>
+      </TableCell>
       <TableCell>
         {!featureToggle.isEnabled &&
             <CommandButton

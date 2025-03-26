@@ -78,7 +78,7 @@ const DurableCacheItemRow = (props: { cache: DurableCacheItem }) => {
       <LinkTableCell to={link}>
         <Typography variant={"subtitle2"}>{cache.title}</Typography>
         <Markdown>{cache.description}</Markdown>
-        <code>{cache.id}</code>
+        <Typography variant={"caption"}>ID: <code>{cache.id}</code></Typography>
       </LinkTableCell>
       <LinkTableCell to={link}>
         <PropertyGroup>

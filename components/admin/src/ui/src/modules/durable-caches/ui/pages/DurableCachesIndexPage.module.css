@@ -3,7 +3,14 @@
     td {
         white-space: nowrap;
     }
+
     td:nth-child(2) {
-        white-space: unset;
+        width: 500px;
+        white-space: normal;
+    }
+
+    td:last-child {
+        text-align: center;
+        width: 200px;
     }
 }
