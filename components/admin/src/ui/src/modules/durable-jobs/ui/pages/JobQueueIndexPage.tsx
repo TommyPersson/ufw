@@ -1,16 +1,30 @@
 import WarningIcon from "@mui/icons-material/Warning"
-import { Box, Chip, Paper, TableCell, TableContainer, TableRow, Tooltip } from "@mui/material"
-import { useQuery } from "@tanstack/react-query"
-import { useMemo, useState } from "react"
 import {
+  Box,
+  Card,
+  CardContent,
+  Chip,
+  Divider,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tooltip
+} from "@mui/material"
+import { useQuery } from "@tanstack/react-query"
+import { uniqBy } from "es-toolkit"
+import { useMemo } from "react"
+import {
+  ApplicationModuleHeader,
   DateTimeText,
   ErrorAlert,
   LinkTableCell,
   Page,
-  PageBreadcrumb,
-  PaginatedTable,
-  TableRowSkeleton
+  PageBreadcrumb
 } from "../../../../common/components"
+import { ApplicationModule } from "../../../../common/models"
 import { JobQueueListItem } from "../../models"
 import { JobQueueListQuery } from "../../queries"
 import { getQueueStateColor } from "../utils/colors"
@@ -19,9 +33,10 @@ import classes from "./JobQueueIndexPage.module.css"
 
 export const JobQueueIndexPage = () => {
 
-  const [page, setPage] = useState(1)
-  // TODO paginate
   const queuesQuery = useQuery(JobQueueListQuery)
+  const queues = queuesQuery.data ?? []
+
+  const applicationModules = uniqBy(queues.map(it => it.applicationModule), it => it.id)
 
   const breadcrumbs = useMemo<PageBreadcrumb[]>(() => [
     { text: "Durable Jobs" },
@@ -36,36 +51,51 @@ export const JobQueueIndexPage = () => {
       breadcrumbs={breadcrumbs}
     >
       <ErrorAlert error={queuesQuery.error} />
-      <Paper>
-        <TableContainer>
-          <PaginatedTable
-            page={page}
-            onPageChanged={setPage}
-            totalItemCount={queuesQuery.data?.length ?? 0}
-            tableHead={
-              <TableRow>
-                <TableCell style={{ width: 0 }}></TableCell>
-                <TableCell>Queue ID</TableCell>
-                <TableCell style={{ width: 0 }}>State</TableCell>
-                <TableCell style={{ width: 0 }}># Scheduled</TableCell>
-                <TableCell style={{ width: 0 }}># Pending</TableCell>
-                <TableCell style={{ width: 0 }}># In Progress</TableCell>
-                <TableCell style={{ width: 0 }}># Failed</TableCell>
-              </TableRow>
-            }
-            tableBody={
-              <>
-                {queuesQuery.isLoading && <TableRowSkeleton numColumns={7} />}
-                {queuesQuery.data?.map(it => (
-                  <QueueTableRow key={it.queueId} queue={it} />
-                ))}
-              </>
-            }
-            className={classes.Table}
-          />
-        </TableContainer>
-      </Paper>
+      {applicationModules.map(module => {
+        const queuesInModule = queues.filter(it => it.applicationModule.id === module.id)
+        return <QueuesTableCard
+          key={module.id}
+          module={module}
+          queues={queuesInModule}
+        />
+      })}
     </Page>
+  )
+}
+
+const QueuesTableCard = (props: {
+  queues: JobQueueListItem[]
+  module: ApplicationModule
+}) => {
+  const { queues, module } = props
+
+  return (
+    <TableContainer component={Card}>
+      <CardContent>
+        <ApplicationModuleHeader applicationModule={module} />
+      </CardContent>
+      <Divider />
+      <Table className={classes.Table}>
+        <TableHead>
+          <TableRow>
+            <TableCell style={{ width: 0 }}></TableCell>
+            <TableCell>Queue ID</TableCell>
+            <TableCell style={{ width: 0 }}>State</TableCell>
+            <TableCell style={{ width: 0 }}># Scheduled</TableCell>
+            <TableCell style={{ width: 0 }}># Pending</TableCell>
+            <TableCell style={{ width: 0 }}># In Progress</TableCell>
+            <TableCell style={{ width: 0 }}># Failed</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          <>
+            {queues.map(it =>
+              <QueueTableRow key={it.queueId} queue={it} />
+            )}
+          </>
+        </TableBody>
+      </Table>
+    </TableContainer>
   )
 }
 

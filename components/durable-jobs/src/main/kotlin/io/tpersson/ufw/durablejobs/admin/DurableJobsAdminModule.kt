@@ -5,8 +5,10 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.tpersson.ufw.admin.AdminModule
+import io.tpersson.ufw.admin.contracts.toApplicationModuleDTO
 import io.tpersson.ufw.admin.contracts.toDTO
 import io.tpersson.ufw.admin.utils.getPaginationOptions
+import io.tpersson.ufw.core.utils.findModuleMolecule
 import io.tpersson.ufw.databasequeue.WorkItemQueueId
 import io.tpersson.ufw.databasequeue.WorkItemState
 import io.tpersson.ufw.databasequeue.admin.DatabaseQueueAdminFacade
@@ -39,14 +41,14 @@ public class DurableJobsAdminModule @Inject constructor(
         application.routing {
             get("/admin/api/durable-jobs/queues") {
                 coroutineScope {
-                    val queueIds = jobHandlerDefinitions.map { it.queueId }
-                    val listItems = queueIds.map { queueId ->
+                    val listItems = jobHandlerDefinitions.map { handler ->
                         async {
-                            val stats = databaseQueueAdminFacade.getQueueStatistics(queueId.toWorkItemQueueId())
-                            val status = databaseQueueAdminFacade.getQueueStatus(queueId.toWorkItemQueueId())
+                            val stats = databaseQueueAdminFacade.getQueueStatistics(handler.queueId.toWorkItemQueueId())
+                            val status = databaseQueueAdminFacade.getQueueStatus(handler.queueId.toWorkItemQueueId())
+                            val module = handler.jobClass.findModuleMolecule()
 
                             QueueListItemDTO(
-                                queueId = queueId,
+                                queueId = handler.queueId,
                                 numScheduled = stats.numScheduled,
                                 numPending = stats.numPending,
                                 numInProgress = stats.numInProgress,
@@ -54,7 +56,9 @@ public class DurableJobsAdminModule @Inject constructor(
                                 status = JobQueueStatusDTO(
                                     state = status.state,
                                     stateChangedAt = status.stateChangedAt,
-                                )
+                                ),
+                                applicationModule = module.toApplicationModuleDTO()
+
                             )
                         }
                     }.awaitAll()
@@ -70,6 +74,7 @@ public class DurableJobsAdminModule @Inject constructor(
 
                 val stats = databaseQueueAdminFacade.getQueueStatistics(queueId.toWorkItemQueueId())
                 val status = databaseQueueAdminFacade.getQueueStatus(queueId.toWorkItemQueueId())
+                val module = handlers.first().jobClass.findModuleMolecule()
 
                 val details = QueueDetailsDTO(
                     queueId = queueId,
@@ -89,7 +94,8 @@ public class DurableJobsAdminModule @Inject constructor(
                             jobClassName = it.jobClass.simpleName!!,
                             description = it.description
                         )
-                    }
+                    },
+                    applicationModule = module.toApplicationModuleDTO()
                 )
 
                 call.respond(details)

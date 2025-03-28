@@ -1,5 +1,6 @@
 package io.tpersson.ufw.durablejobs.admin.contracts
 
+import io.tpersson.ufw.admin.contracts.ApplicationModuleDTO
 import io.tpersson.ufw.durablejobs.DurableJobQueueId
 
 public data class QueueDetailsDTO(
@@ -10,6 +11,7 @@ public data class QueueDetailsDTO(
     val numFailed: Int,
     val status: JobQueueStatusDTO,
     val jobTypes: List<JobType>,
+    val applicationModule: ApplicationModuleDTO,
 ) {
     public data class JobType(
         val type: String,

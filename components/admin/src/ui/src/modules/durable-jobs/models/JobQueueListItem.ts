@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { applicationModuleSchema } from "../../../common/models"
 import { jobQueueStatusSchema } from "./JobQueueStatus"
 
 export const jobQueueListItemSchema = z.object({
@@ -8,6 +9,7 @@ export const jobQueueListItemSchema = z.object({
   numInProgress: z.number(),
   numFailed: z.number(),
   status: jobQueueStatusSchema,
+  applicationModule: applicationModuleSchema,
 })
 
 export type JobQueueListItem = z.infer<typeof jobQueueListItemSchema>

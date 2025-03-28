@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { applicationModuleSchema } from "../../../common/models"
 import { jobQueueStatusSchema } from "./JobQueueStatus"
 
 
@@ -14,6 +15,7 @@ export const jobQueueDetailsSchema = z.object({
     jobClassName: z.string(),
     description: z.string().nullable(),
   }).array(),
+  applicationModule: applicationModuleSchema,
 })
 
 export type JobQueueDetails = z.infer<typeof jobQueueDetailsSchema>

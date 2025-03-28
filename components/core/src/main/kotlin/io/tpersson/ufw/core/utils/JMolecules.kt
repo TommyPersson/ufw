@@ -4,6 +4,8 @@ import org.jmolecules.ddd.annotation.Module
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 
+// TODO add tests
+
 public val DefaultModule: Module = Module(
     id = "default",
     name = "Default",
