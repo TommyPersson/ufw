@@ -1,7 +1,7 @@
 import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined"
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined"
 import {
-  Button,
+  Button, CardContent,
   Dialog,
   DialogActions,
   DialogContent,
@@ -132,42 +132,44 @@ const DetailsSection = (props: {
 
   return (
     <PageSectionCard heading={cacheDetails?.title ?? <Skeleton />}>
-      <Typography variant={"body2"} component={"div"}>
-        <Markdown>{cacheDetails?.description}</Markdown>
-      </Typography>
-      <PropertyGroup horizontal>
-        <PropertyGroup>
-          <PropertyText
-            title={"ID"}
-            subtitle={<code>{cacheDetails?.id}</code>}
-            isLoading={isLoading}
-          />
-          <PropertyText
-            title={"# Entries"}
-            subtitle={cacheDetails?.numEntries}
-            isLoading={isLoading}
-          />
+      <CardContent>
+        <Typography variant={"body2"} component={"div"}>
+          <Markdown>{cacheDetails?.description}</Markdown>
+        </Typography>
+        <PropertyGroup horizontal>
+          <PropertyGroup>
+            <PropertyText
+              title={"ID"}
+              subtitle={<code>{cacheDetails?.id}</code>}
+              isLoading={isLoading}
+            />
+            <PropertyText
+              title={"# Entries"}
+              subtitle={cacheDetails?.numEntries}
+              isLoading={isLoading}
+            />
+          </PropertyGroup>
+          <PropertyGroup>
+            <PropertyText
+              title={"Expiration Time (Database)"}
+              subtitle={cacheDetails?.expirationDuration?.toHuman()}
+              isLoading={isLoading}
+            />
+            <PropertyText
+              title={"Expiration Time (In-Memory)"}
+              subtitle={cacheDetails?.inMemoryExpirationDuration?.toHuman()}
+              isLoading={isLoading}
+            />
+          </PropertyGroup>
+          <PropertyGroup>
+            <PropertyText
+              title={"Contains Sensitive Data"}
+              subtitle={booleanToYesNo(cacheDetails?.containsSensitiveData ?? true)}
+              isLoading={isLoading}
+            />
+          </PropertyGroup>
         </PropertyGroup>
-        <PropertyGroup>
-          <PropertyText
-            title={"Expiration Time (Database)"}
-            subtitle={cacheDetails?.expirationDuration?.toHuman()}
-            isLoading={isLoading}
-          />
-          <PropertyText
-            title={"Expiration Time (In-Memory)"}
-            subtitle={cacheDetails?.inMemoryExpirationDuration?.toHuman()}
-            isLoading={isLoading}
-          />
-        </PropertyGroup>
-        <PropertyGroup>
-          <PropertyText
-            title={"Contains Sensitive Data"}
-            subtitle={booleanToYesNo(cacheDetails?.containsSensitiveData ?? true)}
-            isLoading={isLoading}
-          />
-        </PropertyGroup>
-      </PropertyGroup>
+      </CardContent>
     </PageSectionCard>
   )
 }
@@ -205,19 +207,21 @@ const CacheEntriesSection = (props: {
 
   return (
     <PageSectionCard heading={"Cache Entries"}>
-      <TextField
-        label={"Key Prefix Search"}
-        value={keyPrefix}
-        style={{ width: 400 }}
-        onChange={(e) => onKeyPrefixChanged(e.target.value)}
-        slotProps={{
-          input: {
-            startAdornment: (
-              <InputAdornment position={"start"} children={<SearchOutlinedIcon />} />
-            )
-          }
-        }}
-      />
+      <CardContent>
+        <TextField
+          label={"Key Prefix Search"}
+          value={keyPrefix}
+          style={{ width: 400 }}
+          onChange={(e) => onKeyPrefixChanged(e.target.value)}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position={"start"} children={<SearchOutlinedIcon />} />
+              )
+            }
+          }}
+        />
+      </CardContent>
       <PaginatedTable
         totalItemCount={entries.length}
         page={page}

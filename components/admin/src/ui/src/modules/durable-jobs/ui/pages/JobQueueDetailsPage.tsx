@@ -193,23 +193,25 @@ const JobTypesSection = (props: { jobTypes: JobType[] }) => {
 const JobTypeDetailsCard = (props: { jobType: JobType }) => {
   return (
     <PageSectionCard>
-      <PropertyGroup>
-        <PropertyGroup horizontal>
+      <CardContent>
+        <PropertyGroup>
+          <PropertyGroup horizontal>
+            <PropertyText
+              title={"Job Type"}
+              subtitle={<code>{props.jobType.type}</code>}
+            />
+            <PropertyText
+              title={"Job Class Name"}
+              subtitle={<code>{props.jobType.jobClassName}</code>}
+            />
+          </PropertyGroup>
           <PropertyText
-            title={"Job Type"}
-            subtitle={<code>{props.jobType.type}</code>}
-          />
-          <PropertyText
-            title={"Job Class Name"}
-            subtitle={<code>{props.jobType.jobClassName}</code>}
+            title={"Description"}
+            subtitle={<Markdown>{props.jobType.description ?? "*No description*"}</Markdown>}
+            noSubtitleStyling
           />
         </PropertyGroup>
-        <PropertyText
-          title={"Description"}
-          subtitle={<Markdown>{props.jobType.description ?? "*No description*"}</Markdown>}
-          noSubtitleStyling
-        />
-      </PropertyGroup>
+      </CardContent>
     </PageSectionCard>
   )
 }
