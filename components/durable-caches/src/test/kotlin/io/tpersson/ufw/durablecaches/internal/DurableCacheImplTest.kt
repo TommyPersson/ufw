@@ -193,23 +193,23 @@ internal class DurableCacheImplTest {
     }
 
     object Caches {
-        val PrimitiveCache: DurableCacheDefinition<Boolean> = DurableCacheDefinition(
-            id = "primitives",
-            title = "Primitives",
-            description = "Primitives",
-            valueType = Boolean::class,
-            expiration = Duration.ofMinutes(10),
-            inMemoryExpiration = null,
-        )
+        object PrimitiveCache : DurableCacheDefinition<Boolean> {
+            override val id = "primitives"
+            override val title = "Primitives"
+            override val description = "Primitives"
+            override val valueType = Boolean::class
+            override val expiration = Duration.ofMinutes(10)
+            override val inMemoryExpiration = null
+        }
 
-        val WithInMemoryCache: DurableCacheDefinition<Boolean> = DurableCacheDefinition(
-            id = "with-in-memory-cache",
-            title = "With in-memory cache",
-            description = "It has an in-memory cache as well",
-            valueType = Boolean::class,
-            expiration = Duration.ofMinutes(10),
-            inMemoryExpiration = Duration.ofSeconds(30),
-        )
+        object WithInMemoryCache : DurableCacheDefinition<Boolean> {
+            override val id = "with-in-memory-cache"
+            override val title = "With in-memory cache"
+            override val description = "It has an in-memory cache as well"
+            override val valueType = Boolean::class
+            override val expiration = Duration.ofMinutes(10)
+            override val inMemoryExpiration = Duration.ofSeconds(30)
+        }
     }
 
     class ObservableKeyValueStore(

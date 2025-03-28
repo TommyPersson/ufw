@@ -44,17 +44,17 @@ internal class FeatureTogglesImplTest {
     }
 
     object TestToggles {
-        val TestFeatureToggle1: FeatureToggleDefinition = FeatureToggleDefinition(
-            id = "test-1",
-            title = "Test title 1",
-            description = "Test description 1",
-            default = true,
-        )
-        val TestFeatureToggle2: FeatureToggleDefinition = FeatureToggleDefinition(
-            id = "test-2",
-            title = "Test title 2",
-            description = "Test description 2",
-            default = false,
-        )
+        object TestFeatureToggle1 : FeatureToggleDefinition {
+            override val id = "test-1"
+            override val title = "Test title 1"
+            override val description = "Test description 1"
+            override val default = true
+        }
+        object TestFeatureToggle2 : FeatureToggleDefinition {
+            override val id = "test-2"
+            override val title = "Test title 2"
+            override val description = "Test description 2"
+            override val default = false
+        }
     }
 }
