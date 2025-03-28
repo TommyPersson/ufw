@@ -1,6 +1,8 @@
-import { Alert, AlertTitle, Box, ButtonProps, Skeleton } from "@mui/material"
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import ExpandLessIcon from '@mui/icons-material/ExpandLess'
+import { Alert, AlertTitle, Box, Button, ButtonProps, Card, IconButton, Skeleton } from "@mui/material"
 import { useQuery } from "@tanstack/react-query"
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { useParams } from "react-router"
 import {
   CodeBlock,
@@ -315,32 +317,60 @@ const JobFailuresSection = (props: {
     <>
       <PageSectionHeader>Last 5 Failures</PageSectionHeader>
       {isLoading && <Skeleton />}
-      {jobFailures.map(it => (
-        <PageSectionCard key={it.failureId}>
-          <PropertyGroup>
-            <PropertyGroup horizontal>
-              <PropertyText
-                title={"Error Type"}
-                subtitle={<code>{it.errorType}</code>}
-              />
-              <PropertyText
-                title={"Timestamp"}
-                subtitle={<DateTimeText dateTime={it.timestamp} />}
-              />
-            </PropertyGroup>
-            <PropertyText
-              title={"Error Message"}
-              subtitle={<code>{it.errorMessage}</code>}
-            />
-            <PropertyText
-              title={"Error Stacktrace"}
-              subtitle={<CodeBlock code={it.errorStackTrace} style={{ height: 160 }} />}
-            />
-          </PropertyGroup>
-        </PageSectionCard>
+      {!isLoading && jobFailures.length === 0 && <NoFailuresMessage />}
+      {jobFailures.map((it, i) => (
+        <JobFailureCard key={it.failureId} failure={it} isFirst={i === 0} />
       ))}
     </>
   )
+}
+
+const JobFailureCard = (props: { failure: JobFailure, isFirst: boolean }) => {
+  const { failure, isFirst } = props
+
+  const [isExpanded, setIsExpanded] = useState(isFirst)
+
+  const toggleExpansionButton = (
+    <IconButton
+      onClick={() => setIsExpanded(s => !s)}
+      children={isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+    />
+  )
+
+  return (
+    <Card key={failure.failureId}>
+      <Alert severity={"error"} action={toggleExpansionButton}>
+        <PropertyGroup>
+          <PropertyGroup horizontal>
+            <PropertyText
+              title={"Error Type"}
+              subtitle={<code>{failure.errorType}</code>}
+            />
+            <PropertyText
+              title={"Timestamp"}
+              subtitle={<DateTimeText dateTime={failure.timestamp} />}
+            />
+          </PropertyGroup>
+          {isExpanded && (
+            <PropertyGroup>
+              <PropertyText
+                title={"Error Message"}
+                subtitle={<code>{failure.errorMessage}</code>}
+              />
+              <PropertyText
+                title={"Error Stacktrace"}
+                subtitle={<CodeBlock code={failure.errorStackTrace} style={{ height: 160 }} />}
+              />
+            </PropertyGroup>
+          )}
+        </PropertyGroup>
+      </Alert>
+    </Card>
+  )
+}
+
+const NoFailuresMessage = () => {
+  return (<Alert severity={"success"}>No failures has been recorded</Alert>)
 }
 
 const JobTimelineSection = () => {
