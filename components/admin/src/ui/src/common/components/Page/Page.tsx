@@ -28,7 +28,6 @@ export type PageProps = {
 export const Page = (props: PageProps) => {
   const {
     heading,
-    breadcrumbs = [],
     isLoading = false,
     onRefresh,
     autoRefresh = false,
@@ -41,6 +40,11 @@ export const Page = (props: PageProps) => {
     classes.Page,
     fill ? classes.Filled : classes.NonFilled
   )
+
+  const breadcrumbs: PageBreadcrumb[] = [
+    { text: "Home", link: '/' },
+    ...(props.breadcrumbs ?? [])
+  ]
 
   return (
     <Box className={className}>

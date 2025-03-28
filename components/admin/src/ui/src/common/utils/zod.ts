@@ -21,5 +21,5 @@ export const zx = {
   paginatedList: <T extends ZodRawShape>(itemSchema: ZodObject<T>) => z.object({
     items: itemSchema.array(),
     hasMoreItems: z.boolean(),
-  })
+  }),
 }

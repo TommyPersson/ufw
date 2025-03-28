@@ -1,5 +1,6 @@
 package io.tpersson.ufw.durablecaches.admin.contracts
 
+import io.tpersson.ufw.admin.contracts.ApplicationModuleDTO
 import java.time.Duration
 
 public data class DurableCacheItemDTO(
@@ -10,4 +11,5 @@ public data class DurableCacheItemDTO(
     val expirationDuration: Duration?,
     val inMemoryExpirationDuration: Duration?,
     val numEntries: Long,
+    val applicationModule: ApplicationModuleDTO
 )

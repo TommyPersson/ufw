@@ -1,17 +1,31 @@
 import GppGoodOutlinedIcon from "@mui/icons-material/GppGoodOutlined"
 import GppMaybeOutlinedIcon from "@mui/icons-material/GppMaybeOutlined"
-import { Chip, Paper, TableCell, TableContainer, TableRow, Tooltip, Typography } from "@mui/material"
+import {
+  Card,
+  CardContent,
+  Chip, Divider,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tooltip,
+  Typography
+} from "@mui/material"
 import { useQuery } from "@tanstack/react-query"
-import { useMemo, useState } from "react"
+import { uniqBy } from "es-toolkit"
+import { useMemo } from "react"
 import Markdown from "react-markdown"
 import {
+  ApplicationModuleHeader,
   LinkTableCell,
   Page,
   PageBreadcrumb,
-  PaginatedTable,
   PropertyGroup,
   PropertyText
 } from "../../../../common/components"
+import { ApplicationModule } from "../../../../common/models"
 import { DurableCacheItem } from "../../models"
 import { DurableCachesListQuery } from "../../queries"
 
@@ -19,16 +33,15 @@ import classes from "./DurableCachesIndexPage.module.css"
 
 export const DurableCachesIndexPage = () => {
 
-  const [page, setPage] = useState(1)
-
-  const durableCachesListQuery = useQuery(DurableCachesListQuery(page))
+  const durableCachesListQuery = useQuery(DurableCachesListQuery(1))
   const caches = durableCachesListQuery.data?.items ?? []
-  const totalItemCount = durableCachesListQuery.data?.items?.length ?? 0
 
   const breadcrumbs = useMemo<PageBreadcrumb[]>(() => [
     { text: "Durable Caches" },
-    { text: "Caches", current: true },
+    { text: "All", current: true },
   ], [])
+
+  const applicationModules = uniqBy(caches.map(it => it.applicationModule), it => it.id)
 
   return (
     <Page
@@ -38,30 +51,48 @@ export const DurableCachesIndexPage = () => {
       onRefresh={durableCachesListQuery.refetch}
       autoRefresh={true}
     >
-      <TableContainer component={Paper}>
-        <PaginatedTable
-          className={classes.CacheTable}
-          totalItemCount={totalItemCount}
-          page={page}
-          onPageChanged={setPage}
-          tableHead={
-            <TableRow>
-              <TableCell style={{ width: 150, whiteSpace: "nowrap", textAlign: "center" }}># Entries</TableCell>
-              <TableCell>Cache</TableCell>
-              <TableCell>Settings</TableCell>
-              <TableCell></TableCell>
-            </TableRow>
-          }
-          tableBody={
-            <>
-              {caches.map(it =>
-                <DurableCacheItemRow key={it.id} cache={it} />
-              )}
-            </>
-          }
+      {applicationModules.map(module => {
+        const cachesInModule = caches.filter(cache => cache.applicationModule.id === module.id)
+        return <DurableCacheTableCard
+          key={module.id}
+          module={module}
+          caches={cachesInModule}
         />
-      </TableContainer>
+      })}
     </Page>
+  )
+}
+
+const DurableCacheTableCard = (props: {
+  caches: DurableCacheItem[]
+  module: ApplicationModule
+}) => {
+  const { caches, module } = props
+
+  return (
+    <TableContainer component={Card}>
+      <CardContent>
+        <ApplicationModuleHeader applicationModule={module} />
+      </CardContent>
+      <Divider />
+      <Table className={classes.CacheTable}>
+        <TableHead>
+          <TableRow>
+            <TableCell style={{ width: 150, whiteSpace: "nowrap", textAlign: "center" }}># Entries</TableCell>
+            <TableCell>Cache</TableCell>
+            <TableCell>Settings</TableCell>
+            <TableCell></TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          <>
+            {caches.map(it =>
+              <DurableCacheItemRow key={it.id} cache={it} />
+            )}
+          </>
+        </TableBody>
+      </Table>
+    </TableContainer>
   )
 }
 

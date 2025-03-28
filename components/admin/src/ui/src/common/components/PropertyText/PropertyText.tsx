@@ -18,7 +18,7 @@ export const PropertyText = (props: {
     : (props.fallback ?? <em>N/A</em> );
 
   let subtitle = props.noSubtitleStyling
-    ? subtitleText
+    ? <Typography variant={"subtitle2"} style={{ fontWeight: 'normal' }} component={"span"}>{subtitleText}</Typography>
     : <Typography variant={"subtitle2"}>{subtitleText}</Typography>
 
   if (props.isLoading) {

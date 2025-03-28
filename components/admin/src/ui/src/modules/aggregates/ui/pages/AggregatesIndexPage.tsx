@@ -1,4 +1,4 @@
-import { Pagination, Skeleton, TextField, Typography } from "@mui/material"
+import { Skeleton, TablePagination, TextField, Typography } from "@mui/material"
 import { useQuery } from "@tanstack/react-query"
 import { useDebounce } from "@uidotdev/usehooks"
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react"
@@ -76,6 +76,7 @@ export const AggregatesIndexPage = () => {
           <AggregateFactsSection
             facts={aggregateFacts}
             isLoading={isLoading}
+            hasMorePages={aggregateFactsQuery.data?.hasMoreItems ?? false}
             page={page}
             onPageChange={setPage}
           />
@@ -164,17 +165,14 @@ const AggregateFactsSection = (props: {
   facts: AggregateFact[]
   page: number
   onPageChange: (page: number) => void
+  hasMorePages: boolean
   isLoading: boolean
 }) => {
-  const { facts, /*isLoading,*/ page, onPageChange } = props
+  const { facts, /*isLoading,*/ page, onPageChange, hasMorePages } = props
 
   return (
     <>
       <PageSectionHeader>Facts</PageSectionHeader>
-      <Pagination
-        page={page}
-        onChange={(_, page) => onPageChange(page)}
-      />
       {facts.map(fact => {
         return (
           <PageSectionCard key={fact.id}>
@@ -208,9 +206,13 @@ const AggregateFactsSection = (props: {
           </PageSectionCard>
         )
       })}
-      <Pagination
-        page={page}
-        onChange={(_, page) => onPageChange(page)}
+      <TablePagination
+        component={"div"}
+        page={page - 1}
+        count={hasMorePages ? -1 : facts.length}
+        rowsPerPage={100}
+        rowsPerPageOptions={[]}
+        onPageChange={(_, page) => onPageChange(page + 1)}
       />
     </>
   )

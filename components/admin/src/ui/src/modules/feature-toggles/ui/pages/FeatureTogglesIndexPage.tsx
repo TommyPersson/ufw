@@ -1,17 +1,33 @@
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline"
 import HighlightOffIcon from "@mui/icons-material/HighlightOff"
-import { Chip, ChipProps, Paper, TableCell, TableContainer, TableRow, Typography } from "@mui/material"
+import {
+  Card,
+  CardContent,
+  Chip,
+  ChipProps,
+  Divider,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography
+} from "@mui/material"
 import { useQuery } from "@tanstack/react-query"
-import { useMemo, useState } from "react"
+import { uniqBy } from "es-toolkit"
+import { useMemo } from "react"
 import Markdown from "react-markdown"
 import {
+  ApplicationModuleHeader,
   CommandButton,
   DateTimeText,
   Page,
   PageBreadcrumb,
-  PaginatedTable, PropertyGroup, PropertyText,
-  TableRowSkeleton
+  PropertyGroup,
+  PropertyText
 } from "../../../../common/components"
+import { ApplicationModule } from "../../../../common/models"
 import { DisableFeatureToggleCommand, EnableFeatureToggleCommand } from "../../commands"
 import { FeatureToggleItem } from "../../models"
 import { FeatureToggleListQuery } from "../../queries"
@@ -20,14 +36,12 @@ import classes from "./FeatureTogglesIndexPage.module.css"
 
 export const FeatureTogglesIndexPage = () => {
 
-  const [page, setPage] = useState(1)
-
-  const featureTogglesQuery = useQuery(FeatureToggleListQuery(page))
+  const featureTogglesQuery = useQuery(FeatureToggleListQuery(1))
   const featureToggles = featureTogglesQuery.data?.items ?? []
 
-  const totalItemCount = featureTogglesQuery.data?.items?.length ?? 0
-
   const isEmpty = !featureTogglesQuery.isLoading && featureToggles.length === 0
+
+  const applicationModules = uniqBy(featureToggles.map(it => it.applicationModule), it => it.id)
 
   const breadcrumbs = useMemo<PageBreadcrumb[]>(() => [
     { text: "Feature Toggles" },
@@ -43,36 +57,51 @@ export const FeatureTogglesIndexPage = () => {
       autoRefresh={true}
       error={featureTogglesQuery.error}
     >
-      <TableContainer component={Paper}>
-        <PaginatedTable
-          className={classes.FeatureTogglesTable}
-          totalItemCount={totalItemCount}
-          page={page}
-          onPageChanged={setPage}
-          tableHead={
-            <TableRow>
-              <TableCell>State</TableCell>
-              <TableCell>Feature Toggle</TableCell>
-              <TableCell>Events</TableCell>
-              <TableCell></TableCell>
-            </TableRow>
-          }
-          tableBody={
-            <>
-              {featureTogglesQuery.isLoading && <TableRowSkeleton numColumns={5} />}
-              {isEmpty && emptyTableRow}
-              {featureToggles.map(it => (
-                <FeatureToggleRow
-                  key={it.id}
-                  featureToggle={it}
-                  isFetching={featureTogglesQuery.isFetching}
-                />
-              ))}
-            </>
-          }
+      {isEmpty && emptyCard}
+      {applicationModules.map(module => {
+        const featureTogglesInModule = featureToggles.filter(cache => cache.applicationModule.id === module.id)
+        return <FeatureToggleTableCard
+          key={module.id}
+          module={module}
+          featureToggles={featureTogglesInModule}
+          isFetching={featureTogglesQuery.isFetching}
         />
-      </TableContainer>
+      })}
     </Page>
+  )
+}
+
+const FeatureToggleTableCard = (props: {
+  featureToggles: FeatureToggleItem[]
+  module: ApplicationModule
+  isFetching: boolean
+}) => {
+  const { featureToggles, module, isFetching } = props
+
+  return (
+    <TableContainer component={Card}>
+      <CardContent>
+        <ApplicationModuleHeader applicationModule={module} />
+      </CardContent>
+      <Divider />
+      <Table className={classes.FeatureTogglesTable}>
+        <TableHead>
+          <TableRow>
+            <TableCell>State</TableCell>
+            <TableCell>Feature Toggle</TableCell>
+            <TableCell>Events</TableCell>
+            <TableCell></TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          <>
+            {featureToggles.map(it =>
+              <FeatureToggleRow key={it.id} featureToggle={it} isFetching={isFetching} />
+            )}
+          </>
+        </TableBody>
+      </Table>
+    </TableContainer>
   )
 }
 
@@ -132,9 +161,16 @@ const FeatureToggleRow = (props: {
   )
 }
 
-const emptyTableRow = <TableRow><TableCell colSpan={3}>
-  <center><em>No feature toggles found</em></center>
-</TableCell></TableRow>
+const emptyCard = (
+  <Card>
+    <CardContent>
+      <Typography variant={"body2"}>
+        <center><em>No feature toggles found</em></center>
+      </Typography>
+    </CardContent>
+  </Card>
+)
+
 
 const FeatureToggleStateChip = (props: { featureToggle: FeatureToggleItem }) => {
   const { featureToggle } = props

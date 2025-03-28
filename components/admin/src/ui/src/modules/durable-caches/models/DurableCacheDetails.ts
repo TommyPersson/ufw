@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { applicationModuleSchema } from "../../../common/models"
 import { zx } from "../../../common/utils/zod"
 
 export const durableCacheDetailsSchema = z.object({
@@ -9,6 +10,7 @@ export const durableCacheDetailsSchema = z.object({
   expirationDuration: zx.duration.nullable(),
   inMemoryExpirationDuration: zx.duration.nullable(),
   numEntries: z.number(),
+  applicationModule: applicationModuleSchema,
 })
 
 export type DurableCacheDetails = z.infer<typeof durableCacheDetailsSchema>

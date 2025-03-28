@@ -19,7 +19,7 @@ public class FeatureToggleHandleImpl(
         if (data == null) {
             val now = clock.instant()
             val defaultData = FeatureToggleData(
-                definition = definition,
+                id = definition.id,
                 isEnabled = definition.default,
                 stateChangedAt = now
             )
@@ -27,6 +27,7 @@ public class FeatureToggleHandleImpl(
             keyValueStore.put(key, defaultData)
 
             return FeatureToggle(
+                definition = definition,
                 id = definition.id,
                 title = definition.title,
                 description = definition.description,
@@ -36,11 +37,12 @@ public class FeatureToggleHandleImpl(
             )
         }
 
-        if (data.value.definition != definition) {
-            keyValueStore.put(key, data.value.copy(definition = definition))
+        if (data.value.id != definition.id) {
+            keyValueStore.put(key, data.value.copy(id = definition.id))
         }
 
         return FeatureToggle(
+            definition = definition,
             id = definition.id,
             title = definition.title,
             description = definition.description,
@@ -60,7 +62,7 @@ public class FeatureToggleHandleImpl(
             return
         }
 
-        keyValueStore.put(key, FeatureToggleData(definition, true, clock.instant()))
+        keyValueStore.put(key, FeatureToggleData(definition.id, true, clock.instant()))
     }
 
     override suspend fun disable() {
@@ -69,6 +71,6 @@ public class FeatureToggleHandleImpl(
             return
         }
 
-        keyValueStore.put(key, FeatureToggleData(definition, false, clock.instant()))
+        keyValueStore.put(key, FeatureToggleData(definition.id, false, clock.instant()))
     }
 }

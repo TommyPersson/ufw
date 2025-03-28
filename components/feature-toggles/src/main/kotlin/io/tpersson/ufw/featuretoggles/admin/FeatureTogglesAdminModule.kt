@@ -5,8 +5,10 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.tpersson.ufw.admin.AdminModule
+import io.tpersson.ufw.admin.contracts.toApplicationModuleDTO
 import io.tpersson.ufw.admin.contracts.toDTO
 import io.tpersson.ufw.admin.utils.getPaginationOptions
+import io.tpersson.ufw.core.utils.findModuleMolecule
 import io.tpersson.ufw.featuretoggles.admin.contracts.FeatureToggleItemDTO
 import io.tpersson.ufw.featuretoggles.FeatureToggle
 import jakarta.inject.Inject
@@ -54,6 +56,7 @@ public class FeatureTogglesAdminModule @Inject constructor(
             stateChangedAt = stateChangedAt,
             createdAt = createdAt,
             isEnabled = isEnabled,
+            applicationModule = definition::class.findModuleMolecule().toApplicationModuleDTO()
         )
     }
 }

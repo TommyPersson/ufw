@@ -25,12 +25,16 @@ public class FeatureTogglesAdminFacadeImpl @Inject constructor(
         )
 
         return PaginatedList(
-            items = toggles.take(paginationOptions.limit).map {
+            items = toggles.take(paginationOptions.limit).mapNotNull {
                 val data = it.parseAs(FeatureToggleData::class)
+                val definition = featureToggles.knownFeatureToggles[data.value.id]
+                    ?: return@mapNotNull null
+
                 FeatureToggle(
                     id = it.key.substringAfter(Constants.KEY_PREFIX),
-                    title = data.value.definition.title,
-                    description = data.value.definition.description,
+                    definition = definition,
+                    title = definition.title,
+                    description = definition.description,
                     stateChangedAt = data.value.stateChangedAt,
                     createdAt = data.createdAt,
                     isEnabled = data.value.isEnabled,

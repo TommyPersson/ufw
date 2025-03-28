@@ -79,6 +79,7 @@
         <awaitility.version>4.3.0</awaitility.version>
 
         <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+        <jmolecules.version>1.10.0</jmolecules.version>
     </properties>
 
     <dependencyManagement>
@@ -383,11 +384,16 @@
                 <version>${slf4j.version}</version>
             </dependency>
 
-
             <dependency>
                 <groupId>jakarta.inject</groupId>
                 <artifactId>jakarta.inject-api</artifactId>
                 <version>${jakarta.inject-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jmolecules</groupId>
+                <artifactId>jmolecules-ddd</artifactId>
+                <version>${jmolecules.version}</version>
             </dependency>
 
             <dependency>

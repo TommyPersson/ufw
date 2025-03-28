@@ -2,8 +2,9 @@ import { Table, TableBody, TableFooter, TableHead, TablePagination, TableProps, 
 import { useCallback } from "react"
 
 export type PaginatedTableProps = {
-  totalItemCount: number,
-  page: number,
+  totalItemCount: number
+  page: number
+  pageSize?: number
   onPageChanged: (page: number) => void
   tableHead?: any
   tableBody?: any
@@ -12,7 +13,16 @@ export type PaginatedTableProps = {
   tableProps?: TableProps
 }
 export const PaginatedTable = (props: PaginatedTableProps) => {
-  const { totalItemCount, page, onPageChanged, tableHead, tableBody, tableFooter, className } = props
+  const {
+    totalItemCount,
+    page,
+    pageSize = 100,
+    onPageChanged,
+    tableHead,
+    tableBody,
+    tableFooter,
+    className
+  } = props
 
   const handlePageChanged = useCallback((_: any, page: number) => {
     onPageChanged(page + 1)
@@ -26,7 +36,7 @@ export const PaginatedTable = (props: PaginatedTableProps) => {
             count={totalItemCount}
             onPageChange={handlePageChanged}
             page={page - 1}
-            rowsPerPage={100}
+            rowsPerPage={pageSize}
             rowsPerPageOptions={[]}
           />
         </TableRow>
@@ -42,7 +52,7 @@ export const PaginatedTable = (props: PaginatedTableProps) => {
             count={totalItemCount}
             onPageChange={handlePageChanged}
             page={page - 1}
-            rowsPerPage={100}
+            rowsPerPage={pageSize}
             rowsPerPageOptions={[]}
           />
         </TableRow>

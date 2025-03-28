@@ -6,10 +6,12 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.tpersson.ufw.admin.AdminModule
+import io.tpersson.ufw.admin.contracts.toApplicationModuleDTO
 import io.tpersson.ufw.admin.contracts.toDTO
 import io.tpersson.ufw.admin.raise
 import io.tpersson.ufw.admin.utils.getPaginationOptions
 import io.tpersson.ufw.core.NamedBindings
+import io.tpersson.ufw.core.utils.findModuleMolecule
 import io.tpersson.ufw.durablecaches.CacheEntry
 import io.tpersson.ufw.durablecaches.DurableCacheDefinition
 import io.tpersson.ufw.durablecaches.admin.contracts.DurableCacheDetailsDTO
@@ -107,6 +109,7 @@ private fun DurableCacheDefinition<*>.toItemDTO(numEntries: Long): DurableCacheI
         expirationDuration = expiration,
         inMemoryExpirationDuration = inMemoryExpiration,
         numEntries = numEntries,
+        applicationModule = this::class.findModuleMolecule().toApplicationModuleDTO(),
     )
 }
 
@@ -119,6 +122,7 @@ private fun DurableCacheDefinition<*>.toDetailsDTO(numEntries: Long): DurableCac
         expirationDuration = expiration,
         inMemoryExpirationDuration = inMemoryExpiration,
         numEntries = numEntries,
+        applicationModule = this::class.findModuleMolecule().toApplicationModuleDTO(),
     )
 }
 

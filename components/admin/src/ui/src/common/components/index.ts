@@ -1,3 +1,4 @@
+export * from "./ApplicationModuleHeader"
 export * from "./CodeBlock"
 export * from "./CommandButton"
 export * from "./CommandSwitch"
