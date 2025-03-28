@@ -157,7 +157,10 @@ public class DurableJobsAdminModule @Inject constructor(
                 val job = databaseQueueAdminFacade.getWorkItem(
                     queueId = queueId.toWorkItemQueueId(),
                     itemId = jobId.toWorkItemId()
-                )?.toDetailsDTO()
+                )?.let { item ->
+                    val jobDefinition = jobHandlerDefinitions.first { it.type == item.type }
+                    item.toDetailsDTO(jobDefinition)
+                }
 
                 if (job == null) {
                     call.respond(HttpStatusCode.NotFound)
@@ -232,10 +235,12 @@ public class DurableJobsAdminModule @Inject constructor(
         errorStackTrace = this.errorStackTrace,
     )
 
-    private fun WorkItemDbEntity.toDetailsDTO() = JobDetailsDTO(
+    private fun WorkItemDbEntity.toDetailsDTO(jobDefinition: DurableJobDefinition<*>) = JobDetailsDTO(
         queueId = DurableJobsDatabaseQueueAdapterSettings.convertQueueId(WorkItemQueueId(queueId)),
         jobId = this.itemId,
         jobType = this.type,
+        jobTypeClass = jobDefinition.jobClass.simpleName ?: "<unknown>",
+        jobTypeDescription = jobDefinition.description,
         state = WorkItemState.fromDbOrdinal(this.state).name,
         dataJson = this.dataJson,
         metadataJson = this.metadataJson,

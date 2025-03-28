@@ -6,6 +6,8 @@ public data class JobDetailsDTO(
     val queueId: String,
     val jobId: String,
     val jobType: String,
+    val jobTypeClass: String,
+    val jobTypeDescription: String?,
     val state: String,
     val dataJson: String,
     val metadataJson: String,

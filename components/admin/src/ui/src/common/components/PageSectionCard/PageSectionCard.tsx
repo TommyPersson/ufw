@@ -1,4 +1,4 @@
-import { Card, CardContent } from "@mui/material"
+import { Card } from "@mui/material"
 import { PageSectionHeader } from "../PageSectionHeader"
 
 import classes from "./PageSectionCard.module.css"
@@ -13,10 +13,8 @@ export const PageSectionCard = (props: PageSectionCardProps) => {
 
   return (
     <Card className={classes.PageSectionCard}>
-      <CardContent>
-        {heading && <PageSectionHeader className={classes.Heading}>{heading}</PageSectionHeader>}
-        {children}
-      </CardContent>
+      {heading && <PageSectionHeader className={classes.Heading}>{heading}</PageSectionHeader>}
+      {children}
     </Card>
   )
 }

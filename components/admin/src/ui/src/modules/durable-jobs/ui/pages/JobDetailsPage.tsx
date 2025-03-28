@@ -1,8 +1,20 @@
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import ExpandLessIcon from '@mui/icons-material/ExpandLess'
-import { Alert, AlertTitle, Box, Button, ButtonProps, Card, IconButton, Skeleton } from "@mui/material"
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
+import ExpandLessIcon from "@mui/icons-material/ExpandLess"
+import {
+  Alert,
+  AlertTitle,
+  Box,
+  Button,
+  ButtonProps,
+  Card,
+  CardContent,
+  Divider,
+  IconButton,
+  Skeleton
+} from "@mui/material"
 import { useQuery } from "@tanstack/react-query"
 import { useMemo, useState } from "react"
+import Markdown from "react-markdown"
 import { useParams } from "react-router"
 import {
   CodeBlock,
@@ -164,76 +176,96 @@ const JobDetailsSection = (props: {
 
   return (
     <PageSectionCard heading={"Details"}>
-      <PropertyGroup>
-        <PropertyText
-          title={"Job ID"}
-          isLoading={isLoading}
-          subtitle={<code>{jobDetails?.jobId}</code>}
-        />
-        <PropertyGroup horizontal>
-          <PropertyGroup boxProps={{ flex: 1 }}>
+      <CardContent>
+        <PropertyGroup>
+          <PropertyText
+            title={"Job ID"}
+            isLoading={isLoading}
+            subtitle={<code>{jobDetails?.jobId}</code>}
+          />
+          <PropertyGroup horizontal>
+            <PropertyGroup boxProps={{ flex: 1 }}>
+              <PropertyText
+                title={"Job State"}
+                isLoading={isLoading}
+                subtitle={<code>{jobDetails?.state}</code>}
+              />
+              <PropertyText
+                title={"# Failures"}
+                isLoading={isLoading}
+                subtitle={jobDetails?.numFailures}
+              />
+            </PropertyGroup>
+            <PropertyGroup boxProps={{ flex: 1 }}>
+              <PropertyText
+                title={"Created At"}
+                isLoading={isLoading}
+                subtitle={<DateTimeText dateTime={jobDetails?.createdAt ?? null} />}
+              />
+              <PropertyText
+                title={"First Scheduled For"}
+                isLoading={isLoading}
+                subtitle={<DateTimeText dateTime={jobDetails?.firstScheduledFor ?? null} />}
+              />
+              <PropertyText
+                title={"Next Scheduled For"}
+                isLoading={isLoading}
+                subtitle={<DateTimeText dateTime={jobDetails?.nextScheduledFor ?? null} fallback={<em>N/A</em>} />}
+              />
+              <PropertyText
+                title={"State Changed At"}
+                isLoading={isLoading}
+                subtitle={<DateTimeText dateTime={jobDetails?.stateChangedAt ?? null} />}
+              />
+              <PropertyText
+                title={"Expires At"}
+                isLoading={isLoading}
+                subtitle={<DateTimeText dateTime={jobDetails?.expiresAt ?? null} fallback={<em>N/A</em>} />}
+              />
+            </PropertyGroup>
+            <PropertyGroup boxProps={{ flex: 1 }}>
+              <PropertyText
+                title={"Concurrency Key"}
+                isLoading={isLoading}
+                subtitle={jobDetails?.concurrencyKey ? <code>{jobDetails.concurrencyKey}</code> : <em>N/A</em>}
+              />
+              <PropertyText
+                title={"Watchdog Owner"}
+                isLoading={isLoading}
+                subtitle={jobDetails?.watchdogOwner ? <code>{jobDetails.watchdogOwner}</code> : <em>N/A</em>}
+              />
+              <PropertyText
+                title={"Watchdog Timestamp"}
+                isLoading={isLoading}
+                subtitle={<DateTimeText dateTime={jobDetails?.watchdogTimestamp ?? null} fallback={<em>N/A</em>} />}
+              />
+            </PropertyGroup>
+          </PropertyGroup>
+        </PropertyGroup>
+      </CardContent>
+      <Divider />
+      <CardContent>
+        <PropertyGroup>
+          <PropertyGroup horizontal>
             <PropertyText
               title={"Job Type"}
               isLoading={isLoading}
               subtitle={<code>{jobDetails?.jobType}</code>}
             />
             <PropertyText
-              title={"Job State"}
+              title={"Job Class Name"}
               isLoading={isLoading}
-              subtitle={<code>{jobDetails?.state}</code>}
-            />
-            <PropertyText
-              title={"# Failures"}
-              isLoading={isLoading}
-              subtitle={jobDetails?.numFailures}
+              subtitle={<code>{jobDetails?.jobTypeClass}</code>}
             />
           </PropertyGroup>
-          <PropertyGroup boxProps={{ flex: 1 }}>
-            <PropertyText
-              title={"Created At"}
-              isLoading={isLoading}
-              subtitle={<DateTimeText dateTime={jobDetails?.createdAt ?? null} />}
-            />
-            <PropertyText
-              title={"First Scheduled For"}
-              isLoading={isLoading}
-              subtitle={<DateTimeText dateTime={jobDetails?.firstScheduledFor ?? null} />}
-            />
-            <PropertyText
-              title={"Next Scheduled For"}
-              isLoading={isLoading}
-              subtitle={<DateTimeText dateTime={jobDetails?.nextScheduledFor ?? null} fallback={<em>N/A</em>} />}
-            />
-            <PropertyText
-              title={"State Changed At"}
-              isLoading={isLoading}
-              subtitle={<DateTimeText dateTime={jobDetails?.stateChangedAt ?? null} />}
-            />
-            <PropertyText
-              title={"Expires At"}
-              isLoading={isLoading}
-              subtitle={<DateTimeText dateTime={jobDetails?.expiresAt ?? null} fallback={<em>N/A</em>} />}
-            />
-          </PropertyGroup>
-          <PropertyGroup boxProps={{ flex: 1 }}>
-            <PropertyText
-              title={"Concurrency Key"}
-              isLoading={isLoading}
-              subtitle={jobDetails?.concurrencyKey ? <code>{jobDetails.concurrencyKey}</code> : <em>N/A</em>}
-            />
-            <PropertyText
-              title={"Watchdog Owner"}
-              isLoading={isLoading}
-              subtitle={jobDetails?.watchdogOwner ? <code>{jobDetails.watchdogOwner}</code> : <em>N/A</em>}
-            />
-            <PropertyText
-              title={"Watchdog Timestamp"}
-              isLoading={isLoading}
-              subtitle={<DateTimeText dateTime={jobDetails?.watchdogTimestamp ?? null} fallback={<em>N/A</em>} />}
-            />
-          </PropertyGroup>
+          <PropertyText
+            title={"Job Type Description"}
+            isLoading={isLoading}
+            noSubtitleStyling={!!jobDetails?.jobTypeDescription}
+            subtitle={jobDetails?.jobTypeDescription ? <Markdown>{jobDetails?.jobTypeDescription}</Markdown> : <em>N/A</em>}
+          />
         </PropertyGroup>
-      </PropertyGroup>
+      </CardContent>
     </PageSectionCard>
   )
 }
@@ -298,10 +330,14 @@ const JobDataSections = (props: {
     <>
       <PageSectionHeader>Job Data</PageSectionHeader>
       <PageSectionCard heading={"Data JSON"}>
-        <JsonBlock isLoading={isLoading} json={jobDetails?.dataJson ?? null} />
+        <CardContent>
+          <JsonBlock isLoading={isLoading} json={jobDetails?.dataJson ?? null} />
+        </CardContent>
       </PageSectionCard>
       <PageSectionCard heading={"Metadata JSON"}>
-        <JsonBlock isLoading={isLoading} json={jobDetails?.metadataJson ?? null} />
+        <CardContent>
+          <JsonBlock isLoading={isLoading} json={jobDetails?.metadataJson ?? null} />
+        </CardContent>
       </PageSectionCard>
     </>
   )

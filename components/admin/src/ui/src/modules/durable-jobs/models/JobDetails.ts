@@ -5,6 +5,8 @@ export type JobDetails = {
   queueId: string
   jobId: string
   jobType: string
+  jobTypeClass: string
+  jobTypeDescription: string
   state: JobState
   dataJson: string
   metadataJson: string

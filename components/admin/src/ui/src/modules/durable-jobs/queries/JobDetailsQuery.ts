@@ -15,6 +15,8 @@ const detailsSchema = z.object({
   jobId: z.string(),
   queueId: z.string(),
   jobType: z.string(),
+  jobTypeClass: z.string(),
+  jobTypeDescription: z.string(),
   state: jobStateSchema,
   dataJson: z.string(),
   metadataJson: z.string(),
