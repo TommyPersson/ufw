@@ -39,16 +39,6 @@ export const JobDetailsPage = () => {
     jobFailuresQuery.refetch().then()
   }
 
-  const content = (
-    <WorkItemDetailsPageContent
-      details={workItemDetails}
-      failures={workItemFailures}
-      isLoading={isLoading}
-      error={jobDetailsQuery.error}
-      adapterSettings={adapterSettings}
-    />
-  )
-
   return (
     <Page
       heading={"Job Details"}
@@ -56,7 +46,15 @@ export const JobDetailsPage = () => {
       isLoading={isFetching}
       onRefresh={onRefresh}
       autoRefresh={true}
-      children={content}
-    />
+    >
+      <WorkItemDetailsPageContent
+        details={workItemDetails}
+        failures={workItemFailures}
+        isLoading={isLoading}
+        error={jobDetailsQuery.error}
+        adapterSettings={adapterSettings}
+      />
+    </Page>
+
   )
 }

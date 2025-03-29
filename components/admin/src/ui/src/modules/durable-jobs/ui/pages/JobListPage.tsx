@@ -2,13 +2,13 @@ import { useQuery } from "@tanstack/react-query"
 import { useMemo, useState } from "react"
 import { useParams } from "react-router"
 import { Page, PageBreadcrumb } from "../../../../common/components"
-import { WorkItemState } from "../../../database-queues-common/common/models"
 import { WorkItemListPageContent } from "../../../database-queues-common/ui/WorkItemListPageContent"
+import { JobState } from "../../models"
 import { JobListQuery, JobQueueDetailsQuery } from "../../queries"
 import { DurableJobsAdapterSettings } from "../../utils"
 
 export const JobListPage = () => {
-  const params = useParams<{ queueId: string, jobState: WorkItemState }>()
+  const params = useParams<{ queueId: string, jobState: JobState }>()
   const queueId = params.queueId!
   const state = params.jobState!
 
@@ -38,19 +38,6 @@ export const JobListPage = () => {
     { text: <code>{state}</code>, current: true },
   ], [queueId, state])
 
-  const content = (
-    <WorkItemListPageContent
-      queueId={queueId}
-      state={state}
-      workQueueDetails={workQueueDetails}
-      workItems={workItems}
-      page={page}
-      setPage={setPage}
-      isLoading={isLoading}
-      adapterSettings={adapterSettings}
-    />
-  )
-
   return (
     <Page
       heading={<>Jobs</>}
@@ -58,7 +45,16 @@ export const JobListPage = () => {
       onRefresh={handleRefresh}
       breadcrumbs={breadcrumbs}
     >
-      {content}
+      <WorkItemListPageContent
+        queueId={queueId}
+        state={state}
+        workQueueDetails={workQueueDetails}
+        workItems={workItems}
+        page={page}
+        setPage={setPage}
+        isLoading={isLoading}
+        adapterSettings={adapterSettings}
+      />
     </Page>
   )
 }

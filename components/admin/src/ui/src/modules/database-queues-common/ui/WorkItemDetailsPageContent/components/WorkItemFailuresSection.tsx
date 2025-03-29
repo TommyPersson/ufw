@@ -9,7 +9,7 @@ import {
   PropertyGroup,
   PropertyText
 } from "../../../../../common/components"
-import { WorkItemFailure } from "../../../common/models"
+import { WorkItemFailure } from "../../../models"
 
 export const WorkItemFailuresSection = (props: {
   isLoading: boolean,

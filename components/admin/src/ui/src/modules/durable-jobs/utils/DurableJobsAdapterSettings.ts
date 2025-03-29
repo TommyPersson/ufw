@@ -1,13 +1,24 @@
-import { WorkItemDetails, WorkItemFailure } from "../../database-queues-common/common/models"
-import { WorkItemListItem } from "../../database-queues-common/common/models/WorkItemListItem"
+import {
+  WorkItemDetails,
+  WorkItemFailure,
+  WorkItemListItem,
+} from "../../database-queues-common/models"
 import {
   DatabaseQueueAdapterSettings,
   WorkItemCommandArgs
 } from "../../database-queues-common/DatabaseQueueAdapterSettings"
-import { CancelJobCommand, DeleteJobCommand, RescheduleJobNowCommand } from "../commands"
+import {
+  CancelJobCommand,
+  DeleteAllFailedJobsCommand,
+  DeleteJobCommand,
+  PauseJobQueueCommand,
+  RescheduleAllFailedJobsCommand,
+  RescheduleJobNowCommand,
+  UnpauseJobQueueCommand
+} from "../commands"
 import { JobDetails, JobFailure, JobListItem, JobQueueDetails } from "../models"
 
-const workItemArgsTransform = (it: WorkItemCommandArgs) => ({  queueId: it.queueId, jobId: it.itemId })
+const workItemArgsTransform = (it: WorkItemCommandArgs) => ({ queueId: it.queueId, jobId: it.itemId })
 
 export const DurableJobsAdapterSettings: DatabaseQueueAdapterSettings<
   JobQueueDetails,
@@ -18,6 +29,7 @@ export const DurableJobsAdapterSettings: DatabaseQueueAdapterSettings<
   transforms: {
     queueDetailsTransform: (it) => ({
       ...it,
+      workItemTypes: it.jobTypes
     }),
     itemListItemTransform: (it: JobListItem): WorkItemListItem => ({
       ...it,
@@ -43,12 +55,21 @@ export const DurableJobsAdapterSettings: DatabaseQueueAdapterSettings<
     deleteItemArgsTransform: workItemArgsTransform,
     cancelItemCommand: CancelJobCommand,
     cancelItemArgsTransform: workItemArgsTransform,
+    rescheduleAllFailedItemsCommand: RescheduleAllFailedJobsCommand,
+    deleteAllFailedItemsCommand: DeleteAllFailedJobsCommand,
+    pauseWorkQueueCommand: PauseJobQueueCommand,
+    unpauseWorkQueueCommand: UnpauseJobQueueCommand,
   },
   texts: {
-    queueTypeSingular: "Job"
+    queueTypeSingular: "Job",
+    queueTypePlural: "Jobs",
   },
-  links: {
-    workItemDetailsLinkFormatter: (queueId: string, itemId: string) =>
-      `/durable-jobs/queues/${queueId}/jobs/by-id/${itemId}/details`
+  linkFormatters: {
+    workQueueDetails: (queueId) =>
+      `/durable-jobs/queues/${queueId}/details`,
+    workItemList: (queueId, state) =>
+      `/durable-jobs/queues/${queueId}/jobs/${state}`,
+    workItemDetails: (queueId, itemId) =>
+      `/durable-jobs/queues/${queueId}/jobs/by-id/${itemId}/details`,
   }
 }

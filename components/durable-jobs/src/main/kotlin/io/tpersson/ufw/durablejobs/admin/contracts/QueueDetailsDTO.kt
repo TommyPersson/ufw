@@ -14,8 +14,8 @@ public data class QueueDetailsDTO(
     val applicationModule: ApplicationModuleDTO,
 ) {
     public data class JobType(
-        val type: String,
-        val jobClassName: String,
+        val typeName: String,
+        val className: String,
         val description: String?,
     )
 }

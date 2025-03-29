@@ -1,5 +1,5 @@
 import { Alert } from "@mui/material"
-import { WorkItemDetails } from "../../../common/models"
+import { WorkItemDetails } from "../../../models"
 import { DatabaseQueueAdapterSettings } from "../../../DatabaseQueueAdapterSettings"
 
 

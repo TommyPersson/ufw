@@ -90,8 +90,8 @@ public class DurableJobsAdminModule @Inject constructor(
                     },
                     jobTypes = handlers.map {
                         QueueDetailsDTO.JobType(
-                            type = it.type,
-                            jobClassName = it.jobClass.simpleName!!,
+                            typeName = it.type,
+                            className = it.jobClass.simpleName!!,
                             description = it.description
                         )
                     },

@@ -1,4 +1,4 @@
-import { WorkItemDetails, WorkItemFailure } from "../../common/models"
+import { WorkItemDetails, WorkItemFailure } from "../../models"
 import { DatabaseQueueAdapterSettings } from "../../DatabaseQueueAdapterSettings"
 import {
   LoadingErrorAlert,

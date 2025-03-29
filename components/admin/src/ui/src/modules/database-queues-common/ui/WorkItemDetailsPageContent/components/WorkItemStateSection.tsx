@@ -1,6 +1,6 @@
 import { Alert, AlertTitle, Box } from "@mui/material"
 import { DateTimeText } from "../../../../../common/components"
-import { WorkItemDetails, WorkItemFailure } from "../../../common/models"
+import { WorkItemDetails, WorkItemFailure } from "../../../models"
 import { DatabaseQueueAdapterSettings } from "../../../DatabaseQueueAdapterSettings"
 
 export const WorkItemStateSection = (props: {

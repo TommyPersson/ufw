@@ -11,8 +11,8 @@ export const jobQueueDetailsSchema = z.object({
   numFailed: z.number(),
   status: jobQueueStatusSchema,
   jobTypes: z.object({
-    type: z.string(),
-    jobClassName: z.string(),
+    typeName: z.string(),
+    className: z.string(),
     description: z.string().nullable(),
   }).array(),
   applicationModule: applicationModuleSchema,

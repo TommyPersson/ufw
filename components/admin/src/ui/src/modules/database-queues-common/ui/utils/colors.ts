@@ -1,7 +1,7 @@
 import { AlertColor } from "@mui/material"
-import { JobQueueState } from "../../models/JobQueueState"
+import { WorkQueueState } from "../../models"
 
-export function getQueueStateColor(state: JobQueueState): AlertColor {
+export function getQueueStateColor(state: WorkQueueState): AlertColor {
   switch (state) {
     case "ACTIVE":
       return "success"

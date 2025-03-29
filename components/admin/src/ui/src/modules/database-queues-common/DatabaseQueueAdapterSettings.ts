@@ -1,7 +1,8 @@
 import { Command } from "../../common/utils/commands"
-import { WorkItemDetails, WorkItemFailure, WorkItemListItem, WorkQueueDetails } from "./common/models"
+import { WorkItemDetails, WorkItemFailure, WorkItemListItem, WorkItemState, WorkQueueDetails } from "./models"
 
 export type WorkItemCommandArgs = { queueId: string, itemId: string }
+export type WorkQueueCommandArgs = { queueId: string }
 
 export interface DatabaseQueueAdapterSettings<
   TQueueDetails = any,
@@ -23,11 +24,18 @@ export interface DatabaseQueueAdapterSettings<
     deleteItemArgsTransform: (it: WorkItemCommandArgs) => TWorkItemCommandArgs
     cancelItemCommand: Command<TWorkItemCommandArgs>
     cancelItemArgsTransform: (it: WorkItemCommandArgs) => TWorkItemCommandArgs
+    deleteAllFailedItemsCommand: Command<WorkQueueCommandArgs>
+    rescheduleAllFailedItemsCommand: Command<WorkQueueCommandArgs>
+    pauseWorkQueueCommand: Command<WorkQueueCommandArgs>
+    unpauseWorkQueueCommand: Command<WorkQueueCommandArgs>
   },
   texts: {
     queueTypeSingular: string
+    queueTypePlural: string
   },
-  links: {
-    workItemDetailsLinkFormatter: (queueId: string, itemId: string) => string
+  linkFormatters: {
+    workQueueDetails: (queueId: string) => string
+    workItemList: (queueId: string, state: WorkItemState) => string
+    workItemDetails: (queueId: string, itemId: string) => string
   }
 }

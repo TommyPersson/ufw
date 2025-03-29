@@ -1,6 +1,6 @@
 import { Box, ButtonProps } from "@mui/material"
 import { CommandButton } from "../../../../../common/components"
-import { WorkItemDetails } from "../../../common/models"
+import { WorkItemDetails } from "../../../models"
 import { DatabaseQueueAdapterSettings } from "../../../DatabaseQueueAdapterSettings"
 
 

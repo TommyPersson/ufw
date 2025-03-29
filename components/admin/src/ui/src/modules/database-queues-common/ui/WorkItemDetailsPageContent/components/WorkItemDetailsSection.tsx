@@ -1,7 +1,7 @@
 import { CardContent, Divider } from "@mui/material"
 import Markdown from "react-markdown"
 import { DateTimeText, PageSectionCard, PropertyGroup, PropertyText } from "../../../../../common/components"
-import { WorkItemDetails } from "../../../common/models"
+import { WorkItemDetails } from "../../../models"
 
 export const WorkItemDetailsSection = (props: {
   isLoading: boolean,

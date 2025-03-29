@@ -1,6 +1,6 @@
 import { CardContent } from "@mui/material"
 import { JsonBlock, PageSectionCard, PageSectionHeader } from "../../../../../common/components"
-import { WorkItemDetails } from "../../../common/models"
+import { WorkItemDetails } from "../../../models"
 
 export const WorkItemDataSection = (props: {
   isLoading: boolean,

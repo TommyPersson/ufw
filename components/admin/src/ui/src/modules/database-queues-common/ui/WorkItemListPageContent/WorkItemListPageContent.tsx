@@ -1,7 +1,7 @@
 import WarningIcon from "@mui/icons-material/Warning"
 import { Box, Paper, TableCell, TableContainer, TableRow } from "@mui/material"
 import { DateTimeText, LinkTableCell, PaginatedTable, TableRowSkeleton } from "../../../../common/components"
-import { WorkItemListItem, WorkItemState, WorkQueueDetails } from "../../common/models"
+import { WorkItemListItem, WorkItemState, WorkQueueDetails } from "../../models"
 import { DatabaseQueueAdapterSettings } from "../../DatabaseQueueAdapterSettings"
 
 
@@ -67,7 +67,7 @@ const WorkItemTableRow = (props: {
   const { queueId, item, adapterSettings } = props
 
   const hasFailures = item.numFailures > 0
-  const link = adapterSettings.links.workItemDetailsLinkFormatter(queueId, item.itemId)
+  const link = adapterSettings.linkFormatters.workItemDetails(queueId, item.itemId)
   const queueType = adapterSettings.texts.queueTypeSingular.toLowerCase()
 
   return (
