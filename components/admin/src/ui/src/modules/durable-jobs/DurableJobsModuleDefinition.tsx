@@ -7,9 +7,11 @@ import { JobQueueIndexPage } from "./ui/pages/JobQueueIndexPage.tsx"
 
 export const DurableJobsModuleDefinition: ModuleDefinition = {
   moduleId: "durable-jobs",
-  navItemTitle: "Durable Jobs",
-  indexRoute: "durable-jobs",
-  icon: <FormatListBulletedOutlinedIcon />,
+  navItems: [{
+    title: "Durable Jobs",
+    route: "durable-jobs",
+    icon: <FormatListBulletedOutlinedIcon />,
+  }],
   routes: [
     {
       path: "durable-jobs",

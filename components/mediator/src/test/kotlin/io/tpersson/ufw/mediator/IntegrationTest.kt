@@ -1,7 +1,7 @@
 package io.tpersson.ufw.mediator
 
-import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import io.tpersson.ufw.mediator.internal.MediatorImpl
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach

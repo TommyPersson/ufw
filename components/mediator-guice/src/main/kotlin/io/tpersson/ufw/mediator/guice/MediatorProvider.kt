@@ -5,7 +5,7 @@ import io.github.classgraph.ScanResult
 import io.micrometer.core.instrument.MeterRegistry
 import io.tpersson.ufw.core.NamedBindings
 import io.tpersson.ufw.mediator.Mediator
-import io.tpersson.ufw.mediator.MediatorImpl
+import io.tpersson.ufw.mediator.internal.MediatorImpl
 import io.tpersson.ufw.mediator.Middleware
 import io.tpersson.ufw.mediator.RequestHandler
 import jakarta.inject.Inject

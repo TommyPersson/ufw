@@ -1,5 +1,6 @@
 package io.tpersson.ufw.mediator.dsl
 
+import io.tpersson.ufw.admin.dsl.admin
 import io.tpersson.ufw.core.dsl.UFWBuilder
 import io.tpersson.ufw.core.dsl.UFWRegistry
 import io.tpersson.ufw.core.dsl.UfwDslMarker
@@ -31,6 +32,7 @@ public class MediatorComponentBuilder(public val components: UFWRegistry) {
         )
         return MediatorComponent.create(
             coreComponent = components.core,
+            adminComponent = components.admin,
             handlers = handlers,
             middlewares = middlewares
         )

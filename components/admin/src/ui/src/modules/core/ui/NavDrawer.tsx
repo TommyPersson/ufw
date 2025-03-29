@@ -27,16 +27,17 @@ export const NavDrawer = (props: {
 
   const navItems = allModuleDefinitions
     .filter(it => availableModuleIds.includes(it.moduleId))
+    .flatMap(it => it.navItems)
     .map(it => {
-    return (
-      <NavItem
-        key={it.moduleId}
-        link={it.indexRoute}
-        title={it.navItemTitle}
-        icon={it.icon}
-      />
-    )
-  })
+      return (
+        <NavItem
+          key={it.route}
+          link={it.route}
+          title={it.title}
+          icon={it.icon}
+        />
+      )
+    })
 
   return (
     <Drawer

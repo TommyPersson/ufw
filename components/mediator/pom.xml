@@ -24,6 +24,10 @@
             <groupId>io.tpersson.ufw</groupId>
             <artifactId>ufw-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.tpersson.ufw</groupId>
+            <artifactId>ufw-admin</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>io.github.resilience4j</groupId>

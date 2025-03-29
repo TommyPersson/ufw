@@ -4,9 +4,11 @@ import { AggregatesIndexPage } from "./ui/pages/AggregatesIndexPage"
 
 export const AggregatesModuleDefinition: ModuleDefinition = {
   moduleId: "aggregates",
-  navItemTitle: "Aggregates",
-  indexRoute: "aggregates",
-  icon: <TextSnippetOutlinedIcon />,
+  navItems: [{
+    title: "Aggregates",
+    route: "aggregates",
+    icon: <TextSnippetOutlinedIcon />,
+  }],
   routes: [
     {
       path: "aggregates",

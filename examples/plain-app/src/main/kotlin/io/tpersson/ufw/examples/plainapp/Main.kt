@@ -19,6 +19,8 @@ import io.tpersson.ufw.examples.common.aggregate.CounterAggregate
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregateRepository
 import io.tpersson.ufw.examples.common.commands.PerformGreetingCommand
 import io.tpersson.ufw.examples.common.commands.PerformGreetingCommandHandler
+import io.tpersson.ufw.examples.common.commands.TestAdminCommand1Handler
+import io.tpersson.ufw.examples.common.commands.TestAdminCommand2Handler
 import io.tpersson.ufw.examples.common.events.ExampleDurableEventHandler
 import io.tpersson.ufw.examples.common.events.ExampleEventV1
 import io.tpersson.ufw.examples.common.jobs.*
@@ -26,6 +28,8 @@ import io.tpersson.ufw.examples.common.managed.PeriodicEventPublisher
 import io.tpersson.ufw.examples.common.managed.PeriodicJobScheduler
 import io.tpersson.ufw.examples.common.managed.PeriodicLogger
 import io.tpersson.ufw.examples.common.managed.PrometheusServer
+import io.tpersson.ufw.examples.common.queries.TestAdminQuery1
+import io.tpersson.ufw.examples.common.queries.TestAdminQuery1Handler
 import io.tpersson.ufw.featuretoggles.dsl.featureToggles
 import io.tpersson.ufw.keyvaluestore.dsl.keyValueStore
 import io.tpersson.ufw.managed.dsl.managed
@@ -74,7 +78,10 @@ public fun main(): Unit = runBlocking(MDCContext()) {
         }
         mediator {
             handlers = setOf(
-                PerformGreetingCommandHandler(components.keyValueStore.keyValueStore)
+                PerformGreetingCommandHandler(components.keyValueStore.keyValueStore), // TODO allow handlers to be registered after build
+                TestAdminCommand1Handler(),
+                TestAdminCommand2Handler(),
+                TestAdminQuery1Handler(),
             )
             middlewares = setOf(
                 TransactionalMiddleware(components.database.unitOfWorkFactory)

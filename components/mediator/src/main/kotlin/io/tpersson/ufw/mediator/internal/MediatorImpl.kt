@@ -1,19 +1,20 @@
-package io.tpersson.ufw.mediator
+package io.tpersson.ufw.mediator.internal
 
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
 import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.core.utils.measureTimedValue
-import io.tpersson.ufw.mediator.internal.ContextImpl
+import io.tpersson.ufw.mediator.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 
+@Suppress("UNCHECKED_CAST")
 public class MediatorImpl(
     private val meterRegistry: MeterRegistry,
     handlers: Set<RequestHandler<*, *>>,
     middlewares: Set<Middleware<*, *>>
-) : Mediator {
+) : MediatorInternal {
 
     private val logger = createLogger()
 
@@ -36,6 +37,8 @@ public class MediatorImpl(
             .publishPercentiles(0.5, 0.75, 0.90, 0.99, 0.999)
             .register(meterRegistry)
     }
+
+    public override val requestClasses: List<KClass<out Request<*>>> = handlersByRequest.keys.toList()
 
     override suspend fun <TRequest : Request<TResult>, TResult> send(request: TRequest): TResult {
         val handler = handlersByRequest[request::class] as? RequestHandler<TRequest, TResult>
@@ -74,7 +77,7 @@ public class MediatorImpl(
         return requestClass.isSubclassOf(rootRequestClass)
     }
 
-    private fun KClass<RequestHandler<*, *>>.getRequestClass(): KClass<*> {
-        return this.supertypes[0].arguments[0].type!!.classifier as KClass<*>
+    private fun KClass<RequestHandler<*, *>>.getRequestClass(): KClass<out Request<*>> {
+        return this.supertypes[0].arguments[0].type!!.classifier as KClass<out Request<*>>
     }
 }
