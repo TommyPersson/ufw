@@ -2,6 +2,7 @@ package io.tpersson.ufw.durableevents.publisher.internal
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.tpersson.ufw.admin.dsl.admin
 import io.tpersson.ufw.core.dsl.UFW
 import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.database.dsl.database
@@ -53,6 +54,8 @@ internal class PublisherIntegrationTests {
                 clock = testClock
             }
             managed {
+            }
+            admin {
             }
             database {
                 dataSource = HikariDataSource(config)

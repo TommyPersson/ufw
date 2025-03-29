@@ -6,7 +6,7 @@ export type WorkItemDetails = {
   itemId: string
   itemType: string
   itemTypeClass: string
-  itemTypeDescription: string
+  itemTypeDescription: string | null
   state: WorkItemState
   dataJson: string
   metadataJson: string
