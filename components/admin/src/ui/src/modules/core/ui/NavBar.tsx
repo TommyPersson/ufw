@@ -1,4 +1,4 @@
-import HomeIcon from "@mui/icons-material/Home"
+import SettingsApplicationsOutlinedIcon from '@mui/icons-material/SettingsApplicationsOutlined';
 import { AppBar, Box, IconButton, Toolbar, Typography } from "@mui/material"
 import { Link } from "react-router"
 import { navBarPortalContainerId, PropertyText } from "../../../common/components"
@@ -21,7 +21,7 @@ export const NavBar = (props: {
             size={"large"}
             edge={"start"}
             color={"inherit"}
-            children={<HomeIcon />}
+            children={<SettingsApplicationsOutlinedIcon />}
             sx={{ mr: 2 }}
           />
         </Link>

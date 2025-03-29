@@ -1,3 +1,4 @@
+import EventNoteOutlinedIcon from '@mui/icons-material/EventNoteOutlined';
 import { EventDetailsPage } from "./ui/pages/EventDetailsPage"
 import { EventListPage } from "./ui/pages/EventListPage"
 import { EventQueueIndexPage } from "./ui/pages/EventQueueIndexPage.tsx"
@@ -8,6 +9,7 @@ export const DurableEventsModuleDefinition: ModuleDefinition = {
   moduleId: "durable-events",
   navItemTitle: "Durable Events",
   indexRoute: "durable-events",
+  icon: <EventNoteOutlinedIcon />,
   routes: [
     {
       path: "durable-events",

@@ -1,4 +1,15 @@
-import { Divider, Drawer, List, ListItem, ListItemButton, ListItemText, ListSubheader, Toolbar } from "@mui/material"
+import HomeIcon from "@mui/icons-material/Home"
+import {
+  Divider,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  ListSubheader,
+  Toolbar
+} from "@mui/material"
 import { NavLink, useMatch } from "react-router"
 import { allModuleDefinitions } from "../../modules"
 import { ApplicationMetadata } from "../models/ApplicationMetadata"
@@ -22,6 +33,7 @@ export const NavDrawer = (props: {
         key={it.moduleId}
         link={it.indexRoute}
         title={it.navItemTitle}
+        icon={it.icon}
       />
     )
   })
@@ -37,7 +49,7 @@ export const NavDrawer = (props: {
       <Toolbar />
       <Divider />
       <List>
-        <NavItem link={"/"} title={"Home"} />
+        <NavItem link={"/"} title={"Home"} icon={<HomeIcon />} />
       </List>
       <List subheader={<ListSubheader>Admin Modules</ListSubheader>}>
         {navItems}
@@ -46,8 +58,12 @@ export const NavDrawer = (props: {
   )
 }
 
-const NavItem = (props: { link: string, title: string }) => {
-  const { link, title } = props
+const NavItem = (props: {
+  link: string
+  title: string
+  icon?: any
+}) => {
+  const { link, title, icon } = props
 
   const isSelected = !!useMatch(`${link}/*`)
 
@@ -55,6 +71,9 @@ const NavItem = (props: { link: string, title: string }) => {
     <ListItem disablePadding className={classes.NavItem}>
       <NavLink to={link}>
         <ListItemButton selected={isSelected}>
+          <ListItemIcon>
+            {icon}
+          </ListItemIcon>
           <ListItemText>
             {title}
           </ListItemText>

@@ -5,4 +5,5 @@ export interface ModuleDefinition {
   navItemTitle: string
   indexRoute: string
   routes: RouteObject[]
+  icon?: any
 }
