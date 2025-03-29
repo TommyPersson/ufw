@@ -1,5 +1,6 @@
 package io.tpersson.ufw.durableevents.dsl
 
+import io.tpersson.ufw.admin.dsl.admin
 import io.tpersson.ufw.core.dsl.UFWBuilder
 import io.tpersson.ufw.core.dsl.UFWRegistry
 import io.tpersson.ufw.core.dsl.UfwDslMarker
@@ -37,6 +38,7 @@ public class DurableEventsComponentBuilder(
             databaseComponent = components.database,
             databaseQueueComponent = components.databaseQueue,
             managedComponent = components.managed,
+            adminComponent = components.admin,
             outgoingEventTransport = outgoingEventTransport,
             handlers = handlers,
             config = config,

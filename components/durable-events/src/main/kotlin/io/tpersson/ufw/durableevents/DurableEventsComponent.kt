@@ -1,9 +1,12 @@
 package io.tpersson.ufw.durableevents
 
+import io.tpersson.ufw.admin.AdminComponent
 import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.databasequeue.DatabaseQueueComponent
+import io.tpersson.ufw.databasequeue.admin.DatabaseQueueAdminFacadeImpl
+import io.tpersson.ufw.durableevents.admin.DurableEventsAdminModule
 import io.tpersson.ufw.durableevents.common.IncomingEventIngester
 import io.tpersson.ufw.durableevents.handler.DurableEventHandler
 import io.tpersson.ufw.durableevents.handler.internal.DurableEventQueueWorkersManager
@@ -36,12 +39,13 @@ public class DurableEventsComponent @Inject constructor(
             databaseComponent: DatabaseComponent,
             databaseQueueComponent: DatabaseQueueComponent,
             managedComponent: ManagedComponent,
+            adminComponent: AdminComponent,
             outgoingEventTransport: OutgoingEventTransport?,
             handlers: Set<DurableEventHandler>,
             config: DurableEventsConfig = DurableEventsConfig(),
         ): DurableEventsComponent {
 
-            val durableEventHandlersProvider = SimpleDurableEventHandlersProvider(emptySet()) // TODO
+            val durableEventHandlersProvider = SimpleDurableEventHandlersProvider(handlers)
 
             val durableEventQueueWorkersManager = DurableEventQueueWorkersManager(
                 workerFactory = databaseQueueComponent.databaseQueueWorkerFactory,
@@ -79,8 +83,20 @@ public class DurableEventsComponent @Inject constructor(
                 databaseLocks = databaseComponent.locks
             )
 
-            managedComponent.register(durableEventQueueWorkersManager)
+            adminComponent.register(
+                DurableEventsAdminModule(
+                    durableEventHandlersProvider = durableEventHandlersProvider,
+                    databaseQueueAdminFacade = DatabaseQueueAdminFacadeImpl(
+                        workItemsDAO = databaseQueueComponent.workItemsDAO,
+                        workItemFailuresDAO = databaseQueueComponent.workItemFailuresDAO,
+                        workQueuesDAO = databaseQueueComponent.workQueuesDAO,
+                        unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
+                        clock = coreComponent.clock
+                    )
+                )
+            )
 
+            managedComponent.register(durableEventQueueWorkersManager)
             managedComponent.register(eventOutboxWorker)
 
             return DurableEventsComponent(

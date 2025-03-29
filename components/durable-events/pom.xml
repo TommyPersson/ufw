@@ -32,6 +32,10 @@
             <groupId>io.tpersson.ufw</groupId>
             <artifactId>ufw-managed</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.tpersson.ufw</groupId>
+            <artifactId>ufw-admin</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>io.tpersson.ufw</groupId>

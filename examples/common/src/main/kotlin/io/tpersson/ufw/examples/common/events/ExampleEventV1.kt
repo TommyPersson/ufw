@@ -5,7 +5,11 @@ import io.tpersson.ufw.durableevents.common.DurableEventId
 import io.tpersson.ufw.durableevents.common.EventDefinition
 import java.time.Instant
 
-@EventDefinition(type = "example-event-v1", topic = "example-topic")
+@EventDefinition(
+    type = "example-event-v1",
+    topic = "example-topic",
+    description = "A **simple** example event",
+)
 public data class ExampleEventV1(
     override val id: DurableEventId = DurableEventId(),
     override val timestamp: Instant = Instant.now(),

@@ -5,6 +5,7 @@ import com.google.inject.Module
 import com.google.inject.multibindings.OptionalBinder
 import io.tpersson.ufw.durableevents.handler.internal.IncomingEventIngesterImpl
 import io.tpersson.ufw.durableevents.DurableEventsComponent
+import io.tpersson.ufw.durableevents.admin.DurableEventsAdminModule
 import io.tpersson.ufw.durableevents.common.IncomingEventIngester
 import io.tpersson.ufw.durableevents.handler.internal.DurableEventHandlersProvider
 import io.tpersson.ufw.durableevents.publisher.OutgoingEventTransport
@@ -23,5 +24,7 @@ public class DurableEventsGuiceModule : Module {
 
         binder.bind(DurableEventHandlersProvider::class.java).to(GuiceDurableEventHandlersProvider::class.java)
         binder.bind(IncomingEventIngester::class.java).to(IncomingEventIngesterImpl::class.java)
+
+        binder.bind(DurableEventsAdminModule::class.java).asEagerSingleton()
     }
 }

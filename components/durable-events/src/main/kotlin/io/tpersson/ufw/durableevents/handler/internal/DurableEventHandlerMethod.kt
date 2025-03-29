@@ -10,5 +10,6 @@ public class DurableEventHandlerMethod<TEvent : DurableEvent>(
     public val eventTopic: String,
     public val eventType: String,
     public val eventClass: KClass<TEvent>,
+    public val eventDescription: String,
     public val method: suspend (TEvent, DurableEventContext) -> Unit,
 )

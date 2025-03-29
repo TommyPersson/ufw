@@ -8,18 +8,20 @@ import io.tpersson.ufw.databasequeue.WorkItemQueueId
 import io.tpersson.ufw.databasequeue.worker.AbstractWorkQueueManager
 import io.tpersson.ufw.databasequeue.worker.DatabaseQueueWorkerFactory
 import io.tpersson.ufw.durableevents.common.DurableEvent
-import io.tpersson.ufw.durableevents.common.EventDefinition
+import io.tpersson.ufw.durableevents.common.DurableEventQueueId
 import io.tpersson.ufw.durableevents.common.eventDefinition
 import io.tpersson.ufw.durableevents.handler.DurableEventHandler
 import io.tpersson.ufw.durableevents.handler.annotations.EventHandler
 import jakarta.inject.Inject
 import jakarta.inject.Named
+import jakarta.inject.Singleton
 import kotlin.reflect.KClass
 import kotlin.reflect.full.callSuspend
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberFunctions
 
 
+@Singleton
 public class DurableEventQueueWorkersManager @Inject constructor(
     private val workerFactory: DatabaseQueueWorkerFactory,
     private val durableEventHandlersProvider: DurableEventHandlersProvider,
@@ -28,16 +30,20 @@ public class DurableEventQueueWorkersManager @Inject constructor(
     workerFactory = workerFactory,
     adapterSettings = DurableEventsDatabaseQueueAdapterSettings
 ) {
-    protected override val handlersByTypeByQueueId: Map<WorkItemQueueId, Map<String, WorkItemHandler<*>>> = run {
+    public val handlerMethodsByQueue: Map<DurableEventQueueId, List<DurableEventHandlerMethod<*>>> =
         durableEventHandlersProvider.get().associate { handler ->
-            val queueId = handler.queueId.asWorkItemQueueId()
+            val queueId = handler.queueId
             val methods = handler.findHandlerMethods()
 
-            queueId to methods.associate { method ->
-                method.eventType to DurableEventHandlerAdapter(handler, method, objectMapper)
-            }
+            queueId to methods
         }
-    }
+
+    protected override val handlersByTypeByQueueId: Map<WorkItemQueueId, Map<String, WorkItemHandler<*>>> =
+        handlerMethodsByQueue.map { (queueId, methods) ->
+            queueId.toWorkItemQueueId() to methods.associate { method ->
+                method.eventType to DurableEventHandlerAdapter(method.handler, method, objectMapper)
+            }
+        }.toMap()
 }
 
 public fun DurableEventHandler.findHandlerMethods(): List<DurableEventHandlerMethod<*>> {
@@ -58,7 +64,8 @@ public fun DurableEventHandler.findHandlerMethods(): List<DurableEventHandlerMet
             handler = this,
             eventTopic = topic,
             eventType = eventAnnotation.type,
-            eventClass = eventParamClass as KClass<out DurableEvent>,
+            eventClass = eventParamClass,
+            eventDescription = eventAnnotation.description,
             method = { e, ctx -> function.callSuspend(this, e, ctx) }
         )
     }

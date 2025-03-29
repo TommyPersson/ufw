@@ -38,8 +38,8 @@ public class IncomingEventIngesterImpl @Inject constructor(
         event: IncomingEvent,
         queueId: DurableEventQueueId
     ) = NewWorkItem(
-        itemId = event.id.asWorkItemId(),
-        queueId = queueId.asWorkItemQueueId(),
+        itemId = event.id.toWorkItemId(),
+        queueId = queueId.toWorkItemQueueId(),
         type = event.type,
         metadataJson = "{}", // TODOm
         dataJson = event.dataJson,

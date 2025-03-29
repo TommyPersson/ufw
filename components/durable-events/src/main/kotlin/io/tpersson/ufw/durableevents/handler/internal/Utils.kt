@@ -7,7 +7,7 @@ import io.tpersson.ufw.durableevents.common.DurableEventId
 import io.tpersson.ufw.durableevents.common.DurableEventQueueId
 
 
-public fun DurableEventQueueId.asWorkItemQueueId(): WorkItemQueueId =
+public fun DurableEventQueueId.toWorkItemQueueId(): WorkItemQueueId =
     DurableEventsDatabaseQueueAdapterSettings.convertQueueId(this.id)
 
-public fun DurableEventId.asWorkItemId(): WorkItemId = WorkItemId(this.value)
+public fun DurableEventId.toWorkItemId(): WorkItemId = WorkItemId(this.value)

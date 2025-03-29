@@ -3,6 +3,7 @@ package io.tpersson.ufw.durableevents.common
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.tpersson.ufw.core.CoreComponent.Companion.defaultObjectMapper
+import org.intellij.lang.annotations.Language
 import java.time.Instant
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
@@ -24,7 +25,9 @@ public val KClass<out DurableEvent>.eventDefinition: EventDefinition
 
 public annotation class EventDefinition(
     val type: String,
-    val topic: String
+    val topic: String,
+    @Language("Markdown")
+    val description: String = ""
 )
 
 @EventDefinition("my-test-event-1", "test-topic")

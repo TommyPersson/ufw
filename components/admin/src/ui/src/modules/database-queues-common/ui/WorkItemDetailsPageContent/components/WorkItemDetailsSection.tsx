@@ -96,9 +96,8 @@ export const WorkItemDetailsSection = (props: {
           <PropertyText
             title={"Type Description"}
             isLoading={isLoading}
-            noSubtitleStyling={!!details?.itemTypeClass}
-            subtitle={details?.itemTypeClass ? <Markdown>{details?.itemTypeClass}</Markdown> :
-              <em>N/A</em>}
+            noSubtitleStyling={!!details?.itemTypeDescription}
+            subtitle={details?.itemTypeDescription ? <Markdown>{details?.itemTypeDescription}</Markdown> : <em>N/A</em>}
           />
         </PropertyGroup>
       </CardContent>
