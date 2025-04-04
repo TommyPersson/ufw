@@ -14,6 +14,7 @@ export const jobQueueDetailsSchema = z.object({
     typeName: z.string(),
     className: z.string(),
     description: z.string().nullable(),
+    periodic: z.boolean()
   }).array(),
   applicationModule: applicationModuleSchema,
 })

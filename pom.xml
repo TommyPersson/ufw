@@ -80,6 +80,7 @@
 
         <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
         <jmolecules.version>1.10.0</jmolecules.version>
+        <cron-utils.version>9.2.0</cron-utils.version>
     </properties>
 
     <dependencyManagement>
@@ -394,6 +395,12 @@
                 <groupId>org.jmolecules</groupId>
                 <artifactId>jmolecules-ddd</artifactId>
                 <version>${jmolecules.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.cronutils</groupId>
+                <artifactId>cron-utils</artifactId>
+                <version>${cron-utils.version}</version>
             </dependency>
 
             <dependency>

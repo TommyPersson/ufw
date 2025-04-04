@@ -2,11 +2,13 @@ package io.tpersson.ufw.durablejobs
 
 import io.tpersson.ufw.admin.AdminComponent
 import io.tpersson.ufw.core.CoreComponent
+import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.databasequeue.DatabaseQueueComponent
 import io.tpersson.ufw.durablejobs.admin.DurableJobsAdminModule
 import io.tpersson.ufw.durablejobs.internal.DurableJobQueueImpl
 import io.tpersson.ufw.durablejobs.internal.DurableJobQueueWorkersManager
+import io.tpersson.ufw.durablejobs.internal.PeriodicJobManager
 import io.tpersson.ufw.durablejobs.internal.SimpleDurableJobHandlersProvider
 import io.tpersson.ufw.durablejobs.internal.metrics.JobStateMetric
 import io.tpersson.ufw.managed.ManagedComponent
@@ -26,6 +28,7 @@ public class DurableJobsComponent @Inject constructor(
         public fun create(
             coreComponent: CoreComponent,
             managedComponent: ManagedComponent,
+            databaseComponent: DatabaseComponent,
             databaseQueueComponent: DatabaseQueueComponent,
             adminComponent: AdminComponent?,
             config: DurableJobsConfig,
@@ -47,6 +50,15 @@ public class DurableJobsComponent @Inject constructor(
                 objectMapper = coreComponent.objectMapper,
             )
 
+            val periodicJobManager = PeriodicJobManager(
+                jobHandlersProvider = durableJobHandlersProvider,
+                jobQueue = jobQueue,
+                queueStateChecker = databaseQueueComponent.queueStateChecker,
+                databaseLocks = databaseComponent.locks,
+                unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
+                clock = coreComponent.clock,
+            )
+
             val jobStateMetric = JobStateMetric(
                 meterRegistry = coreComponent.meterRegistry,
                 jobHandlersProvider = durableJobHandlersProvider,
@@ -56,10 +68,12 @@ public class DurableJobsComponent @Inject constructor(
 
             managedComponent.register(jobStateMetric)
             managedComponent.register(durableJobQueueWorkersManager)
+            managedComponent.register(periodicJobManager)
 
             adminComponent?.register(
                 DurableJobsAdminModule(
                     durableJobHandlersProvider = durableJobHandlersProvider,
+                    periodicJobManager = periodicJobManager,
                     databaseQueueAdminFacade = databaseQueueComponent.adminManager,
                 )
             )

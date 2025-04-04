@@ -6,7 +6,7 @@ export type JobDetails = {
   jobId: string
   jobType: string
   jobTypeClass: string
-  jobTypeDescription: string
+  jobTypeDescription: string | null
   state: JobState
   dataJson: string
   metadataJson: string

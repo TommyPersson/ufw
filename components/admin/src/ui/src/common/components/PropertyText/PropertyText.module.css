@@ -1,5 +1,9 @@
 
 .PropertyText {
+    > span:first-child {
+      white-space: nowrap;
+    }
+
     p:first-of-type {
         margin-top: 0;
     }

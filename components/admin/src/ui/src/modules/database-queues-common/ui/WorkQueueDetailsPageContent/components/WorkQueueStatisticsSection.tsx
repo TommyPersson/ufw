@@ -57,7 +57,7 @@ const StatCard = (props: {
       <MaybeLink {...linkProps as any}>
         <CardActionArea>
           <CardContent>
-            <Typography variant={"subtitle1"} component={"div"}>
+            <Typography variant={"overline"} component={"div"}>
               {title}
             </Typography>
             <Typography variant={"h4"} component={"div"}>

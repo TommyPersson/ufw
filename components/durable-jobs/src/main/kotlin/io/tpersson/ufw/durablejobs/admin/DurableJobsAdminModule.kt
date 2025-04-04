@@ -1,5 +1,9 @@
 package io.tpersson.ufw.durablejobs.admin
 
+import com.cronutils.descriptor.CronDescriptor
+import com.cronutils.model.CronType
+import com.cronutils.model.definition.CronDefinitionBuilder
+import com.cronutils.parser.CronParser
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
@@ -17,15 +21,19 @@ import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
 import io.tpersson.ufw.databasequeue.internal.WorkItemFailureDbEntity
 import io.tpersson.ufw.durablejobs.DurableJobId
 import io.tpersson.ufw.durablejobs.DurableJobQueueId
+import io.tpersson.ufw.durablejobs.PeriodicJob
 import io.tpersson.ufw.durablejobs.admin.contracts.*
 import io.tpersson.ufw.durablejobs.internal.*
 import jakarta.inject.Inject
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import java.util.*
+import kotlin.reflect.full.findAnnotation
 
 public class DurableJobsAdminModule @Inject constructor(
     private val durableJobHandlersProvider: DurableJobHandlersProvider,
+    private val periodicJobManager: PeriodicJobManager,
     private val databaseQueueAdminFacade: DatabaseQueueAdminFacade,
 ) : AdminModule {
 
@@ -92,7 +100,17 @@ public class DurableJobsAdminModule @Inject constructor(
                         QueueDetailsDTO.JobType(
                             typeName = it.type,
                             className = it.jobClass.simpleName!!,
-                            description = it.description
+                            description = it.description,
+                            periodic = it.jobClass.findAnnotation<PeriodicJob>() != null,
+                            periodicCron = it.jobClass.findAnnotation<PeriodicJob>()?.cronExpression,
+                            periodicCronExplanation = it.jobClass.findAnnotation<PeriodicJob>()?.cronExpression?.let { cronExpression ->
+                                CronDefinitionBuilder.instanceDefinitionFor(CronType.UNIX).let { cronDef ->
+                                    CronParser(cronDef).parse(cronExpression).let { cron ->
+                                        CronDescriptor.instance(Locale.US).describe(cron)
+                                    }
+                                }
+                            }
+
                         )
                     },
                     applicationModule = module.toApplicationModuleDTO()
@@ -210,6 +228,28 @@ public class DurableJobsAdminModule @Inject constructor(
                 databaseQueueAdminFacade.cancelWorkItem(queueId.toWorkItemQueueId(), jobId.toWorkItemId())
 
                 call.respond(HttpStatusCode.NoContent)
+            }
+
+            get("/admin/api/durable-jobs/periodic-jobs") {
+                val periodicJobs = periodicJobManager.periodicJobSpecs.map {
+                    val jobQueueId = it.handler.jobDefinition.queueId
+                    val workQueueId = jobQueueId.toWorkItemQueueId()
+
+                    PeriodicJobDTO(
+                        type = it.handler.jobDefinition.type,
+                        description = it.handler.jobDefinition.description,
+                        cronExpression = it.cronExpression,
+                        cronDescription = CronDescriptor.instance(Locale.US).describe(it.cronInstance),
+                        lastSchedulingAttempt = null,
+                        nextSchedulingAttempt = null,
+                        queueId = jobQueueId,
+                        queueState = databaseQueueAdminFacade.getQueueStatus(queueId = workQueueId).state,
+                        queueHasFailures = databaseQueueAdminFacade.getQueueStatistics(workQueueId).numFailed > 0,
+                        applicationModule = it.handler.jobDefinition.jobClass.findModuleMolecule().toApplicationModuleDTO()
+                    )
+                }
+
+                call.respond(periodicJobs)
             }
         }
     }

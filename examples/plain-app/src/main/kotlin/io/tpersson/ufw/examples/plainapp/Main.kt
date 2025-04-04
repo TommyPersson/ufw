@@ -24,6 +24,7 @@ import io.tpersson.ufw.examples.common.commands.TestAdminCommand2Handler
 import io.tpersson.ufw.examples.common.events.ExampleDurableEventHandler
 import io.tpersson.ufw.examples.common.events.ExampleEventV1
 import io.tpersson.ufw.examples.common.jobs.*
+import io.tpersson.ufw.examples.common.jobs.periodic.PeriodicPrintJobHandler
 import io.tpersson.ufw.examples.common.managed.PeriodicEventPublisher
 import io.tpersson.ufw.examples.common.managed.PeriodicJobScheduler
 import io.tpersson.ufw.examples.common.managed.PeriodicLogger
@@ -96,7 +97,8 @@ public fun main(): Unit = runBlocking(MDCContext()) {
                 PrintJobHandler(),
                 PrintJob2Handler(),
                 ExpensiveCalculationJobHandler(components.durableCaches.durableCaches),
-                SensitiveDataRefreshJobHandler(components.durableCaches.durableCaches)
+                SensitiveDataRefreshJobHandler(components.durableCaches.durableCaches),
+                PeriodicPrintJobHandler(),
             )
         }
         durableEvents {

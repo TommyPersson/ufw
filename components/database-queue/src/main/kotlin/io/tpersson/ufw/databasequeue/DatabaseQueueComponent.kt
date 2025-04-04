@@ -14,9 +14,11 @@ public class DatabaseQueueComponent @Inject constructor(
     public val workItemsDAO: WorkItemsDAO, // TODO cleaner queue interface
     public val workItemFailuresDAO: WorkItemFailuresDAO, // TODO cleaner queue interface
     public val workQueuesDAO: WorkQueuesDAO,
+    public val queueStateChecker: QueueStateChecker,
     public val adminManager: DatabaseQueueAdminFacade,
     public val config: DatabaseQueueConfig,
 ) {
+
     init {
         Migrator.registerMigrationScript(
             componentName = "database_queue",
@@ -75,6 +77,7 @@ public class DatabaseQueueComponent @Inject constructor(
                 workItemsDAO = workItemsDAO,
                 workItemFailuresDAO = workItemFailuresDAO,
                 workQueuesDAO = workQueuesDAO,
+                queueStateChecker = queueStateChecker,
                 adminManager = databaseQueueAdminManager,
                 config = config
             )

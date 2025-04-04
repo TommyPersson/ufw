@@ -17,5 +17,8 @@ public data class QueueDetailsDTO(
         val typeName: String,
         val className: String,
         val description: String?,
+        val periodic: Boolean,
+        val periodicCron: String?,
+        val periodicCronExplanation: String?,
     )
 }

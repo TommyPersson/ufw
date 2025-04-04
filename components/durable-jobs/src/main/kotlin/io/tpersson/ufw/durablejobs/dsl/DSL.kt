@@ -5,6 +5,7 @@ import io.tpersson.ufw.core.dsl.UFWBuilder
 import io.tpersson.ufw.core.dsl.UFWRegistry
 import io.tpersson.ufw.core.dsl.UfwDslMarker
 import io.tpersson.ufw.core.dsl.core
+import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.databasequeue.dsl.databaseQueue
 import io.tpersson.ufw.durablejobs.DurableJobHandler
 import io.tpersson.ufw.durablejobs.DurableJobsComponent
@@ -30,6 +31,7 @@ public class DurableJobsComponentBuilder(public val components: UFWRegistry) {
         return DurableJobsComponent.create(
             coreComponent = components.core,
             managedComponent = components.managed,
+            databaseComponent = components.database,
             databaseQueueComponent = components.databaseQueue,
             adminComponent = components._components["Admin"] as? AdminComponent?,
             config = config,
