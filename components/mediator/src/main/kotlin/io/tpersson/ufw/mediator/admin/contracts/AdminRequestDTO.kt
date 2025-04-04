@@ -9,5 +9,7 @@ public data class AdminRequestDTO(
     val fullClassName: String,
     val description: String,
     val type: RequestType,
+    val parameters: List<AdminRequestParameterDTO>,
     val applicationModule: ApplicationModuleDTO
 )
+

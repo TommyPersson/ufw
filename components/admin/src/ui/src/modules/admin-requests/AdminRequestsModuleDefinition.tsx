@@ -1,7 +1,7 @@
 import ManageSearchOutlinedIcon from '@mui/icons-material/ManageSearchOutlined';
 import PlayCircleOutlineOutlinedIcon from '@mui/icons-material/PlayCircleOutlineOutlined';
 import { ModuleDefinition } from "../ModuleDefinition.tsx"
-import { AdminRequestsIndexPage } from "./ui/pages"
+import { AdminRequestDetailsPage, AdminRequestsIndexPage } from "./ui/pages"
 
 export const AdminRequestsModuleDefinition: ModuleDefinition = {
   moduleId: "admin-requests",
@@ -22,6 +22,10 @@ export const AdminRequestsModuleDefinition: ModuleDefinition = {
           index: true,
           element: <AdminRequestsIndexPage requestType={"COMMAND"} />,
         },
+        {
+          path: ":requestClassName/details",
+          element: <AdminRequestDetailsPage requestType={"COMMAND"} />
+        }
       ]
     },
     {
@@ -31,6 +35,10 @@ export const AdminRequestsModuleDefinition: ModuleDefinition = {
           index: true,
           element: <AdminRequestsIndexPage requestType={"QUERY"} />,
         },
+        {
+          path: ":requestClassName/details",
+          element: <AdminRequestDetailsPage requestType={"QUERY"} />
+        }
       ]
     },
   ]

@@ -6,6 +6,7 @@ import { ApplicationModuleHeader, LinkTableCell, Page } from "../../../../common
 import { ApplicationModule } from "../../../../common/models"
 import { AdminRequest, AdminRequestType } from "../../models"
 import { AdminRequestsQuery } from "../../queries"
+import { ClassNameText } from "../components"
 
 import classes from "./AdminRequestsIndexPage.module.css"
 
@@ -77,12 +78,11 @@ const AdminRequestItemRow = (props: { request: AdminRequest }) => {
       <LinkTableCell to={link}>
         <Typography variant={"subtitle2"}>{request.name}</Typography>
         <Markdown>{request.description}</Markdown>
-        <Typography variant={"caption"}>Class: <code>{request.className}</code></Typography>
+        <Typography variant={"caption"}>Class: <ClassNameText fqcn={request.fullClassName} variant={'with-short-package'} /></Typography>
       </LinkTableCell>
     </TableRow>
   )
 }
-
 
 function formatPageHeading(requestType: AdminRequestType): string {
   switch (requestType) {
@@ -98,8 +98,8 @@ function formatPageHeading(requestType: AdminRequestType): string {
 function formatRequestDetailsLink(request: AdminRequest): string {
   switch (request.type) {
     case "COMMAND":
-      return `/admin-commands/${request.fullClassName}`
+      return `/admin-commands/${request.fullClassName}/details`
     case "QUERY":
-      return `/admin-queries/${request.fullClassName}`
+      return `/admin-queries/${request.fullClassName}/details`
   }
 }
