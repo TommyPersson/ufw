@@ -13,6 +13,8 @@ import io.tpersson.ufw.durablejobs.DurableJob
 import io.tpersson.ufw.durablejobs.DurableJobHandler
 import io.tpersson.ufw.durablejobs.DurableJobQueue
 import io.tpersson.ufw.durablejobs.PeriodicJob
+import io.tpersson.ufw.durablejobs.internal.dao.PeriodicJobStateData
+import io.tpersson.ufw.durablejobs.internal.dao.PeriodicJobsDAO
 import io.tpersson.ufw.managed.ManagedJob
 import jakarta.inject.Inject
 import kotlinx.coroutines.NonCancellable
@@ -32,6 +34,7 @@ public class PeriodicJobManager @Inject constructor(
     private val jobQueue: DurableJobQueue,
     private val queueStateChecker: QueueStateChecker,
     private val databaseLocks: DatabaseLocks,
+    private val periodicJobsDAO: PeriodicJobsDAO,
     private val unitOfWorkFactory: UnitOfWorkFactory,
     private val clock: InstantSource,
 ) : ManagedJob() {
@@ -52,8 +55,16 @@ public class PeriodicJobManager @Inject constructor(
 
     private val database = ConcurrentHashMap<PeriodicJobSpec<*>, PeriodicJobState>()
 
-    public fun getState(spec: PeriodicJobSpec<*>): PeriodicJobState? {
-        return database[spec]
+    public suspend fun getState(spec: PeriodicJobSpec<*>): PeriodicJobState {
+        return periodicJobsDAO.get(
+            queueId = spec.handler.jobDefinition.queueId,
+            jobType = spec.handler.jobDefinition.type
+        )?.let {
+            PeriodicJobState(
+                lastSchedulingAttempt = it.lastSchedulingAttempt,
+                nextSchedulingAttempt = it.nextSchedulingAttempt
+            )
+        } ?: PeriodicJobState()
     }
 
     override suspend fun launch() {
@@ -82,12 +93,12 @@ public class PeriodicJobManager @Inject constructor(
     }
 
     private suspend fun trySchedulePeriodicJobs(now: Instant) {
-        for (periodicJobSpec in periodicJobSpecs) {
-            val state = database.getOrPut(periodicJobSpec) {
-                PeriodicJobState()
-            }
+        // TODO more efficient to lookup only db entries with a passed scheduling time
 
-            if (state.nextEnqueue != null && state.nextEnqueue.isAfter(now)) {
+        for (periodicJobSpec in periodicJobSpecs) {
+            val state = getState(periodicJobSpec)
+
+            if (state.nextSchedulingAttempt != null && state.nextSchedulingAttempt.isAfter(now)) {
                 continue
             }
 
@@ -95,12 +106,12 @@ public class PeriodicJobManager @Inject constructor(
 
             val isJobPaused = queueStateChecker.isQueuePaused(jobQueueId.toWorkItemQueueId())
             if (isJobPaused) {
-                val nextEnqueue = calculateNextEnqueueTime(periodicJobSpec, now)
+                val nextSchedulingAttempt = calculateNextEnqueueTime(periodicJobSpec, now)
                 database[periodicJobSpec] = state.copy(
-                    nextEnqueue = nextEnqueue
+                    nextSchedulingAttempt = nextSchedulingAttempt
                 )
 
-                logger.warn("The '${jobQueueId}' queue is paused. Skipping. Next attempt = ${nextEnqueue}")
+                logger.warn("The '${jobQueueId}' queue is paused. Skipping. Next attempt = $nextSchedulingAttempt")
 
                 continue
             }
@@ -113,11 +124,8 @@ public class PeriodicJobManager @Inject constructor(
         periodicJobSpec: PeriodicJobSpec<*>,
         now: Instant = clock.instant(),
     ) {
-        val state = database.getOrPut(periodicJobSpec) {
-            PeriodicJobState()
-        }
-
-        val jobClass = periodicJobSpec.handler.jobDefinition.jobClass
+        val jobDefinition = periodicJobSpec.handler.jobDefinition
+        val jobClass = jobDefinition.jobClass
 
         val job = try {
             jobClass.primaryConstructor?.callBy(emptyMap()) as DurableJob
@@ -129,14 +137,22 @@ public class PeriodicJobManager @Inject constructor(
         val unitOfWork = unitOfWorkFactory.create()
         jobQueue.enqueue(job, unitOfWork)
 
-        unitOfWork.addPostCommitHook {
-            val nextEnqueue = calculateNextEnqueueTime(periodicJobSpec, now)
+        val nextSchedulingAttempt = calculateNextEnqueueTime(periodicJobSpec, now)
 
-            database[periodicJobSpec] = state.copy(
-                lastEnqueue = now,
-                nextEnqueue = nextEnqueue
-            )
-            logger.info("[${periodicJobSpec.handler.jobDefinition.type}] => $nextEnqueue")
+        periodicJobsDAO.put(
+            queueId = jobDefinition.queueId,
+            jobType = jobDefinition.type,
+            state = PeriodicJobStateData(
+                queueId = jobDefinition.queueId.value,
+                jobType = jobDefinition.type,
+                lastSchedulingAttempt = now,
+                nextSchedulingAttempt = nextSchedulingAttempt
+            ),
+            unitOfWork = unitOfWork
+        )
+
+        unitOfWork.addPostCommitHook {
+            logger.info("[${jobDefinition.type}] => $nextSchedulingAttempt")
         }
 
         unitOfWork.commit()
@@ -160,8 +176,8 @@ public class PeriodicJobManager @Inject constructor(
 }
 
 public data class PeriodicJobState(
-    val lastEnqueue: Instant? = null,
-    val nextEnqueue: Instant? = null,
+    val lastSchedulingAttempt: Instant? = null,
+    val nextSchedulingAttempt: Instant? = null,
 )
 
 public data class PeriodicJobSpec<T : DurableJob>(

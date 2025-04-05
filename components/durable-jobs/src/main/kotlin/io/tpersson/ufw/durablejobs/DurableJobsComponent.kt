@@ -10,6 +10,8 @@ import io.tpersson.ufw.durablejobs.internal.DurableJobQueueImpl
 import io.tpersson.ufw.durablejobs.internal.DurableJobQueueWorkersManager
 import io.tpersson.ufw.durablejobs.internal.PeriodicJobManager
 import io.tpersson.ufw.durablejobs.internal.SimpleDurableJobHandlersProvider
+import io.tpersson.ufw.durablejobs.internal.dao.PeriodicJobsDAO
+import io.tpersson.ufw.durablejobs.internal.dao.PeriodicJobsDAOImpl
 import io.tpersson.ufw.durablejobs.internal.metrics.JobStateMetric
 import io.tpersson.ufw.managed.ManagedComponent
 import jakarta.inject.Inject
@@ -55,6 +57,7 @@ public class DurableJobsComponent @Inject constructor(
                 jobQueue = jobQueue,
                 queueStateChecker = databaseQueueComponent.queueStateChecker,
                 databaseLocks = databaseComponent.locks,
+                periodicJobsDAO = PeriodicJobsDAOImpl(databaseComponent.database),
                 unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
                 clock = coreComponent.clock,
             )
