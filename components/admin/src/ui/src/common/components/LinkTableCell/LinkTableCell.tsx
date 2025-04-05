@@ -12,7 +12,7 @@ export const LinkTableCell = (props: { to: string } & TableCellProps) => {
   return (
     <TableCell {...tableCellProps} className={className}>
       <Link to={to}>
-        <div>
+        <div style={{ background: "" }}>
           {children}
         </div>
       </Link>

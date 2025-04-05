@@ -70,6 +70,10 @@ public class WorkItemsDAOImpl @Inject constructor(
         }
     }
 
+    override suspend fun getLatestCompletedItem(queueId: WorkItemQueueId): WorkItemDbEntity? {
+        return database.select(Queries.Selects.GetLatestCompletedItem(queueId))
+    }
+
     override suspend fun takeNext(queueId: WorkItemQueueId, watchdogId: String, now: Instant): WorkItemDbEntity? {
         return database.update(
             Queries.Updates.TakeNext(
@@ -346,6 +350,19 @@ public class WorkItemsDAOImpl @Inject constructor(
                   AND state = :state.dbOrdinal
                 ORDER BY created_at ASC
                 """.trimIndent(),
+            )
+
+            data class GetLatestCompletedItem(
+                val queueId: WorkItemQueueId,
+            ) : TypedSelectSingle<WorkItemDbEntity>(
+                """
+                SELECT $columnsWithoutEventsSql
+                FROM $TableName
+                WHERE queue_id = :queueId.value
+                  AND (state = ${WorkItemState.SUCCESSFUL.dbOrdinal} OR state = ${WorkItemState.FAILED.dbOrdinal})
+                ORDER BY first_scheduled_for DESC
+                LIMIT 1   
+                """.trimIndent()
             )
 
             data class GetEventsForItem(

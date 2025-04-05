@@ -8,31 +8,25 @@ import kotlin.random.Random
 
 @DurableJobTypeDefinition(
     description = """
-It prints stuff regularly. 
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod.
+It also prints stuff regularly.
 """
 )
-@PeriodicJob("* * * * *")
-public data class PeriodicPrintJob(
-    val text: String = "Thing To Print",
+@PeriodicJob("*/2 * * * *")
+public data class PeriodicPrintJob2(
+    val text: String = "Another Thing To Print",
     override val id: DurableJobId = DurableJobId.new()
 ) : DurableJob
 
-public class PeriodicPrintJobHandler @Inject constructor() : DurableJobHandler<PeriodicPrintJob> {
+public class PeriodicPrintJob2Handler @Inject constructor() : DurableJobHandler<PeriodicPrintJob2> {
 
     private val logger = createLogger()
 
-    override suspend fun handle(job: PeriodicPrintJob, context: DurableJobContext) {
-        if (Random.nextInt() % 2 == 0) {
-            error("Uh oh")
-        }
-
+    override suspend fun handle(job: PeriodicPrintJob2, context: DurableJobContext) {
         logger.info("Handling: $job")
     }
 
     override suspend fun onFailure(
-        job: PeriodicPrintJob,
+        job: PeriodicPrintJob2,
         error: Exception,
         context: DurableJobFailureContext
     ): FailureAction {

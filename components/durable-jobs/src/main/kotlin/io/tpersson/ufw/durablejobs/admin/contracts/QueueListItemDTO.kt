@@ -10,5 +10,6 @@ public data class QueueListItemDTO(
     val numInProgress: Int,
     val numFailed: Int,
     val status: JobQueueStatusDTO,
+    val hasOnlyPeriodicJobTypes: Boolean,
     val applicationModule: ApplicationModuleDTO,
 )

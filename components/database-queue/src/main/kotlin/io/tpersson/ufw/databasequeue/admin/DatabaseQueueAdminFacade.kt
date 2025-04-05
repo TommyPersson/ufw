@@ -24,6 +24,8 @@ public interface DatabaseQueueAdminFacade {
         paginationOptions: PaginationOptions
     ): PaginatedList<WorkItemFailureDbEntity>
 
+    public suspend fun getLatestCompletedItem(queueId: WorkItemQueueId): WorkItemDbEntity?
+
     public suspend fun deleteFailedWorkItem(queueId: WorkItemQueueId, itemId: WorkItemId)
 
     public suspend fun rescheduleFailedWorkItem(queueId: WorkItemQueueId, itemId: WorkItemId)

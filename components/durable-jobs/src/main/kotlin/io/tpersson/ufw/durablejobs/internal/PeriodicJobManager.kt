@@ -15,7 +15,9 @@ import io.tpersson.ufw.durablejobs.DurableJobQueue
 import io.tpersson.ufw.durablejobs.PeriodicJob
 import io.tpersson.ufw.managed.ManagedJob
 import jakarta.inject.Inject
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import java.time.Duration
 import java.time.Instant
 import java.time.InstantSource
@@ -50,6 +52,10 @@ public class PeriodicJobManager @Inject constructor(
 
     private val database = ConcurrentHashMap<PeriodicJobSpec<*>, PeriodicJobState>()
 
+    public fun getState(spec: PeriodicJobSpec<*>): PeriodicJobState? {
+        return database[spec]
+    }
+
     override suspend fun launch() {
         forever(logger) {
             runOnce()
@@ -67,7 +73,9 @@ public class PeriodicJobManager @Inject constructor(
         logger.info("PeriodicJobManager: runOnce")
 
         try {
-            trySchedulePeriodicJobs(now)
+            withContext(NonCancellable) {
+                trySchedulePeriodicJobs(now)
+            }
         } finally {
             lockHandle.release()
         }
@@ -83,8 +91,7 @@ public class PeriodicJobManager @Inject constructor(
                 continue
             }
 
-            val jobClass = periodicJobSpec.handler.jobDefinition.jobClass
-            val jobQueueId = jobClass.jobDefinition2.queueId
+            val jobQueueId = periodicJobSpec.handler.jobDefinition.queueId
 
             val isJobPaused = queueStateChecker.isQueuePaused(jobQueueId.toWorkItemQueueId())
             if (isJobPaused) {
@@ -98,37 +105,52 @@ public class PeriodicJobManager @Inject constructor(
                 continue
             }
 
-            val job = try {
-                jobClass.primaryConstructor?.callBy(emptyMap()) as DurableJob
-            } catch (e: Exception) {
-                logger.error("Cannot construct instance of class ${periodicJobSpec::class.simpleName}", e)
-                continue
-            }
-
-            val unitOfWork = unitOfWorkFactory.create()
-            jobQueue.enqueue(job, unitOfWork)
-
-            unitOfWork.addPostCommitHook {
-                val nextEnqueue = calculateNextEnqueueTime(periodicJobSpec, now)
-
-                database[periodicJobSpec] = state.copy(
-                    lastEnqueue = now,
-                    nextEnqueue = nextEnqueue
-                )
-                logger.info("[${periodicJobSpec.handler.jobDefinition.type}] => $nextEnqueue")
-            }
-
-            unitOfWork.commit()
+            scheduleJobNow(periodicJobSpec, now)
         }
+    }
+
+    public suspend fun scheduleJobNow(
+        periodicJobSpec: PeriodicJobSpec<*>,
+        now: Instant = clock.instant(),
+    ) {
+        val state = database.getOrPut(periodicJobSpec) {
+            PeriodicJobState()
+        }
+
+        val jobClass = periodicJobSpec.handler.jobDefinition.jobClass
+
+        val job = try {
+            jobClass.primaryConstructor?.callBy(emptyMap()) as DurableJob
+        } catch (e: Exception) {
+            logger.error("Cannot construct instance of class ${periodicJobSpec::class.simpleName}", e)
+            return
+        }
+
+        val unitOfWork = unitOfWorkFactory.create()
+        jobQueue.enqueue(job, unitOfWork)
+
+        unitOfWork.addPostCommitHook {
+            val nextEnqueue = calculateNextEnqueueTime(periodicJobSpec, now)
+
+            database[periodicJobSpec] = state.copy(
+                lastEnqueue = now,
+                nextEnqueue = nextEnqueue
+            )
+            logger.info("[${periodicJobSpec.handler.jobDefinition.type}] => $nextEnqueue")
+        }
+
+        unitOfWork.commit()
     }
 
     private fun calculateNextEnqueueTime(
         periodicJobSpec: PeriodicJobSpec<out DurableJob>,
         now: Instant
-    ) = ExecutionTime.forCron(periodicJobSpec.cronInstance)
-        .nextExecution(now.atZone(ZoneId.of("UTC")))
-        .getOrNull()
-        ?.toInstant()
+    ): Instant? {
+        return ExecutionTime.forCron(periodicJobSpec.cronInstance)
+            .nextExecution(now.atZone(ZoneId.of("UTC")))
+            .getOrNull()
+            ?.toInstant()
+    }
 
     public companion object {
         private val cronParser = CronDefinitionBuilder.instanceDefinitionFor(CronType.UNIX).let {

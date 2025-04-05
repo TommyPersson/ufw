@@ -11,6 +11,7 @@ import io.ktor.server.routing.*
 import io.tpersson.ufw.admin.AdminModule
 import io.tpersson.ufw.admin.contracts.toApplicationModuleDTO
 import io.tpersson.ufw.admin.contracts.toDTO
+import io.tpersson.ufw.admin.raise
 import io.tpersson.ufw.admin.utils.getPaginationOptions
 import io.tpersson.ufw.core.utils.findModuleMolecule
 import io.tpersson.ufw.databasequeue.WorkItemQueueId
@@ -50,7 +51,7 @@ public class DurableJobsAdminModule @Inject constructor(
             get("/admin/api/durable-jobs/queues") {
                 coroutineScope {
                     val listItems = jobHandlerDefinitions.map { handler ->
-                        async {
+                        async { // TODO what about queues with multiple handlers? should use distinct
                             val stats = databaseQueueAdminFacade.getQueueStatistics(handler.queueId.toWorkItemQueueId())
                             val status = databaseQueueAdminFacade.getQueueStatus(handler.queueId.toWorkItemQueueId())
                             val module = handler.jobClass.findModuleMolecule()
@@ -65,6 +66,7 @@ public class DurableJobsAdminModule @Inject constructor(
                                     state = status.state,
                                     stateChangedAt = status.stateChangedAt,
                                 ),
+                                hasOnlyPeriodicJobTypes = handler.jobClass.findAnnotation<PeriodicJob>() != null, // TODO should check all job types
                                 applicationModule = module.toApplicationModuleDTO()
 
                             )
@@ -231,25 +233,43 @@ public class DurableJobsAdminModule @Inject constructor(
             }
 
             get("/admin/api/durable-jobs/periodic-jobs") {
-                val periodicJobs = periodicJobManager.periodicJobSpecs.map {
-                    val jobQueueId = it.handler.jobDefinition.queueId
+                val periodicJobs = periodicJobManager.periodicJobSpecs.map { spec ->
+                    val jobDefinition = spec.handler.jobDefinition
+                    val jobQueueId = jobDefinition.queueId
                     val workQueueId = jobQueueId.toWorkItemQueueId()
+                    val periodicJobState = periodicJobManager.getState(spec)
+
+                    val lastCompletedItem = databaseQueueAdminFacade.getLatestCompletedItem(queueId = workQueueId)
 
                     PeriodicJobDTO(
-                        type = it.handler.jobDefinition.type,
-                        description = it.handler.jobDefinition.description,
-                        cronExpression = it.cronExpression,
-                        cronDescription = CronDescriptor.instance(Locale.US).describe(it.cronInstance),
-                        lastSchedulingAttempt = null,
-                        nextSchedulingAttempt = null,
+                        type = jobDefinition.type,
+                        description = jobDefinition.description,
+                        cronExpression = spec.cronExpression,
+                        cronDescription = CronDescriptor.instance(Locale.US).describe(spec.cronInstance),
+                        lastSchedulingAttempt = periodicJobState?.lastEnqueue,
+                        nextSchedulingAttempt = periodicJobState?.nextEnqueue,
                         queueId = jobQueueId,
                         queueState = databaseQueueAdminFacade.getQueueStatus(queueId = workQueueId).state,
-                        queueHasFailures = databaseQueueAdminFacade.getQueueStatistics(workQueueId).numFailed > 0,
-                        applicationModule = it.handler.jobDefinition.jobClass.findModuleMolecule().toApplicationModuleDTO()
+                        queueNumFailures = databaseQueueAdminFacade.getQueueStatistics(workQueueId).numFailed,
+                        lastExecution = lastCompletedItem?.toDetailsDTO(jobDefinition),
+                        applicationModule = jobDefinition.jobClass.findModuleMolecule().toApplicationModuleDTO()
                     )
                 }
 
                 call.respond(periodicJobs)
+            }
+
+            post("/admin/api/durable-jobs/periodic-jobs/{queueId}/{jobType}/actions/schedule-now") {
+                val queueId = call.parameters.queueId
+                val jobType = call.parameters["jobType"]
+
+                val periodicJob = periodicJobManager.periodicJobSpecs.firstOrNull {
+                    it.handler.jobDefinition.type == jobType && it.handler.jobDefinition.queueId == queueId
+                } ?: HttpStatusCode.NotFound.raise()
+
+                periodicJobManager.scheduleJobNow(periodicJob)
+
+                call.respond(HttpStatusCode.NoContent)
             }
         }
     }

@@ -12,7 +12,7 @@ export const PauseJobQueueCommand: Command<{ queueId: string }> = {
       })
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["durable-jobs", "queues"] })
+      await queryClient.invalidateQueries({ queryKey: ["durable-jobs"] })
     }
   }),
   label: "Pause",

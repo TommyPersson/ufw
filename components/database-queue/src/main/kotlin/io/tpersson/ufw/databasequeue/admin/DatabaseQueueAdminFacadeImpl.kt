@@ -45,6 +45,10 @@ public class DatabaseQueueAdminFacadeImpl @Inject constructor(
         return workItemFailuresDAO.listFailuresForWorkItem(item.uid, paginationOptions)
     }
 
+    override suspend fun getLatestCompletedItem(queueId: WorkItemQueueId): WorkItemDbEntity? {
+        return workItemsDAO.getLatestCompletedItem(queueId)
+    }
+
     override suspend fun deleteFailedWorkItem(queueId: WorkItemQueueId, itemId: WorkItemId) {
         workItemsDAO.deleteFailedItem(queueId, itemId)
     }

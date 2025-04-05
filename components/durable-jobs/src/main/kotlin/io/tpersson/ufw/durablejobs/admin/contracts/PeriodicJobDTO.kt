@@ -14,6 +14,7 @@ public data class PeriodicJobDTO(
     val nextSchedulingAttempt: Instant?,
     val queueId: DurableJobQueueId,
     val queueState: WorkQueueState,
-    val queueHasFailures: Boolean,
+    val queueNumFailures: Int,
+    val lastExecution: JobDetailsDTO?,
     val applicationModule: ApplicationModuleDTO,
 )

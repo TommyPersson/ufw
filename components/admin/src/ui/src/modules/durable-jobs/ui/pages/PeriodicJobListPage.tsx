@@ -1,18 +1,33 @@
-import { Card, CardContent, Chip, Divider, Table, TableRow, Typography } from "@mui/material"
+import AccessAlarmOutlinedIcon from "@mui/icons-material/AccessAlarmOutlined"
+import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined"
+import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined"
+import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined"
+import PendingOutlinedIcon from "@mui/icons-material/PendingOutlined"
+import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined"
+import { Card, CardContent, Chip, Divider, Table, TableBody, TableCell, TableRow } from "@mui/material"
+import { SvgIconOwnProps } from "@mui/material/SvgIcon/SvgIcon"
 import { useQuery } from "@tanstack/react-query"
 import { uniqBy } from "es-toolkit"
+import * as React from "react"
 import { useMemo } from "react"
 import Markdown from "react-markdown"
 import {
   ApplicationModuleHeader,
+  CommandMenuItem,
   DateTimeText,
   LinkTableCell,
-  Page, PageBreadcrumb,
+  MoreOptionsMenuButton,
+  Page,
+  PageBreadcrumb,
   PropertyGroup,
   PropertyText
 } from "../../../../common/components"
 import { WorkQueueState } from "../../../database-queues-common/models"
 import { getQueueStateColor } from "../../../database-queues-common/ui/utils/colors"
+import { getQueueStateIcon } from "../../../database-queues-common/ui/utils/icons"
+import { PauseJobQueueCommand, UnpauseJobQueueCommand } from "../../commands"
+import { SchedulePeriodicJobNowCommand } from "../../commands/SchedulePeriodicJobNowCommand"
+import { JobState } from "../../models"
 import { PeriodicJobListItem } from "../../models/PeriodicJobListItem"
 import { PeriodicJobListQuery } from "../../queries/PeriodicJobListQuery"
 
@@ -43,15 +58,17 @@ export const PeriodicJobListPage = () => {
       {applicationModules.map(module => {
         const periodicJobsInModule = periodicJobs.filter(it => it.applicationModule.id == module.id)
         return (
-          <Card>
+          <Card key={module.id}>
             <CardContent>
               <ApplicationModuleHeader applicationModule={module} />
             </CardContent>
             <Divider />
             <Table>
-              {periodicJobsInModule.map(job => (
-                <PeriodicJobRow key={job.type} job={job} />
-              ))}
+              <TableBody>
+                {periodicJobsInModule.map(job => (
+                  <PeriodicJobRow key={job.type} job={job} />
+                ))}
+              </TableBody>
             </Table>
           </Card>
         )
@@ -110,27 +127,44 @@ function PeriodicJobRow(props: { job: PeriodicJobListItem }) {
       <LinkTableCell to={link} style={{ verticalAlign: "top" }}>
         <PropertyGroup>
           <PropertyText
-            title={"# Scheduled"}
-            subtitle={1}
-          />
-          <PropertyText
-            title={"# Pending"}
-            subtitle={2}
-          />
-        </PropertyGroup>
-      </LinkTableCell>
-      <LinkTableCell to={link} style={{ verticalAlign: "top" }}>
-        <PropertyGroup>
-          <PropertyText
-            title={"# In Progress"}
-            subtitle={3}
-          />
-          <PropertyText
             title={"# Failed"}
-            subtitle={4}
+            subtitle={job.queueNumFailures}
+          />
+          <PropertyText
+            title={"Last Execution"}
+            subtitle={
+              <Chip
+                label={<DateTimeText dateTime={job.lastExecution?.stateChangedAt} fallback={<em>N/A</em>} />}
+                icon={<JobStateIcon
+                  state={job.lastExecution?.state}
+                  color={"inherit" /* must be set to override chip default*/}
+                />}
+                size={"small"}
+              />
+            }
           />
         </PropertyGroup>
       </LinkTableCell>
+      <TableCell>
+        <MoreOptionsMenuButton>
+          <CommandMenuItem
+            command={SchedulePeriodicJobNowCommand}
+            args={{ queueId: job.queueId, jobType: job.type }}
+          />
+          {job.queueState === "ACTIVE" && (
+            <CommandMenuItem
+              command={PauseJobQueueCommand}
+              args={{ queueId: job.queueId }}
+            />
+          )}
+          {job.queueState === "PAUSED" && (
+            <CommandMenuItem
+              command={UnpauseJobQueueCommand}
+              args={{ queueId: job.queueId }}
+            />
+          )}
+        </MoreOptionsMenuButton>
+      </TableCell>
     </TableRow>
   )
 }
@@ -142,8 +176,32 @@ const QueueStateChip = (props: { state: WorkQueueState }) => {
     <Chip
       size={"small"}
       color={getQueueStateColor(state)}
+      icon={getQueueStateIcon(state)}
       variant={"outlined"}
       label={state}
     />
   )
 }
+
+const JobStateIcon = React.forwardRef((props: {
+  state: JobState | null | undefined,
+} & Partial<SvgIconOwnProps>, ref: any) => {
+  const { state, ...iconProps } = props
+
+  switch (state) {
+    case "SUCCESSFUL":
+      return <CheckCircleOutlinedIcon ref={ref} {...iconProps} color={"success"} />
+    case "FAILED":
+      return <WarningAmberOutlinedIcon ref={ref} {...iconProps} color={"error"} />
+    case "PENDING":
+      return <AccessAlarmOutlinedIcon ref={ref} {...iconProps} color={"primary"} />
+    case "SCHEDULED":
+      return <CalendarMonthOutlinedIcon ref={ref}  {...iconProps} color={"primary"} />
+    case "IN_PROGRESS":
+      return <PendingOutlinedIcon ref={ref} {...iconProps} color={"primary"} />
+    case "CANCELLED":
+      return <WarningAmberOutlinedIcon ref={ref}  {...iconProps} color={"error"} /> // TODO
+    default:
+      return <HelpOutlineOutlinedIcon ref={ref} {...iconProps} /> // TODO
+  }
+})

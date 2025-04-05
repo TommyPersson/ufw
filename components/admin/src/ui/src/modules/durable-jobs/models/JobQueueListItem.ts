@@ -9,6 +9,7 @@ export const jobQueueListItemSchema = z.object({
   numInProgress: z.number(),
   numFailed: z.number(),
   status: jobQueueStatusSchema,
+  hasOnlyPeriodicJobTypes: z.boolean(),
   applicationModule: applicationModuleSchema,
 })
 

@@ -19,6 +19,7 @@ import { ApplicationModule } from "../../../../common/models"
 import { WorkQueueListItem } from "../../models"
 import { DatabaseQueueAdapterSettings } from "../../DatabaseQueueAdapterSettings"
 import { getQueueStateColor } from "../utils/colors"
+import { getQueueStateIcon } from "../utils/icons"
 
 import classes from "./WorkQueueIndexPageContent.module.css"
 
@@ -132,6 +133,7 @@ const QueueStatusChip = (props: { queue: WorkQueueListItem }) => {
       <Chip
         size={"small"}
         color={getQueueStateColor(state)}
+        icon={getQueueStateIcon(state)}
         variant={"outlined"}
         label={state}
       />

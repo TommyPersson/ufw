@@ -2,7 +2,7 @@ import { Tooltip } from "@mui/material"
 import { DateTime } from "luxon"
 
 export type DateTimeTextProps = {
-  dateTime: DateTime | null,
+  dateTime: DateTime | null | undefined,
   fallback?: any
 }
 
