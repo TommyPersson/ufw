@@ -1,4 +1,4 @@
-package io.tpersson.ufw.durablejobs.internal.dao
+package io.tpersson.ufw.durablejobs.periodic.internal.dao
 
 import io.tpersson.ufw.database.jdbc.Database
 import io.tpersson.ufw.database.typedqueries.TypedSelectSingle

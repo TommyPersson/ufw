@@ -3,8 +3,8 @@ package io.tpersson.ufw.examples.common.jobs.periodic
 import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.databasequeue.FailureAction
 import io.tpersson.ufw.durablejobs.*
+import io.tpersson.ufw.durablejobs.periodic.PeriodicJob
 import jakarta.inject.Inject
-import kotlin.random.Random
 
 @DurableJobTypeDefinition(
     description = """

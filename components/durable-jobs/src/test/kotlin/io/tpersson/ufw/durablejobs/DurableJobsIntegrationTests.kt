@@ -1,4 +1,4 @@
-package io.tpersson.ufw.durablejobs.v2
+package io.tpersson.ufw.durablejobs
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
@@ -9,7 +9,6 @@ import io.tpersson.ufw.databasequeue.FailureAction
 import io.tpersson.ufw.databasequeue.WorkItemId
 import io.tpersson.ufw.databasequeue.WorkItemState
 import io.tpersson.ufw.databasequeue.dsl.databaseQueue
-import io.tpersson.ufw.durablejobs.*
 import io.tpersson.ufw.durablejobs.dsl.jobQueue
 import io.tpersson.ufw.durablejobs.dsl.durableJobs
 import io.tpersson.ufw.durablejobs.internal.toWorkItemQueueId

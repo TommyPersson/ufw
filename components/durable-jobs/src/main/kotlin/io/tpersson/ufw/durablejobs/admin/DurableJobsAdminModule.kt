@@ -22,9 +22,10 @@ import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
 import io.tpersson.ufw.databasequeue.internal.WorkItemFailureDbEntity
 import io.tpersson.ufw.durablejobs.DurableJobId
 import io.tpersson.ufw.durablejobs.DurableJobQueueId
-import io.tpersson.ufw.durablejobs.PeriodicJob
+import io.tpersson.ufw.durablejobs.periodic.PeriodicJob
 import io.tpersson.ufw.durablejobs.admin.contracts.*
 import io.tpersson.ufw.durablejobs.internal.*
+import io.tpersson.ufw.durablejobs.periodic.internal.PeriodicJobManager
 import jakarta.inject.Inject
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll

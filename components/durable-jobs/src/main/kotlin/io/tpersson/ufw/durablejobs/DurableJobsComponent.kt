@@ -8,11 +8,13 @@ import io.tpersson.ufw.databasequeue.DatabaseQueueComponent
 import io.tpersson.ufw.durablejobs.admin.DurableJobsAdminModule
 import io.tpersson.ufw.durablejobs.internal.DurableJobQueueImpl
 import io.tpersson.ufw.durablejobs.internal.DurableJobQueueWorkersManager
-import io.tpersson.ufw.durablejobs.internal.PeriodicJobManager
+import io.tpersson.ufw.durablejobs.periodic.internal.PeriodicJobManager
 import io.tpersson.ufw.durablejobs.internal.SimpleDurableJobHandlersProvider
-import io.tpersson.ufw.durablejobs.internal.dao.PeriodicJobsDAO
-import io.tpersson.ufw.durablejobs.internal.dao.PeriodicJobsDAOImpl
+import io.tpersson.ufw.durablejobs.periodic.internal.dao.PeriodicJobsDAOImpl
 import io.tpersson.ufw.durablejobs.internal.metrics.JobStateMetric
+import io.tpersson.ufw.durablejobs.periodic.internal.PeriodicJobSchedulerImpl
+import io.tpersson.ufw.durablejobs.periodic.internal.PeriodicJobSpecsProvider
+import io.tpersson.ufw.durablejobs.periodic.internal.PeriodicJobSpecsProviderImpl
 import io.tpersson.ufw.managed.ManagedComponent
 import jakarta.inject.Inject
 
@@ -52,13 +54,28 @@ public class DurableJobsComponent @Inject constructor(
                 objectMapper = coreComponent.objectMapper,
             )
 
-            val periodicJobManager = PeriodicJobManager(
-                jobHandlersProvider = durableJobHandlersProvider,
+            val periodicJobSpecsProvider = PeriodicJobSpecsProviderImpl(
+                jobHandlersProvider = durableJobHandlersProvider
+            )
+
+            val periodicJobsDAO = PeriodicJobsDAOImpl(
+                database = databaseComponent.database
+            )
+
+            val periodicJobScheduler = PeriodicJobSchedulerImpl(
+                periodicJobSpecsProvider = periodicJobSpecsProvider,
                 jobQueue = jobQueue,
                 queueStateChecker = databaseQueueComponent.queueStateChecker,
                 databaseLocks = databaseComponent.locks,
-                periodicJobsDAO = PeriodicJobsDAOImpl(databaseComponent.database),
+                periodicJobsDAO = periodicJobsDAO,
                 unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
+                clock = coreComponent.clock,
+            )
+
+            val periodicJobManager = PeriodicJobManager(
+                periodicJobSpecsProvider = periodicJobSpecsProvider,
+                periodicJobScheduler = periodicJobScheduler,
+                periodicJobsDAO = periodicJobsDAO,
                 clock = coreComponent.clock,
             )
 

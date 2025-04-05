@@ -1,4 +1,4 @@
-package io.tpersson.ufw.durablejobs.internal.dao
+package io.tpersson.ufw.durablejobs.periodic.internal.dao
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
