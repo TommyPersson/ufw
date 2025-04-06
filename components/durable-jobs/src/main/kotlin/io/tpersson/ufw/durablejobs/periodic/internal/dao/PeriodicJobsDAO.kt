@@ -15,5 +15,7 @@ public interface PeriodicJobsDAO {
         state: PeriodicJobStateData,
         unitOfWork: UnitOfWork,
     )
+
+    public suspend fun debugTruncate()
 }
 

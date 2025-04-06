@@ -90,6 +90,22 @@
             <groupId>io.tpersson.ufw</groupId>
             <artifactId>ufw-durable-events-guice</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.tpersson.ufw</groupId>
+            <artifactId>ufw-feature-toggles</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.tpersson.ufw</groupId>
+            <artifactId>ufw-feature-toggles-guice</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.tpersson.ufw</groupId>
+            <artifactId>ufw-admin</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.tpersson.ufw</groupId>
+            <artifactId>ufw-admin-guice</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

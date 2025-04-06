@@ -77,8 +77,10 @@ public class PeriodicJobSchedulerImpl @Inject constructor(
 
         setState(
             periodicJobSpec = periodicJobSpec,
-            lastSchedulingAttempt = now,
-            nextSchedulingAttempt = calculateNextEnqueueTime(periodicJobSpec, now),
+            state = PeriodicJobState(
+                lastSchedulingAttempt = now,
+                nextSchedulingAttempt = calculateNextAttemptTime(periodicJobSpec, now),
+            ),
             unitOfWork = unitOfWork
         )
 
@@ -99,14 +101,15 @@ public class PeriodicJobSchedulerImpl @Inject constructor(
 
             val isJobPaused = queueStateChecker.isQueuePaused(jobQueueId.toWorkItemQueueId())
             if (isJobPaused) {
-                val nextSchedulingAttempt = calculateNextEnqueueTime(periodicJobSpec, now)
+                val nextSchedulingAttempt = calculateNextAttemptTime(periodicJobSpec, now)
 
                 val unitOfWork = unitOfWorkFactory.create()
 
                 setState(
                     periodicJobSpec = periodicJobSpec,
-                    lastSchedulingAttempt = state.lastSchedulingAttempt,
-                    nextSchedulingAttempt = nextSchedulingAttempt,
+                    state = state.copy(
+                        nextSchedulingAttempt = nextSchedulingAttempt,
+                    ),
                     unitOfWork = unitOfWork
                 )
 
@@ -121,8 +124,7 @@ public class PeriodicJobSchedulerImpl @Inject constructor(
         }
     }
 
-
-    private fun calculateNextEnqueueTime(
+    private fun calculateNextAttemptTime(
         periodicJobSpec: PeriodicJobSpec<out DurableJob>,
         now: Instant
     ): Instant? {
@@ -146,8 +148,7 @@ public class PeriodicJobSchedulerImpl @Inject constructor(
 
     private suspend fun setState(
         periodicJobSpec: PeriodicJobSpec<*>,
-        lastSchedulingAttempt: Instant?,
-        nextSchedulingAttempt: Instant?,
+        state: PeriodicJobState,
         unitOfWork: UnitOfWork
     ) {
         val jobDefinition = periodicJobSpec.handler.jobDefinition
@@ -157,8 +158,8 @@ public class PeriodicJobSchedulerImpl @Inject constructor(
             state = PeriodicJobStateData(
                 queueId = jobDefinition.queueId.value,
                 jobType = jobDefinition.type,
-                lastSchedulingAttempt = lastSchedulingAttempt,
-                nextSchedulingAttempt = nextSchedulingAttempt
+                lastSchedulingAttempt = state.lastSchedulingAttempt,
+                nextSchedulingAttempt = state.nextSchedulingAttempt
             ),
             unitOfWork = unitOfWork
         )

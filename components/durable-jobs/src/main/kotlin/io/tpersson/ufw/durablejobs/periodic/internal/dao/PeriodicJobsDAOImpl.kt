@@ -23,6 +23,10 @@ public class PeriodicJobsDAOImpl @Inject constructor(
         unitOfWork.add(Queries.Updates.Put(queueId, jobType, state))
     }
 
+    override suspend fun debugTruncate() {
+        database.update(Queries.Updates.DebugTruncate)
+    }
+
     private object Queries {
 
         private const val tableName = "ufw__periodic_jobs"
@@ -48,7 +52,7 @@ public class PeriodicJobsDAOImpl @Inject constructor(
                 val data: PeriodicJobStateData,
             ) : TypedUpdate(
                 """
-                INSERT INTO $tableName (
+                INSERT INTO $tableName AS t (
                     queue_id,
                     job_type,
                     last_scheduling_attempt,
@@ -60,8 +64,13 @@ public class PeriodicJobsDAOImpl @Inject constructor(
                     :data.nextSchedulingAttempt
                 ) ON CONFLICT (queue_id, job_type) DO UPDATE
                     SET last_scheduling_attempt = :data.lastSchedulingAttempt,
-                        next_scheduling_attempt = :data.nextSchedulingAttempt 
-                """
+                        next_scheduling_attempt = :data.nextSchedulingAttempt                """
+            )
+
+            @Suppress("SqlWithoutWhere")
+            object DebugTruncate : TypedUpdate(
+                "DELETE FROM $tableName",
+                minimumAffectedRows = 0
             )
         }
     }

@@ -18,6 +18,7 @@ import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.lifecycle.Startables
 import org.testcontainers.utility.DockerImageName
 import java.time.Duration
+import java.time.Instant
 
 internal class PeriodicJobsDAOImplTest {
     companion object {
@@ -64,8 +65,9 @@ internal class PeriodicJobsDAOImplTest {
     private lateinit var dao: PeriodicJobsDAOImpl
 
     @BeforeEach
-    fun setUp() {
+    fun setUp(): Unit = runBlocking {
         dao = PeriodicJobsDAOImpl(database)
+        dao.debugTruncate()
     }
 
     @Test
@@ -102,6 +104,66 @@ internal class PeriodicJobsDAOImplTest {
         )
 
         unitOfWork.commit()
+
+        val result = dao.get(queueId, jobType)
+
+        assertThat(result?.lastSchedulingAttempt).isEqualTo(lastSchedulingAttempt)
+        assertThat(result?.nextSchedulingAttempt).isEqualTo(nextSchedulingAttempt)
+    }
+
+    @Test
+    fun `put - Updates existing state`(): Unit = runBlocking {
+        val queueId = DurableJobQueueId("unknown")
+        val jobType = "unknown"
+
+        var lastSchedulingAttempt: Instant? = null
+        var nextSchedulingAttempt: Instant? = null
+
+        run {
+            lastSchedulingAttempt = testClock.dbNow
+            testClock.advance(Duration.ofMinutes(1))
+            nextSchedulingAttempt = testClock.dbNow
+
+            val unitOfWork = unitOfWorkFactory.create()
+
+            dao.put(
+                queueId = queueId,
+                jobType = jobType,
+                state = PeriodicJobStateData(
+                    queueId = queueId.value,
+                    jobType = jobType,
+                    lastSchedulingAttempt = lastSchedulingAttempt,
+                    nextSchedulingAttempt = nextSchedulingAttempt,
+                ),
+                unitOfWork = unitOfWork,
+            )
+
+            unitOfWork.commit()
+        }
+
+        run {
+            testClock.advance(Duration.ofMinutes(1))
+            lastSchedulingAttempt = testClock.dbNow
+            testClock.advance(Duration.ofMinutes(1))
+            nextSchedulingAttempt = testClock.dbNow
+
+            val unitOfWork = unitOfWorkFactory.create()
+
+            dao.put(
+                queueId = queueId,
+                jobType = jobType,
+                state = PeriodicJobStateData(
+                    queueId = queueId.value,
+                    jobType = jobType,
+                    lastSchedulingAttempt = lastSchedulingAttempt,
+                    nextSchedulingAttempt = nextSchedulingAttempt,
+                ),
+                unitOfWork = unitOfWork,
+            )
+
+            unitOfWork.commit()
+        }
+
 
         val result = dao.get(queueId, jobType)
 
