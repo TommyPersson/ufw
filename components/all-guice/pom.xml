@@ -72,5 +72,9 @@
             <groupId>io.tpersson.ufw</groupId>
             <artifactId>ufw-durable-caches-guice</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.tpersson.ufw</groupId>
+            <artifactId>ufw-cluster-guice</artifactId>
+        </dependency>
     </dependencies>
 </project>

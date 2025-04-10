@@ -13,6 +13,10 @@
     <file url="file://$PROJECT_DIR$/components/all-guice/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/components/all/src/main/kotlin" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/components/all/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/cluster-guice/src/main/kotlin" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/cluster-guice/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/cluster/src/main/kotlin" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/components/cluster/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/components/core-guice/src/main/kotlin" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/components/core-guice/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/components/core/src/main/kotlin" charset="UTF-8" />

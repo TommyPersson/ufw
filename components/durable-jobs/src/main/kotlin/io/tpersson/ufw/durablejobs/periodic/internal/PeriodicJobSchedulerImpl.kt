@@ -94,7 +94,7 @@ public class PeriodicJobSchedulerImpl @Inject constructor(
             val state = getState(periodicJobSpec)
 
             if (state.nextSchedulingAttempt != null && state.nextSchedulingAttempt.isAfter(now)) {
-                continue
+                continue // TODO only schedule "new" specs in their window
             }
 
             val jobQueueId = periodicJobSpec.handler.jobDefinition.queueId
