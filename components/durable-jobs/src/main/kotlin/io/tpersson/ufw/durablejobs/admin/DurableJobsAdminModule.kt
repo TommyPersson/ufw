@@ -240,9 +240,6 @@ public class DurableJobsAdminModule @Inject constructor(
                     val workQueueId = jobQueueId.toWorkItemQueueId()
                     val periodicJobState = periodicJobManager.getState(spec)
 
-                    // TODO items may have been purged since the last period of the job, store the execution state within the periodic jobs table instead
-                    val lastCompletedItem = databaseQueueAdminFacade.getLatestCompletedItem(queueId = workQueueId)
-
                     PeriodicJobDTO(
                         type = jobDefinition.type,
                         description = jobDefinition.description,
@@ -253,7 +250,8 @@ public class DurableJobsAdminModule @Inject constructor(
                         queueId = jobQueueId,
                         queueState = databaseQueueAdminFacade.getQueueStatus(queueId = workQueueId).state,
                         queueNumFailures = databaseQueueAdminFacade.getQueueStatistics(workQueueId).numFailed,
-                        lastExecution = lastCompletedItem?.toDetailsDTO(jobDefinition),
+                        lastExecutionState = periodicJobState.lastExecutionState,
+                        lastExecutionStateChangeTimestamp = periodicJobState.lastExecutionStateChangeTimestamp,
                         applicationModule = jobDefinition.jobClass.findModuleMolecule().toApplicationModuleDTO()
                     )
                 }

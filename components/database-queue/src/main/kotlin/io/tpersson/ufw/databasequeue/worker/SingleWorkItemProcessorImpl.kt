@@ -21,6 +21,7 @@ import kotlin.time.toJavaDuration
 public class SingleWorkItemProcessorImpl(
     private val watchdogId: String,
     private val workItemsDAO: WorkItemsDAO,
+    private val workQueue: WorkQueueInternal,
     private val workItemFailuresDAO: WorkItemFailuresDAO,
     private val queueStateChecker: QueueStateChecker,
     private val unitOfWorkFactory: UnitOfWorkFactory,
@@ -42,7 +43,7 @@ public class SingleWorkItemProcessorImpl(
             return ProcessingResult.SKIPPED_QUEUE_PAUSED
         }
 
-        val workItem = workItemsDAO.takeNext(queueId, watchdogId, clock.instant())
+        val workItem = workQueue.takeNext(queueId, watchdogId, clock.instant())
             ?: return ProcessingResult.SKIPPED_NO_ITEM_AVAILABLE
 
         MDC.put(adapterSettings.mdcQueueIdLabel, adapterSettings.convertQueueId(WorkItemQueueId(workItem.queueId)))
@@ -132,9 +133,8 @@ public class SingleWorkItemProcessorImpl(
         workItem: WorkItemDbEntity,
         unitOfWork: UnitOfWork
     ) {
-        workItemsDAO.markInProgressItemAsSuccessful(
-            queueId = WorkItemQueueId(workItem.queueId),
-            itemId = WorkItemId(workItem.itemId),
+        workQueue.markInProgressItemAsSuccessful(
+            item = workItem,
             expiresAt = clock.instant().plus(config.successfulItemExpirationDelay),
             watchdogId = watchdogId,
             now = clock.instant(),
@@ -192,18 +192,16 @@ public class SingleWorkItemProcessorImpl(
         workItemFailuresDAO.insertFailure(failure, unitOfWork = unitOfWork)
 
         if (rescheduleAt != null) {
-            workItemsDAO.rescheduleInProgressItem(
-                queueId = WorkItemQueueId(workItem.queueId),
-                itemId = WorkItemId(workItem.itemId),
+            workQueue.rescheduleInProgressItem(
+                item = workItem,
+                scheduleFor = rescheduleAt,
                 watchdogId = watchdogId,
                 now = now,
-                scheduleFor = rescheduleAt,
                 unitOfWork = unitOfWork,
             )
         } else {
-            workItemsDAO.markInProgressItemAsFailed(
-                queueId = WorkItemQueueId(workItem.queueId),
-                itemId = WorkItemId(workItem.itemId),
+            workQueue.markInProgressItemAsFailed(
+                item = workItem,
                 expiresAt = now.plus(config.failedItemExpirationDelay),
                 watchdogId = watchdogId,
                 now = now,
@@ -232,15 +230,6 @@ public class SingleWorkItemProcessorImpl(
 
         return state == null || state == WorkItemState.CANCELLED
 
-    }
-
-    private suspend fun getLatestItemState(
-        queueId: WorkItemQueueId,
-        itemId: WorkItemId,
-    ): WorkItemState? {
-        return workItemsDAO.getById(queueId, itemId)
-            ?.state
-            ?.let { WorkItemState.fromDbOrdinal(it) }
     }
 
     private fun createTimer(queueId: WorkItemQueueId): Timer {

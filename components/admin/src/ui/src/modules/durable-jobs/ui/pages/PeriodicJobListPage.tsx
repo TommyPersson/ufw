@@ -134,9 +134,9 @@ function PeriodicJobRow(props: { job: PeriodicJobListItem }) {
             title={"Last Execution"}
             subtitle={
               <Chip
-                label={<DateTimeText dateTime={job.lastExecution?.stateChangedAt} fallback={<em>N/A</em>} />}
+                label={<DateTimeText dateTime={job.lastExecutionStateChangeTimestamp} fallback={<em>N/A</em>} />}
                 icon={<JobStateIcon
-                  state={job.lastExecution?.state}
+                  state={job.lastExecutionState}
                   color={"inherit" /* must be set to override chip default*/}
                 />}
                 size={"small"}

@@ -9,6 +9,7 @@ import io.tpersson.ufw.databasequeue.*
 import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
 import io.tpersson.ufw.databasequeue.internal.WorkItemFailuresDAO
 import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
+import io.tpersson.ufw.databasequeue.internal.WorkQueueInternal
 import io.tpersson.ufw.databasequeue.worker.SingleWorkItemProcessor.ProcessingResult
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -24,6 +25,7 @@ import java.util.*
 internal class SingleWorkItemProcessorImplTest {
 
     private lateinit var unitOfWorkFactory: UnitOfWorkFactory
+    private lateinit var workQueue: WorkQueueInternal
     private lateinit var workItemFailuresDAO: WorkItemFailuresDAO
     private lateinit var workItemsDAO: WorkItemsDAO
     private lateinit var queueStateChecker: QueueStateChecker
@@ -39,6 +41,7 @@ internal class SingleWorkItemProcessorImplTest {
     @BeforeEach
     fun setUp(): Unit = runBlocking {
         watchdogId = UUID.randomUUID().toString()
+        workQueue = mock()
         workItemsDAO = mock()
         workItemFailuresDAO = mock()
         queueStateChecker = mock()
@@ -57,6 +60,7 @@ internal class SingleWorkItemProcessorImplTest {
 
         processor = SingleWorkItemProcessorImpl(
             watchdogId = watchdogId,
+            workQueue = workQueue,
             workItemsDAO = workItemsDAO,
             workItemFailuresDAO = workItemFailuresDAO,
             queueStateChecker = queueStateChecker,
@@ -69,20 +73,21 @@ internal class SingleWorkItemProcessorImplTest {
     }
 
     @Test
-    fun `processSingleItem - Returns 'SKIPPED_NO_ITEM_AVAILABLE' if no item was taken from the queue`(): Unit = runBlocking {
-        val queueId = "queue-1".toWorkItemQueueId()
+    fun `processSingleItem - Returns 'SKIPPED_NO_ITEM_AVAILABLE' if no item was taken from the queue`(): Unit =
+        runBlocking {
+            val queueId = "queue-1".toWorkItemQueueId()
 
-        stubNextWorkItem(
-            item = null,
-            queueId = queueId.value
-        )
+            stubNextWorkItem(
+                item = null,
+                queueId = queueId.value
+            )
 
-        val result = processor.processSingleItem(queueId, emptyMap())
+            val result = processor.processSingleItem(queueId, emptyMap())
 
-        assertThat(result).isEqualTo(ProcessingResult.SKIPPED_NO_ITEM_AVAILABLE)
+            assertThat(result).isEqualTo(ProcessingResult.SKIPPED_NO_ITEM_AVAILABLE)
 
-        verify(workItemsDAO).takeNext(eq(queueId), eq(watchdogId), eq(now))
-    }
+            verify(workQueue).takeNext(eq(queueId), eq(watchdogId), eq(now))
+        }
 
     @Test
     fun `processSingleItem - Returns 'SKIPPED_QUEUE_PAUSED' if the queue is paused`(): Unit = runBlocking {
@@ -154,9 +159,8 @@ internal class SingleWorkItemProcessorImplTest {
 
         processor.processSingleItem(stubbedWorkItem.queueId.toWorkItemQueueId(), typeHandlerMap)
 
-        verify(workItemsDAO).markInProgressItemAsSuccessful(
-            queueId = eq(stubbedWorkItem.queueId.toWorkItemQueueId()),
-            itemId = eq(stubbedWorkItem.itemId.toWorkItemId()),
+        verify(workQueue).markInProgressItemAsSuccessful(
+            item = eq(stubbedWorkItem),
             expiresAt = eq(now.plus(config.successfulItemExpirationDelay)),
             watchdogId = eq(watchdogId),
             now = eq(now),
@@ -175,9 +179,8 @@ internal class SingleWorkItemProcessorImplTest {
 
         processor.processSingleItem(stubbedWorkItem.queueId.toWorkItemQueueId(), typeHandlerMap)
 
-        verify(workItemsDAO).markInProgressItemAsFailed(
-            queueId = eq(stubbedWorkItem.queueId.toWorkItemQueueId()),
-            itemId = eq(stubbedWorkItem.itemId.toWorkItemId()),
+        verify(workQueue).markInProgressItemAsFailed(
+            item = eq(stubbedWorkItem),
             expiresAt = eq(now.plus(config.failedItemExpirationDelay)),
             watchdogId = eq(watchdogId),
             now = eq(now),
@@ -199,11 +202,10 @@ internal class SingleWorkItemProcessorImplTest {
 
             processor.processSingleItem(stubbedWorkItem.queueId.toWorkItemQueueId(), typeHandlerMap)
 
-            verify(workItemsDAO).rescheduleInProgressItem(
-                queueId = eq(stubbedWorkItem.queueId.toWorkItemQueueId()),
-                itemId = eq(stubbedWorkItem.itemId.toWorkItemId()),
-                watchdogId = eq(watchdogId),
+            verify(workQueue).rescheduleInProgressItem(
+                item = eq(stubbedWorkItem),
                 scheduleFor = same(now),
+                watchdogId = eq(watchdogId),
                 now = eq(now),
                 unitOfWork = same(TestWorkItem1Handler.failureContextUnitOfWork!!),
             )
@@ -223,11 +225,10 @@ internal class SingleWorkItemProcessorImplTest {
 
             processor.processSingleItem(stubbedWorkItem.queueId.toWorkItemQueueId(), typeHandlerMap)
 
-            verify(workItemsDAO).rescheduleInProgressItem(
-                queueId = eq(stubbedWorkItem.queueId.toWorkItemQueueId()),
-                itemId = eq(stubbedWorkItem.itemId.toWorkItemId()),
-                watchdogId = eq(watchdogId),
+            verify(workQueue).rescheduleInProgressItem(
+                item = eq(stubbedWorkItem),
                 scheduleFor = same(rescheduleAt),
+                watchdogId = eq(watchdogId),
                 now = eq(now),
                 unitOfWork = same(TestWorkItem1Handler.failureContextUnitOfWork!!),
             )
@@ -290,9 +291,8 @@ internal class SingleWorkItemProcessorImplTest {
 
         val unitOfWorkCaptor = argumentCaptor<UnitOfWork>()
 
-        verify(workItemsDAO).markInProgressItemAsFailed(
-            queueId = eq(stubbedWorkItem.queueId.toWorkItemQueueId()),
-            itemId = eq(stubbedWorkItem.itemId.toWorkItemId()),
+        verify(workQueue).markInProgressItemAsFailed(
+            item = eq(stubbedWorkItem),
             expiresAt = eq(now.plus(config.failedItemExpirationDelay)),
             watchdogId = eq(watchdogId),
             now = eq(now),
@@ -423,7 +423,7 @@ internal class SingleWorkItemProcessorImplTest {
             )
         }
 
-        whenever(workItemsDAO.takeNext(eq(queueId.toWorkItemQueueId()), any(), any()))
+        whenever(workQueue.takeNext(eq(queueId.toWorkItemQueueId()), any(), any()))
             .thenReturn(stubbedWorkItem)
 
         if (stubbedWorkItem != null) {

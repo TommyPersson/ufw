@@ -9,4 +9,6 @@ public interface DurableJobQueue {
         unitOfWork: UnitOfWork,
         builder: DurableJobOptionsBuilder.() -> Unit = {}
     )
+
+    // TODO cancellation
 }

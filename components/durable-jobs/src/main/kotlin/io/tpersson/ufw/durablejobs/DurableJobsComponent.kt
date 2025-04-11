@@ -8,13 +8,10 @@ import io.tpersson.ufw.databasequeue.DatabaseQueueComponent
 import io.tpersson.ufw.durablejobs.admin.DurableJobsAdminModule
 import io.tpersson.ufw.durablejobs.internal.DurableJobQueueImpl
 import io.tpersson.ufw.durablejobs.internal.DurableJobQueueWorkersManager
-import io.tpersson.ufw.durablejobs.periodic.internal.PeriodicJobManager
 import io.tpersson.ufw.durablejobs.internal.SimpleDurableJobHandlersProvider
 import io.tpersson.ufw.durablejobs.periodic.internal.dao.PeriodicJobsDAOImpl
 import io.tpersson.ufw.durablejobs.internal.metrics.JobStateMetric
-import io.tpersson.ufw.durablejobs.periodic.internal.PeriodicJobSchedulerImpl
-import io.tpersson.ufw.durablejobs.periodic.internal.PeriodicJobSpecsProvider
-import io.tpersson.ufw.durablejobs.periodic.internal.PeriodicJobSpecsProviderImpl
+import io.tpersson.ufw.durablejobs.periodic.internal.*
 import io.tpersson.ufw.managed.ManagedComponent
 import jakarta.inject.Inject
 
@@ -50,7 +47,7 @@ public class DurableJobsComponent @Inject constructor(
             val jobQueue = DurableJobQueueImpl(
                 config = config,
                 clock = coreComponent.clock,
-                workItemsDAO = databaseQueueComponent.workItemsDAO,
+                workQueue = databaseQueueComponent.workQueue,
                 objectMapper = coreComponent.objectMapper,
             )
 
@@ -86,9 +83,17 @@ public class DurableJobsComponent @Inject constructor(
                 config = config,
             )
 
+            val periodicJobsStateTracker = PeriodicJobsStateTracker(
+                workQueue = databaseQueueComponent.workQueue,
+                periodicJobSpecsProvider = periodicJobSpecsProvider,
+                periodicJobsDAO = periodicJobsDAO,
+                unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
+            )
+
             managedComponent.register(jobStateMetric)
             managedComponent.register(durableJobQueueWorkersManager)
             managedComponent.register(periodicJobManager)
+            managedComponent.register(periodicJobsStateTracker)
 
             adminComponent?.register(
                 DurableJobsAdminModule(

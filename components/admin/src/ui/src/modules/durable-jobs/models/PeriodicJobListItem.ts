@@ -1,8 +1,8 @@
 import { z } from "zod"
 import { applicationModuleSchema } from "../../../common/models"
 import { zx } from "../../../common/utils/zod"
-import { jobDetailsSchema } from "./JobDetails"
 import { jobQueueStateSchema } from "./JobQueueState"
+import { jobStateSchema } from "./JobState"
 
 export const periodicJobListItemSchema = z.object({
   type: z.string(),
@@ -14,7 +14,8 @@ export const periodicJobListItemSchema = z.object({
   queueId: z.string(),
   queueState: jobQueueStateSchema,
   queueNumFailures: z.number(),
-  lastExecution: jobDetailsSchema.nullable(),
+  lastExecutionState: jobStateSchema.nullable(),
+  lastExecutionStateChangeTimestamp: zx.dateTime.nullable(),
   applicationModule: applicationModuleSchema,
 })
 

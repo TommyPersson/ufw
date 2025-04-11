@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.tpersson.ufw.core.NamedBindings
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.databasequeue.NewWorkItem
-import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
+import io.tpersson.ufw.databasequeue.WorkQueue
 import io.tpersson.ufw.durablejobs.DurableJob
 import io.tpersson.ufw.durablejobs.DurableJobOptionsBuilder
 import io.tpersson.ufw.durablejobs.DurableJobsConfig
@@ -17,7 +17,7 @@ import java.time.InstantSource
 public class DurableJobQueueImpl @Inject constructor(
     private val config: DurableJobsConfig,
     private val clock: InstantSource,
-    private val workItemsDAO: WorkItemsDAO,
+    private val workQueue: WorkQueue,
     @Named(NamedBindings.ObjectMapper) private val objectMapper: ObjectMapper,
 ) : DurableJobQueueInternal {
 
@@ -33,9 +33,8 @@ public class DurableJobQueueImpl @Inject constructor(
         val queueId = jobDefinition.queueId
         val type = jobDefinition.type
 
-        // TODO WorkItemQueue abstraction to do signalling
-        workItemsDAO.scheduleNewItem(
-            newItem = NewWorkItem(
+        workQueue.schedule(
+            item = NewWorkItem(
                 queueId = queueId.toWorkItemQueueId(),
                 type = type,
                 itemId = job.id.toWorkItemId(),
@@ -47,10 +46,5 @@ public class DurableJobQueueImpl @Inject constructor(
             now = clock.instant(),
             unitOfWork = unitOfWork,
         )
-
-        unitOfWork.addPostCommitHook {
-            // TODO fix signalling for work items
-            //getSignal(queueId).signal()
-        }
     }
 }

@@ -5,6 +5,7 @@ import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.core.dsl.UFW
 import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.database.dsl.database
+import io.tpersson.ufw.databasequeue.WorkItemState
 import io.tpersson.ufw.databasequeue.dsl.databaseQueue
 import io.tpersson.ufw.durablejobs.DurableJobQueueId
 import io.tpersson.ufw.durablejobs.dsl.durableJobs
@@ -81,7 +82,7 @@ internal class PeriodicJobsDAOImplTest {
     }
 
     @Test
-    fun `put - Inserts data correctly`(): Unit = runBlocking {
+    fun `setSchedulingInfo - Inserts data correctly`(): Unit = runBlocking {
         val queueId = DurableJobQueueId("unknown")
         val jobType = "unknown"
 
@@ -91,15 +92,11 @@ internal class PeriodicJobsDAOImplTest {
 
         val unitOfWork = unitOfWorkFactory.create()
 
-        dao.put(
+        dao.setSchedulingInfo(
             queueId = queueId,
             jobType = jobType,
-            state = PeriodicJobStateData(
-                queueId = queueId.value,
-                jobType = jobType,
-                lastSchedulingAttempt = lastSchedulingAttempt,
-                nextSchedulingAttempt = nextSchedulingAttempt,
-            ),
+            lastSchedulingAttempt = lastSchedulingAttempt,
+            nextSchedulingAttempt = nextSchedulingAttempt,
             unitOfWork = unitOfWork,
         )
 
@@ -112,12 +109,12 @@ internal class PeriodicJobsDAOImplTest {
     }
 
     @Test
-    fun `put - Updates existing state`(): Unit = runBlocking {
+    fun `setSchedulingInfo - Updates existing state`(): Unit = runBlocking {
         val queueId = DurableJobQueueId("unknown")
         val jobType = "unknown"
 
-        var lastSchedulingAttempt: Instant? = null
-        var nextSchedulingAttempt: Instant? = null
+        var lastSchedulingAttempt: Instant?
+        var nextSchedulingAttempt: Instant?
 
         run {
             lastSchedulingAttempt = testClock.dbNow
@@ -126,15 +123,11 @@ internal class PeriodicJobsDAOImplTest {
 
             val unitOfWork = unitOfWorkFactory.create()
 
-            dao.put(
+            dao.setSchedulingInfo(
                 queueId = queueId,
                 jobType = jobType,
-                state = PeriodicJobStateData(
-                    queueId = queueId.value,
-                    jobType = jobType,
-                    lastSchedulingAttempt = lastSchedulingAttempt,
-                    nextSchedulingAttempt = nextSchedulingAttempt,
-                ),
+                lastSchedulingAttempt = lastSchedulingAttempt,
+                nextSchedulingAttempt = nextSchedulingAttempt,
                 unitOfWork = unitOfWork,
             )
 
@@ -149,15 +142,11 @@ internal class PeriodicJobsDAOImplTest {
 
             val unitOfWork = unitOfWorkFactory.create()
 
-            dao.put(
+            dao.setSchedulingInfo(
                 queueId = queueId,
                 jobType = jobType,
-                state = PeriodicJobStateData(
-                    queueId = queueId.value,
-                    jobType = jobType,
-                    lastSchedulingAttempt = lastSchedulingAttempt,
-                    nextSchedulingAttempt = nextSchedulingAttempt,
-                ),
+                lastSchedulingAttempt = lastSchedulingAttempt,
+                nextSchedulingAttempt = nextSchedulingAttempt,
                 unitOfWork = unitOfWork,
             )
 
@@ -169,5 +158,77 @@ internal class PeriodicJobsDAOImplTest {
 
         assertThat(result?.lastSchedulingAttempt).isEqualTo(lastSchedulingAttempt)
         assertThat(result?.nextSchedulingAttempt).isEqualTo(nextSchedulingAttempt)
+    }
+
+    @Test
+    fun `setExecutionInfo - Inserts data correctly`(): Unit = runBlocking {
+        val queueId = DurableJobQueueId("unknown")
+        val jobType = "unknown"
+
+        val stateChangeTimestamp = testClock.dbNow
+
+        val unitOfWork = unitOfWorkFactory.create()
+
+        dao.setExecutionInfo(
+            queueId = queueId,
+            jobType = jobType,
+            state = WorkItemState.SCHEDULED,
+            stateChangeTimestamp = stateChangeTimestamp,
+            unitOfWork = unitOfWork,
+        )
+
+        unitOfWork.commit()
+
+        val result = dao.get(queueId, jobType)
+
+        assertThat(result?.lastExecutionState).isEqualTo(WorkItemState.SCHEDULED.dbOrdinal)
+        assertThat(result?.lastExecutionStateChangeTimestamp).isEqualTo(stateChangeTimestamp)
+    }
+
+    @Test
+    fun `setExecutionInfo - Updates existing state`(): Unit = runBlocking {
+        val queueId = DurableJobQueueId("unknown")
+        val jobType = "unknown"
+
+        var stateChangeTimestamp: Instant?
+
+        run {
+            stateChangeTimestamp = testClock.dbNow
+
+            val unitOfWork = unitOfWorkFactory.create()
+
+            dao.setExecutionInfo(
+                queueId = queueId,
+                jobType = jobType,
+                state = WorkItemState.SCHEDULED,
+                stateChangeTimestamp = stateChangeTimestamp,
+                unitOfWork = unitOfWork,
+            )
+
+            unitOfWork.commit()
+        }
+
+        run {
+            testClock.advance(Duration.ofMinutes(1))
+            stateChangeTimestamp = testClock.dbNow
+
+            val unitOfWork = unitOfWorkFactory.create()
+
+            dao.setExecutionInfo(
+                queueId = queueId,
+                jobType = jobType,
+                state = WorkItemState.IN_PROGRESS,
+                stateChangeTimestamp = stateChangeTimestamp,
+                unitOfWork = unitOfWork,
+            )
+
+            unitOfWork.commit()
+        }
+
+
+        val result = dao.get(queueId, jobType)
+
+        assertThat(result?.lastExecutionState).isEqualTo(WorkItemState.IN_PROGRESS.dbOrdinal)
+        assertThat(result?.lastExecutionStateChangeTimestamp).isEqualTo(stateChangeTimestamp)
     }
 }

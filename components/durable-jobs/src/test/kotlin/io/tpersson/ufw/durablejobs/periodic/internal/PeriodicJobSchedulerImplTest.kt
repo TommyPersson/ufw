@@ -6,6 +6,7 @@ import io.tpersson.ufw.database.locks.DatabaseLocks
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
+import io.tpersson.ufw.databasequeue.WorkItemState
 import io.tpersson.ufw.databasequeue.worker.QueueStateChecker
 import io.tpersson.ufw.durablejobs.*
 import io.tpersson.ufw.durablejobs.internal.SimpleDurableJobHandlersProvider
@@ -243,15 +244,11 @@ internal class PeriodicJobSchedulerImplTest {
             val jobDefinition = jobClass.jobDefinition2
             val nextAttempt = Instant.parse(nextAttemptString)
 
-            periodicJobsDAOFake.put(
+            periodicJobsDAOFake.setSchedulingInfo(
                 queueId = jobDefinition.queueId,
                 jobType = jobDefinition.type,
-                state = PeriodicJobStateData(
-                    queueId = jobDefinition.queueId.value,
-                    jobType = jobDefinition.type,
-                    lastSchedulingAttempt = null,
-                    nextSchedulingAttempt = nextAttempt,
-                ),
+                lastSchedulingAttempt = null,
+                nextSchedulingAttempt = nextAttempt,
                 unitOfWork = uow
             )
         }
@@ -309,14 +306,37 @@ internal class PeriodicJobSchedulerImplTest {
             return database[queueId to jobType]
         }
 
-        override suspend fun put(
+        override suspend fun setSchedulingInfo(
             queueId: DurableJobQueueId,
             jobType: String,
-            state: PeriodicJobStateData,
+            nextSchedulingAttempt: Instant?,
+            lastSchedulingAttempt: Instant?,
             unitOfWork: UnitOfWork
         ) {
+            val dbState = database[queueId to jobType] ?: PeriodicJobStateData(queueId.value, jobType)
+
             unitOfWork.addPostCommitHook {
-                database[queueId to jobType] = state
+                database[queueId to jobType] = dbState.copy(
+                    lastSchedulingAttempt = lastSchedulingAttempt,
+                    nextSchedulingAttempt = nextSchedulingAttempt,
+                )
+            }
+        }
+
+        override suspend fun setExecutionInfo(
+            queueId: DurableJobQueueId,
+            jobType: String,
+            state: WorkItemState?,
+            stateChangeTimestamp: Instant?,
+            unitOfWork: UnitOfWork
+        ) {
+            val dbState = database[queueId to jobType] ?: PeriodicJobStateData(queueId.value, jobType)
+
+            unitOfWork.addPostCommitHook {
+                database[queueId to jobType] = dbState.copy(
+                    lastExecutionState = state?.dbOrdinal,
+                    lastExecutionStateChangeTimestamp = stateChangeTimestamp,
+                )
             }
         }
 

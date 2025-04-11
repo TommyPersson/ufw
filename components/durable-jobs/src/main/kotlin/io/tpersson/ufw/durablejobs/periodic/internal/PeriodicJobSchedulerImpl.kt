@@ -8,10 +8,9 @@ import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.databasequeue.worker.QueueStateChecker
 import io.tpersson.ufw.durablejobs.DurableJob
 import io.tpersson.ufw.durablejobs.DurableJobQueue
-import io.tpersson.ufw.durablejobs.periodic.internal.dao.PeriodicJobStateData
-import io.tpersson.ufw.durablejobs.periodic.internal.dao.PeriodicJobsDAO
 import io.tpersson.ufw.durablejobs.internal.jobDefinition
 import io.tpersson.ufw.durablejobs.internal.toWorkItemQueueId
+import io.tpersson.ufw.durablejobs.periodic.internal.dao.PeriodicJobsDAO
 import jakarta.inject.Inject
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
@@ -19,7 +18,7 @@ import java.time.Duration
 import java.time.Instant
 import java.time.InstantSource
 import java.time.ZoneId
-import java.util.UUID
+import java.util.*
 import kotlin.jvm.optionals.getOrNull
 import kotlin.reflect.full.primaryConstructor
 
@@ -75,12 +74,10 @@ public class PeriodicJobSchedulerImpl @Inject constructor(
 
         jobQueue.enqueue(job, unitOfWork)
 
-        setState(
+        setSchedulingInfo(
             periodicJobSpec = periodicJobSpec,
-            state = PeriodicJobState(
-                lastSchedulingAttempt = now,
-                nextSchedulingAttempt = calculateNextAttemptTime(periodicJobSpec, now),
-            ),
+            lastSchedulingAttempt = now,
+            nextSchedulingAttempt = calculateNextAttemptTime(periodicJobSpec, now),
             unitOfWork = unitOfWork
         )
 
@@ -88,7 +85,7 @@ public class PeriodicJobSchedulerImpl @Inject constructor(
     }
 
     private suspend fun trySchedulePeriodicJobs(now: Instant) {
-        // TODO more efficient to lookup only db entries with a passed scheduling time
+        // TODO more efficient to lookup all state at one time, instead of per spec
 
         for (periodicJobSpec in periodicJobSpecsProvider.periodicJobSpecs) {
             val state = getState(periodicJobSpec)
@@ -105,11 +102,10 @@ public class PeriodicJobSchedulerImpl @Inject constructor(
 
                 val unitOfWork = unitOfWorkFactory.create()
 
-                setState(
+                setSchedulingInfo(
                     periodicJobSpec = periodicJobSpec,
-                    state = state.copy(
-                        nextSchedulingAttempt = nextSchedulingAttempt,
-                    ),
+                    lastSchedulingAttempt = state.lastSchedulingAttempt,
+                    nextSchedulingAttempt = nextSchedulingAttempt,
                     unitOfWork = unitOfWork
                 )
 
@@ -129,7 +125,7 @@ public class PeriodicJobSchedulerImpl @Inject constructor(
         now: Instant
     ): Instant? {
         return ExecutionTime.forCron(periodicJobSpec.cronInstance)
-            .nextExecution(now.atZone(ZoneId.of("UTC")))
+            .nextExecution(now.atZone(ZoneId.of("UTC"))) // TODO Allow the timezone to be configurable, or schedules involving specific hours will be wierd
             .getOrNull()
             ?.toInstant()
     }
@@ -146,21 +142,19 @@ public class PeriodicJobSchedulerImpl @Inject constructor(
         } ?: PeriodicJobState()
     }
 
-    private suspend fun setState(
+    private suspend fun setSchedulingInfo(
         periodicJobSpec: PeriodicJobSpec<*>,
-        state: PeriodicJobState,
+        lastSchedulingAttempt: Instant?,
+        nextSchedulingAttempt: Instant?,
         unitOfWork: UnitOfWork
     ) {
         val jobDefinition = periodicJobSpec.handler.jobDefinition
-        periodicJobsDAO.put(
+
+        periodicJobsDAO.setSchedulingInfo(
             queueId = jobDefinition.queueId,
             jobType = jobDefinition.type,
-            state = PeriodicJobStateData(
-                queueId = jobDefinition.queueId.value,
-                jobType = jobDefinition.type,
-                lastSchedulingAttempt = state.lastSchedulingAttempt,
-                nextSchedulingAttempt = state.nextSchedulingAttempt
-            ),
+            lastSchedulingAttempt = lastSchedulingAttempt,
+            nextSchedulingAttempt = nextSchedulingAttempt,
             unitOfWork = unitOfWork
         )
     }

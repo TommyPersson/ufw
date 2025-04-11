@@ -35,6 +35,7 @@ public abstract class AbstractDatabaseQueueStateMetrics(
         for (queueId in queueIds) {
             val queueStatistics = workItemsDAO.getQueueStatistics(queueId)
 
+            // TODO split scheduled into "FUTURE" and PENDING, for UI and metrics
             getGauge(queueId, WorkItemState.SCHEDULED).set(queueStatistics.numScheduled)
             getGauge(queueId, WorkItemState.IN_PROGRESS).set(queueStatistics.numInProgress)
             getGauge(queueId, WorkItemState.SUCCESSFUL).set(queueStatistics.numSuccessful)

@@ -1,6 +1,7 @@
 package io.tpersson.ufw.durablejobs.periodic.internal
 
 import io.tpersson.ufw.core.utils.forever
+import io.tpersson.ufw.databasequeue.WorkItemState
 import io.tpersson.ufw.durablejobs.periodic.internal.dao.PeriodicJobsDAO
 import io.tpersson.ufw.durablejobs.internal.jobDefinition
 import io.tpersson.ufw.managed.ManagedJob
@@ -22,7 +23,7 @@ public class PeriodicJobManager @Inject constructor(
         forever(logger) {
             periodicJobScheduler.scheduleAnyPendingJobs()
 
-            delay(1_000)
+            delay(1_000) // TODO configurable (at least less often)
         }
     }
 
@@ -33,7 +34,9 @@ public class PeriodicJobManager @Inject constructor(
         )?.let {
             PeriodicJobState(
                 lastSchedulingAttempt = it.lastSchedulingAttempt,
-                nextSchedulingAttempt = it.nextSchedulingAttempt
+                nextSchedulingAttempt = it.nextSchedulingAttempt,
+                lastExecutionState = it.lastExecutionState?.let { ordinal -> WorkItemState.fromDbOrdinal(ordinal) },
+                lastExecutionStateChangeTimestamp = it.lastExecutionStateChangeTimestamp
             )
         } ?: PeriodicJobState()
     }

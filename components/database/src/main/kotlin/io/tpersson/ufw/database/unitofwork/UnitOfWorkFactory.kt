@@ -10,3 +10,16 @@ public suspend fun <T> UnitOfWorkFactory.use(block: suspend (UnitOfWork) -> T): 
     unitOfWork.commit()
     return result
 }
+
+public suspend fun <T> UnitOfWorkFactory.extendOrCommit(unitOfWork: UnitOfWork?, block: suspend (unitOfWork: UnitOfWork) -> T): T {
+    val isLocal = unitOfWork == null
+    val uow = unitOfWork ?: create()
+
+    return try {
+        block(uow)
+    } finally {
+        if (isLocal) {
+            uow.commit()
+        }
+    }
+}
