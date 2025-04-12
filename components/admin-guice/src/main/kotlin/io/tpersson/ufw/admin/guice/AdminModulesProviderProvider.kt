@@ -6,6 +6,7 @@ import io.tpersson.ufw.admin.AdminModule
 import io.tpersson.ufw.admin.internal.AdminModulesProvider
 import io.tpersson.ufw.admin.internal.CoreAdminModule
 import io.tpersson.ufw.admin.internal.SimpleAdminModulesProvider
+import io.tpersson.ufw.core.AppInfoProvider
 import io.tpersson.ufw.core.NamedBindings
 import jakarta.inject.Inject
 import jakarta.inject.Named
@@ -27,8 +28,10 @@ public class AdminModulesProviderProvider @Inject constructor(
             .map { injector.getInstance(it) as AdminModule }
             .toSet()
 
+        val appInfoProvider = injector.getInstance(AppInfoProvider::class.java)
+        
         SimpleAdminModulesProvider(adminModuleInstances).also {
-            it.add(CoreAdminModule(it)) // clumsy way to avoid circular dependency
+            it.add(CoreAdminModule(it, appInfoProvider)) // clumsy way to avoid circular dependency
         }
     }
 

@@ -16,14 +16,16 @@ public class CoreComponent @Inject private constructor(
     public val clock: Clock,
     @Named(NamedBindings.ObjectMapper) public val objectMapper: ObjectMapper,
     public val meterRegistry: MeterRegistry,
+    public val appInfoProvider: AppInfoProvider,
 ) {
     public companion object {
         public fun create(
             clock: Clock = Clock.systemDefaultZone(),
             meterRegistry: MeterRegistry = SimpleMeterRegistry(),
+            appInfoProvider: AppInfoProvider = AppInfoProvider.simple(),
             objectMapper: ObjectMapper = defaultObjectMapper,
         ): CoreComponent {
-            return CoreComponent(clock, objectMapper, meterRegistry)
+            return CoreComponent(clock, objectMapper, meterRegistry, appInfoProvider)
         }
 
         public val defaultObjectMapper: ObjectMapper =

@@ -4,3 +4,4 @@
 * [ ] Analogue of JobOwnershipLostException
 * [ ] "in-order" processing using queue locks
 * [ ] Timeline UI
+* [ ] DB Indexes 

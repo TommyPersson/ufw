@@ -26,6 +26,10 @@ public class CoreGuiceModule(
             .setDefault()
             .toInstance(SimpleMeterRegistry())
 
+        OptionalBinder.newOptionalBinder(binder, AppInfoProvider::class.java)
+            .setDefault()
+            .toInstance(AppInfoProvider.simple())
+
         val finalScanPackages = scanPackages + setOf("io.tpersson.ufw")
 
         val scanResult = ClassGraph()

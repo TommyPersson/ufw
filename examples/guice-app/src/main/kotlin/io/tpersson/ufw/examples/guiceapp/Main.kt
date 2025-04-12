@@ -10,6 +10,7 @@ import io.tpersson.ufw.admin.AdminComponentConfig
 import io.tpersson.ufw.admin.guice.AdminGuiceModule
 import io.tpersson.ufw.aggregates.guice.AggregatesGuiceModule
 import io.tpersson.ufw.cluster.guice.ClusterGuiceModule
+import io.tpersson.ufw.core.AppInfoProvider
 import io.tpersson.ufw.core.CoreGuiceModule
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.guice.DatabaseGuiceModule
@@ -56,6 +57,11 @@ public fun main(): Unit = runBlocking(MDCContext()) {
         Module {
             it.bind(DataSource::class.java).toInstance(Globals.dataSource)
             it.bind(Clock::class.java).toInstance(Clock.systemDefaultZone())
+
+            OptionalBinder.newOptionalBinder(it, AppInfoProvider::class.java)
+                .setBinding().toInstance(
+                    AppInfoProvider.simple(name = "Example (guice)", version = "0.0.1", environment = "dev")
+                )
 
             OptionalBinder.newOptionalBinder(it, MeterRegistry::class.java)
                 .setBinding().toInstance(Globals.meterRegistry)

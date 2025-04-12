@@ -3,7 +3,10 @@ package io.tpersson.ufw.core.dsl
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import io.tpersson.ufw.core.AppInfo
+import io.tpersson.ufw.core.AppInfoProvider
 import io.tpersson.ufw.core.CoreComponent
+import io.tpersson.ufw.core.SimpleAppInfoProvider
 import java.time.Clock
 
 
@@ -16,11 +19,12 @@ public fun UFWBuilder.RootBuilder.core(builder: CoreComponentBuilder.() -> Unit)
 public class CoreComponentBuilder {
     public var clock: Clock = Clock.systemDefaultZone()
     public var meterRegistry: MeterRegistry = SimpleMeterRegistry()
+    public var appInfoProvider: AppInfoProvider = SimpleAppInfoProvider(AppInfo("unknown", "unknown", "unknown"))
 
     internal var protoObjectMapper = CoreComponent.defaultObjectMapper
 
     public fun build(): CoreComponent {
-        return CoreComponent.create(clock, meterRegistry, protoObjectMapper)
+        return CoreComponent.create(clock, meterRegistry, appInfoProvider, protoObjectMapper)
     }
 }
 
