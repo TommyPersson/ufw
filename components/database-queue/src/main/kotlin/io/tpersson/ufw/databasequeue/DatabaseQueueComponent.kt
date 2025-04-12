@@ -68,7 +68,8 @@ public class DatabaseQueueComponent @Inject constructor(
             )
 
             val databaseQueueWorkerFactory = DatabaseQueueWorkerFactoryImpl(
-                processorFactory = processorFactory
+                processorFactory = processorFactory,
+                workQueue = workQueue,
             )
 
             val databaseQueueAdminManager = DatabaseQueueAdminFacadeImpl(
