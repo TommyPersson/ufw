@@ -5,7 +5,7 @@ import io.tpersson.ufw.featuretoggles.FeatureToggleDefinition
 import io.tpersson.ufw.keyvaluestore.KeyValueStore
 import io.tpersson.ufw.keyvaluestore.KeyValueStoreImpl
 import io.tpersson.ufw.keyvaluestore.storageengine.InMemoryStorageEngine
-import io.tpersson.ufw.test.TestInstantSource
+import io.tpersson.ufw.test.TestClock
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -14,13 +14,13 @@ import java.time.Duration
 
 internal class FeatureToggleHandleImplTest {
 
-    private lateinit var clock: TestInstantSource
+    private lateinit var clock: TestClock
 
     private lateinit var keyValueStore: KeyValueStore
 
     @BeforeEach
     fun setUp() {
-        clock = TestInstantSource()
+        clock = TestClock()
 
         keyValueStore = KeyValueStoreImpl(
             storageEngine = InMemoryStorageEngine(),

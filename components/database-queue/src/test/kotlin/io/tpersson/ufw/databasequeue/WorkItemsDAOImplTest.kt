@@ -7,12 +7,11 @@ import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.database.exceptions.MinimumAffectedRowsException
 import io.tpersson.ufw.database.unitofwork.use
-import io.tpersson.ufw.databasequeue.WorkItemsDAOImplTest.Companion.testClock
 import io.tpersson.ufw.databasequeue.dsl.databaseQueue
 import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
 import io.tpersson.ufw.databasequeue.internal.WorkItemEvent
 import io.tpersson.ufw.databasequeue.internal.WorkItemsDAOImpl
-import io.tpersson.ufw.test.TestInstantSource
+import io.tpersson.ufw.test.TestClock
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -44,7 +43,7 @@ internal class WorkItemsDAOImplTest {
             it.isAutoCommit = false
         }
 
-        val testClock = TestInstantSource()
+        val testClock = TestClock()
 
         val ufw = UFW.build {
             core {

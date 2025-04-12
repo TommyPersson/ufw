@@ -12,7 +12,7 @@ import io.tpersson.ufw.durableevents.handler.DurableEventContext
 import io.tpersson.ufw.durableevents.handler.DurableEventFailureContext
 import io.tpersson.ufw.durableevents.handler.DurableEventHandler
 import java.time.Instant
-import java.time.InstantSource
+import java.time.Clock
 
 public class DurableEventHandlerAdapter<TEvent : DurableEvent>(
     private val handler: DurableEventHandler,
@@ -37,7 +37,7 @@ public class DurableEventHandlerAdapter<TEvent : DurableEvent>(
 
 // TODO real Impl to avoid class gc
 public fun WorkItemContext.asDurableEventContext(): DurableEventContext = object : DurableEventContext {
-    override val clock: InstantSource = this@asDurableEventContext.clock
+    override val clock: Clock = this@asDurableEventContext.clock
     override val timestamp: Instant = this@asDurableEventContext.timestamp
     override val failureCount: Int = this@asDurableEventContext.failureCount
     override val unitOfWork: UnitOfWork = this@asDurableEventContext.unitOfWork
@@ -46,7 +46,7 @@ public fun WorkItemContext.asDurableEventContext(): DurableEventContext = object
 // TODO real Impl to avoid class gc
 public fun WorkItemFailureContext.asDurableEventFailureContext(): DurableEventFailureContext = object  :
     DurableEventFailureContext {
-    override val clock: InstantSource = this@asDurableEventFailureContext.clock
+    override val clock: Clock = this@asDurableEventFailureContext.clock
     override val timestamp: Instant = this@asDurableEventFailureContext.timestamp
     override val failureCount: Int = this@asDurableEventFailureContext.failureCount
     override val unitOfWork: UnitOfWork = this@asDurableEventFailureContext.unitOfWork

@@ -12,7 +12,7 @@ import kotlinx.coroutines.slf4j.MDCContext
 import kotlinx.coroutines.withContext
 import org.slf4j.MDC
 import java.time.Instant
-import java.time.InstantSource
+import java.time.Clock
 import java.util.*
 import kotlin.time.measureTime
 import kotlin.time.toJavaDuration
@@ -26,7 +26,7 @@ public class SingleWorkItemProcessorImpl(
     private val queueStateChecker: QueueStateChecker,
     private val unitOfWorkFactory: UnitOfWorkFactory,
     private val meterRegistry: MeterRegistry,
-    private val clock: InstantSource,
+    private val clock: Clock,
     private val adapterSettings: DatabaseQueueAdapterSettings,
     private val config: DatabaseQueueConfig,
 ) : SingleWorkItemProcessor {
@@ -164,7 +164,7 @@ public class SingleWorkItemProcessorImpl(
         val now = clock.instant()
 
         val context = object : WorkItemFailureContext {
-            override val clock: InstantSource = this@SingleWorkItemProcessorImpl.clock
+            override val clock: Clock = this@SingleWorkItemProcessorImpl.clock
             override val timestamp: Instant = now
             override val failureCount: Int = failureCount
             override val unitOfWork: UnitOfWork = unitOfWork
@@ -214,7 +214,7 @@ public class SingleWorkItemProcessorImpl(
         workItem: WorkItemDbEntity,
         unitOfWork: UnitOfWork
     ) = object : WorkItemContext {
-        override val clock: InstantSource = this@SingleWorkItemProcessorImpl.clock
+        override val clock: Clock = this@SingleWorkItemProcessorImpl.clock
         override val timestamp: Instant = this@SingleWorkItemProcessorImpl.clock.instant()
         override val failureCount: Int = workItem.numFailures
         override val unitOfWork: UnitOfWork = unitOfWork

@@ -4,7 +4,7 @@ import io.tpersson.ufw.databasequeue.WorkItemQueueId
 import io.tpersson.ufw.databasequeue.WorkQueueState
 import io.tpersson.ufw.databasequeue.internal.WorkQueueDbEntity
 import io.tpersson.ufw.databasequeue.internal.WorkQueuesDAO
-import io.tpersson.ufw.test.TestInstantSource
+import io.tpersson.ufw.test.TestClock
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -18,14 +18,14 @@ import kotlin.test.Test
 internal class CachingQueueStateCheckerImplTest {
 
     private lateinit var workQueuesDAO: WorkQueuesDAO
-    private lateinit var clock: TestInstantSource
+    private lateinit var clock: TestClock
 
     private lateinit var checker: CachingQueueStateCheckerImpl
 
     @BeforeEach
     fun setUp() {
         workQueuesDAO = mock<WorkQueuesDAO>()
-        clock = TestInstantSource()
+        clock = TestClock()
 
         checker = CachingQueueStateCheckerImpl(
             workQueuesDAO = workQueuesDAO,

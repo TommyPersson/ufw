@@ -5,7 +5,6 @@ import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.tpersson.ufw.core.CoreComponent
 import java.time.Clock
-import java.time.InstantSource
 
 
 @UfwDslMarker
@@ -15,7 +14,7 @@ public fun UFWBuilder.RootBuilder.core(builder: CoreComponentBuilder.() -> Unit)
 
 @UfwDslMarker
 public class CoreComponentBuilder {
-    public var clock: InstantSource = Clock.systemUTC()
+    public var clock: Clock = Clock.systemDefaultZone()
     public var meterRegistry: MeterRegistry = SimpleMeterRegistry()
 
     internal var protoObjectMapper = CoreComponent.defaultObjectMapper

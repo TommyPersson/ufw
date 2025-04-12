@@ -5,13 +5,13 @@ import io.tpersson.ufw.durablecaches.DurableCacheDefinition
 import io.tpersson.ufw.keyvaluestore.KeyValueStore
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
-import java.time.InstantSource
+import java.time.Clock
 import java.util.concurrent.ConcurrentHashMap
 
 @Singleton
 public class DurableCachesImpl @Inject constructor(
     private val keyValueStore: KeyValueStore,
-    private val clock: InstantSource,
+    private val clock: Clock,
 ) : DurableCachesInternal {
 
     private val _knownCaches = ConcurrentHashMap<String, DurableCacheDefinition<*>>()

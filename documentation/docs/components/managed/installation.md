@@ -68,7 +68,7 @@ any `Managed`-derived classes.
 ```kotlin title="YourGuiceApp.kt" linenums="1" hl_lines="9"
 val injector = Guice.createInjector(
     Module {
-        it.bind(InstantSource::class.java).toInstance(Clock.systemUTC())
+        it.bind(Clock::class.java).toInstance(Clock.systemDefaultZone())
         it.bind(DataSource::class.java).toInstance(MyDataSource())
     },
     CoreGuiceModule(

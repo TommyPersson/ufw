@@ -5,13 +5,13 @@ import io.tpersson.ufw.featuretoggles.FeatureToggleHandle
 import io.tpersson.ufw.keyvaluestore.KeyValueStore
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
-import java.time.InstantSource
+import java.time.Clock
 import java.util.concurrent.ConcurrentHashMap
 
 @Singleton
 public class FeatureTogglesImpl @Inject constructor(
     private val keyValueStore: KeyValueStore,
-    private val clock: InstantSource,
+    private val clock: Clock,
 ) : FeatureTogglesInternal {
 
     private val _knownFeatureToggles: MutableMap<String, FeatureToggleDefinition> = ConcurrentHashMap()

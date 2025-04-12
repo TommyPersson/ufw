@@ -8,7 +8,7 @@ import io.tpersson.ufw.durablecaches.DurableCacheDefinition
 import io.tpersson.ufw.keyvaluestore.KeyValueStore
 import io.tpersson.ufw.keyvaluestore.KeyValueStoreImpl
 import io.tpersson.ufw.keyvaluestore.storageengine.InMemoryStorageEngine
-import io.tpersson.ufw.test.TestInstantSource
+import io.tpersson.ufw.test.TestClock
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import io.tpersson.ufw.test.isEqualToIgnoringNanos
@@ -23,11 +23,11 @@ internal class DurableCacheImplTest {
 
     private lateinit var keyValueStore: ObservableKeyValueStore
 
-    private lateinit var clock: TestInstantSource
+    private lateinit var clock: TestClock
 
     @BeforeEach
     fun setUp() {
-        clock = TestInstantSource(Instant.parse("2021-01-01T00:00:00Z"))
+        clock = TestClock(Instant.parse("2021-01-01T00:00:00Z"))
         keyValueStore = ObservableKeyValueStore(
             KeyValueStoreImpl(
                 storageEngine = InMemoryStorageEngine(),

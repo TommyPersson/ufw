@@ -5,7 +5,7 @@ import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.core.dsl.UFW
 import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.database.dsl.database
-import io.tpersson.ufw.test.TestInstantSource
+import io.tpersson.ufw.test.TestClock
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -32,7 +32,7 @@ internal class DatabaseLocksTest {
             it.isAutoCommit = false
         }
 
-        val testClock = TestInstantSource()
+        val testClock = TestClock()
 
         val ufw = UFW.build {
             core {

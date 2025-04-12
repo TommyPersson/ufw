@@ -12,7 +12,7 @@ import io.tpersson.ufw.durablejobs.DurableJobHandler
 import io.tpersson.ufw.durablejobs.DurableJobContext
 import io.tpersson.ufw.durablejobs.DurableJobFailureContext
 import java.time.Instant
-import java.time.InstantSource
+import java.time.Clock
 
 public class DurableJobHandlerAdapter<TJob : DurableJob>(
     private val jobDefinition: DurableJobDefinition<out TJob>,
@@ -24,7 +24,7 @@ public class DurableJobHandlerAdapter<TJob : DurableJob>(
 
     public override suspend fun handle(item: TJob, context: WorkItemContext) {
         val jobContext = object : DurableJobContext {
-            override val clock: InstantSource = context.clock
+            override val clock: Clock = context.clock
             override val timestamp: Instant = context.timestamp
             override val failureCount: Int = context.failureCount
             override val unitOfWork: UnitOfWork = context.unitOfWork
@@ -45,7 +45,7 @@ public class DurableJobHandlerAdapter<TJob : DurableJob>(
 
     override suspend fun onFailure(item: TJob, error: Exception, context: WorkItemFailureContext): FailureAction {
         val jobFailureContext = object : DurableJobFailureContext {
-            override val clock: InstantSource = context.clock
+            override val clock: Clock = context.clock
             override val timestamp: Instant = context.timestamp
             override val failureCount: Int = context.failureCount
             override val unitOfWork: UnitOfWork = context.unitOfWork

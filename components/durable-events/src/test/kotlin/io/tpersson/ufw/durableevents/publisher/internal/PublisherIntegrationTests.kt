@@ -13,7 +13,7 @@ import io.tpersson.ufw.durableevents.common.DurableEvent
 import io.tpersson.ufw.durableevents.common.DurableEventId
 import io.tpersson.ufw.durableevents.common.EventDefinition
 import io.tpersson.ufw.managed.dsl.managed
-import io.tpersson.ufw.test.TestInstantSource
+import io.tpersson.ufw.test.TestClock
 import io.tpersson.ufw.durableevents.dsl.durableEvents
 import io.tpersson.ufw.durableevents.publisher.OutgoingEvent
 import io.tpersson.ufw.durableevents.publisher.OutgoingEventTransport
@@ -46,7 +46,7 @@ internal class PublisherIntegrationTests {
             it.isAutoCommit = false
         }
 
-        val testClock = TestInstantSource()
+        val testClock = TestClock()
         val testOutgoingEventTransport = TestOutgoingEventTransport()
 
         val ufw = UFW.build {

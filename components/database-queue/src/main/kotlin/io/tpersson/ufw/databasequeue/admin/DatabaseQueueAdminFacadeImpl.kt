@@ -8,7 +8,7 @@ import io.tpersson.ufw.databasequeue.internal.*
 import jakarta.inject.Inject
 import java.time.Duration
 import java.time.Instant
-import java.time.InstantSource
+import java.time.Clock
 
 public class DatabaseQueueAdminFacadeImpl @Inject constructor(
     private val workItemsDAO: WorkItemsDAO,
@@ -16,7 +16,7 @@ public class DatabaseQueueAdminFacadeImpl @Inject constructor(
     private val workQueuesDAO: WorkQueuesDAO,
     private val workQueue: WorkQueueInternal,
     private val unitOfWorkFactory: UnitOfWorkFactory,
-    private val clock: InstantSource,
+    private val clock: Clock,
 ) : DatabaseQueueAdminFacade {
 
     override suspend fun getQueueStatistics(queueId: WorkItemQueueId): WorkItemQueueStatistics {

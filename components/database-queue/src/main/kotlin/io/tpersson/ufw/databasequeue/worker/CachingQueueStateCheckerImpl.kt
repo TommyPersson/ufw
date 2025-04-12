@@ -1,22 +1,22 @@
 package io.tpersson.ufw.databasequeue.worker
 
 import com.github.benmanes.caffeine.cache.Caffeine
-import io.tpersson.ufw.core.utils.InstantSourceTicker
+import io.tpersson.ufw.core.utils.ClockTicker
 import io.tpersson.ufw.databasequeue.WorkItemQueueId
 import io.tpersson.ufw.databasequeue.WorkQueueState
 import io.tpersson.ufw.databasequeue.internal.WorkQueuesDAO
 import jakarta.inject.Inject
 import java.time.Duration
-import java.time.InstantSource
+import java.time.Clock
 
 public class CachingQueueStateCheckerImpl @Inject constructor(
     private val workQueuesDAO: WorkQueuesDAO,
-    private val clock: InstantSource
+    private val clock: Clock
 ) : QueueStateChecker {
 
     private val cache = Caffeine.newBuilder()
         .expireAfterWrite(Duration.ofSeconds(5))
-        .ticker(InstantSourceTicker(clock))
+        .ticker(ClockTicker(clock))
         .build<WorkItemQueueId, Boolean>()
 
     override suspend fun isQueuePaused(queueId: WorkItemQueueId): Boolean {

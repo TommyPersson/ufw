@@ -15,7 +15,7 @@ import io.tpersson.ufw.durablejobs.internal.jobDefinition2
 import io.tpersson.ufw.durablejobs.periodic.PeriodicJob
 import io.tpersson.ufw.durablejobs.periodic.internal.dao.PeriodicJobStateData
 import io.tpersson.ufw.durablejobs.periodic.internal.dao.PeriodicJobsDAO
-import io.tpersson.ufw.test.TestInstantSource
+import io.tpersson.ufw.test.TestClock
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -26,6 +26,7 @@ import java.sql.Connection
 import java.sql.PreparedStatement
 import java.time.Duration
 import java.time.Instant
+import java.time.ZoneId
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 
@@ -40,7 +41,7 @@ internal class PeriodicJobSchedulerImplTest {
 
     private lateinit var periodicJobScheduler: PeriodicJobSchedulerImpl
 
-    private val testClock = TestInstantSource()
+    private val testClock = TestClock(zone = ZoneId.of("UTC"))
 
     @BeforeEach
     fun setUp(): Unit {

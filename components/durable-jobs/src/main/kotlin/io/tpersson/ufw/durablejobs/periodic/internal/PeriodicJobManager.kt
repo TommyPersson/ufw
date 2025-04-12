@@ -9,13 +9,13 @@ import io.tpersson.ufw.managed.ManagedJob
 import jakarta.inject.Inject
 import kotlinx.coroutines.delay
 import java.time.Instant
-import java.time.InstantSource
+import java.time.Clock
 
 public class PeriodicJobManager @Inject constructor(
     private val periodicJobSpecsProvider: PeriodicJobSpecsProvider,
     private val periodicJobScheduler: PeriodicJobScheduler,
     private val periodicJobsDAO: PeriodicJobsDAO,
-    private val clock: InstantSource,
+    private val clock: Clock,
 ) : ManagedJob() {
 
     public val periodicJobSpecs: List<PeriodicJobSpec<*>> get() = periodicJobSpecsProvider.periodicJobSpecs

@@ -17,7 +17,7 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import java.time.Duration
 import java.time.Instant
-import java.time.InstantSource
+import java.time.Clock
 import java.time.ZoneId
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
@@ -30,7 +30,7 @@ public class PeriodicJobSchedulerImpl @Inject constructor(
     private val databaseLocks: DatabaseLocks,
     private val periodicJobsDAO: PeriodicJobsDAO,
     private val unitOfWorkFactory: UnitOfWorkFactory,
-    private val clock: InstantSource,
+    private val clock: Clock,
 ) : PeriodicJobScheduler {
 
     private val logger = createLogger()
@@ -126,8 +126,9 @@ public class PeriodicJobSchedulerImpl @Inject constructor(
         periodicJobSpec: PeriodicJobSpec<out DurableJob>,
         now: Instant
     ): Instant? {
+        val zonedNow = now.atZone(clock.zone)
         return ExecutionTime.forCron(periodicJobSpec.cronInstance)
-            .nextExecution(now.atZone(ZoneId.of("UTC"))) // TODO Allow the timezone to be configurable, or schedules involving specific hours will be wierd
+            .nextExecution(zonedNow)
             .getOrNull()
             ?.toInstant()
     }

@@ -12,7 +12,7 @@ import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
 import io.tpersson.ufw.databasequeue.internal.WorkItemFailureDbEntity
 import io.tpersson.ufw.databasequeue.internal.WorkItemFailuresDAOImpl
 import io.tpersson.ufw.databasequeue.internal.WorkItemsDAOImpl
-import io.tpersson.ufw.test.TestInstantSource
+import io.tpersson.ufw.test.TestClock
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -42,7 +42,7 @@ internal class WorkItemFailuresDAOImplTest {
             it.isAutoCommit = false
         }
 
-        val testClock = TestInstantSource()
+        val testClock = TestClock()
 
         val ufw = UFW.build {
             core {

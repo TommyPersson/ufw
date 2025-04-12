@@ -1,7 +1,7 @@
 package io.tpersson.ufw.databasequeue.internal
 
 import io.tpersson.ufw.databasequeue.DatabaseQueueConfig
-import io.tpersson.ufw.test.TestInstantSource
+import io.tpersson.ufw.test.TestClock
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -18,13 +18,13 @@ internal class DatabaseQueueHangedItemReschedulerTest {
 
     private lateinit var rescheduler: DatabaseQueueHangedItemRescheduler
 
-    private lateinit var clock: TestInstantSource
+    private lateinit var clock: TestClock
 
     @BeforeEach
     fun setUp(): Unit = runBlocking {
         workItemsDAO = mock()
 
-        clock = TestInstantSource()
+        clock = TestClock()
 
         whenever(workItemsDAO.rescheduleAllHangedItems(any(), any(), any())).thenReturn(0)
 

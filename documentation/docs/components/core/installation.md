@@ -53,13 +53,12 @@ ufw = UFW.build {
 Add an instance of `CoreGuiceModule` to the Guice injector. Specify the `scanPackages` parameter to allow the other UFW
 components to scan for their classes. Specify the `configureObjectMapper` to customize the `ObjectMapper`.
 
-Additionally, you must provide a binding for an `InstantSource`. Optionally,
-provide a binding for a `MeterRegistry`.
+Additionally, you must provide a binding for an `Clock`. Optionally, provide a binding for a `MeterRegistry`.
 
 ```kotlin title="YourGuiceApp.kt" linenums="1"
 val injector = Guice.createInjector(
     Module {
-        it.bind(InstantSource::class.java).toInstance(Clock.systemUTC())
+        it.bind(Clock::class.java).toInstance(Clock.systemDefaultZone())
 
         OptionalBinder.newOptionalBinder(it, MeterRegistry::class.java)
             .setBinding().toInstance(/* MeterRegistry instance */)

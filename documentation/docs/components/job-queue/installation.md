@@ -76,7 +76,7 @@ for `JobHandler` types in the packages that you set in `CoreGuiceModule.scanPack
 val injector = Guice.createInjector(
     Module {
         it.bind(DataSource::class.java).toInstance(/* your DataSource */)
-        it.bind(InstantSource::class.java).toInstance(Clock.systemUTC())
+        it.bind(Clock::class.java).toInstance(Clock.systemDefaultZone())
     },
     CoreGuiceModule(
         scanPackages = setOf("com.example.myguiceapp"),
