@@ -1,8 +1,6 @@
 package io.tpersson.ufw.durableevents.common
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.module.kotlin.readValue
-import io.tpersson.ufw.core.CoreComponent.Companion.defaultObjectMapper
 import org.intellij.lang.annotations.Language
 import java.time.Instant
 import kotlin.reflect.KClass
@@ -29,31 +27,3 @@ public annotation class EventDefinition(
     @Language("Markdown")
     val description: String = ""
 )
-
-@EventDefinition("my-test-event-1", "test-topic")
-public data class TestEvent1(
-    override val id: DurableEventId,
-    override val timestamp: Instant,
-    val myData: String
-) : DurableEvent()
-
-internal fun main() {
-    val objectMapper = defaultObjectMapper
-
-    val original = TestEvent1(
-        id = DurableEventId(),
-        timestamp = Instant.now(),
-        myData = "Hello, World!"
-    )
-
-    println(original)
-
-    val json = objectMapper.writeValueAsString(original)
-
-
-    println(json)
-
-    val deserialized = objectMapper.readValue<TestEvent1>(json)
-
-    println(deserialized)
-}

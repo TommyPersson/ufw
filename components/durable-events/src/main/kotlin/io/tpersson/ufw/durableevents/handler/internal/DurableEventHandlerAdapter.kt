@@ -11,6 +11,7 @@ import io.tpersson.ufw.durableevents.common.DurableEvent
 import io.tpersson.ufw.durableevents.handler.DurableEventContext
 import io.tpersson.ufw.durableevents.handler.DurableEventFailureContext
 import io.tpersson.ufw.durableevents.handler.DurableEventHandler
+import org.slf4j.Logger
 import java.time.Instant
 import java.time.Clock
 
@@ -20,7 +21,7 @@ public class DurableEventHandlerAdapter<TEvent : DurableEvent>(
     private val objectMapper: ObjectMapper,
 ) : WorkItemHandler<TEvent> {
 
-    override val handlerClassName: String = handler::class.simpleName!!
+    override val handlerClassName: String = handler::class.qualifiedName!!
 
     override fun transformItem(rawItem: WorkItemDbEntity): TEvent {
         return objectMapper.readValue(rawItem.dataJson, method.eventClass.java)
@@ -36,18 +37,21 @@ public class DurableEventHandlerAdapter<TEvent : DurableEvent>(
 }
 
 // TODO real Impl to avoid class gc
-public fun WorkItemContext.asDurableEventContext(): DurableEventContext = object : DurableEventContext {
-    override val clock: Clock = this@asDurableEventContext.clock
-    override val timestamp: Instant = this@asDurableEventContext.timestamp
-    override val failureCount: Int = this@asDurableEventContext.failureCount
-    override val unitOfWork: UnitOfWork = this@asDurableEventContext.unitOfWork
-}
+public fun WorkItemContext.asDurableEventContext(): DurableEventContext =
+    object : DurableEventContext {
+        override val clock: Clock = this@asDurableEventContext.clock
+        override val timestamp: Instant = this@asDurableEventContext.timestamp
+        override val failureCount: Int = this@asDurableEventContext.failureCount
+        override val unitOfWork: UnitOfWork = this@asDurableEventContext.unitOfWork
+        override val logger: Logger = this@asDurableEventContext.logger
+    }
 
 // TODO real Impl to avoid class gc
-public fun WorkItemFailureContext.asDurableEventFailureContext(): DurableEventFailureContext = object  :
-    DurableEventFailureContext {
-    override val clock: Clock = this@asDurableEventFailureContext.clock
-    override val timestamp: Instant = this@asDurableEventFailureContext.timestamp
-    override val failureCount: Int = this@asDurableEventFailureContext.failureCount
-    override val unitOfWork: UnitOfWork = this@asDurableEventFailureContext.unitOfWork
-}
+public fun WorkItemFailureContext.asDurableEventFailureContext(): DurableEventFailureContext =
+    object : DurableEventFailureContext {
+        override val clock: Clock = this@asDurableEventFailureContext.clock
+        override val timestamp: Instant = this@asDurableEventFailureContext.timestamp
+        override val failureCount: Int = this@asDurableEventFailureContext.failureCount
+        override val unitOfWork: UnitOfWork = this@asDurableEventFailureContext.unitOfWork
+        override val logger: Logger = this@asDurableEventFailureContext.logger
+    }

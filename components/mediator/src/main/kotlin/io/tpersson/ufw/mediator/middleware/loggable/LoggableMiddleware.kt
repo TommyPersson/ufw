@@ -1,49 +1,54 @@
 package io.tpersson.ufw.mediator.middleware.loggable
 
+import io.tpersson.ufw.core.utils.LoggerCache
 import io.tpersson.ufw.core.utils.measureTimedValue
 import io.tpersson.ufw.mediator.Context
+import io.tpersson.ufw.mediator.ContextKey
 import io.tpersson.ufw.mediator.Middleware
 import io.tpersson.ufw.mediator.middleware.StandardMiddlewarePriorities
 import jakarta.inject.Inject
 import kotlinx.coroutines.slf4j.MDCContext
 import kotlinx.coroutines.withContext
 import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.slf4j.MDC
-import java.util.concurrent.ConcurrentHashMap
-import kotlin.reflect.KClass
-import kotlin.time.DurationUnit
 
 public class LoggableMiddleware @Inject constructor(
-) : Middleware<Loggable, Any> {
+) : Middleware<Any, Any> {
 
     override val priority: Int = StandardMiddlewarePriorities.Loggable
 
-    private val loggers = ConcurrentHashMap<KClass<out Loggable>, Logger>()
+    public object ContextKeys {
+        public val Logger: ContextKey<Logger> = ContextKey("Loggable_Logger")
+    }
 
     override suspend fun handle(
-        request: Loggable,
+        request: Any,
         context: Context,
-        next: suspend (request: Loggable, context: Context) -> Any
+        next: suspend (request: Any, context: Context) -> Any
     ): Any {
-        val logger = loggers.getOrPut(request::class) {
-            LoggerFactory.getLogger(request::class.java)
-        }
+        val logger = LoggerCache.get(request::class)
+
+        context[ContextKeys.Logger] = logger
 
         MDC.put("requestType", request::class.simpleName)
 
         return withContext(MDCContext()) {
+            val loggable = request as? Loggable
+
             try {
                 val (result, duration) = measureTimedValue {
                     next(request, context)
                 }
 
-                logger.info("Successful: ${request.logText}. [Duration = ${duration.toMillis()} ms]")
+                loggable?.let { logger.info("Successful: ${it.logText}. [Duration = ${duration.toMillis()} ms]") }
                 return@withContext result
             } catch (e: Exception) {
-                logger.error("Failed: ${request.logText}.", e)
+                loggable?.let { logger.error("Failed: ${it.logText}.", e) }
                 throw e
             }
         }
     }
 }
+
+public val Context.logger: Logger
+    get() = this[LoggableMiddleware.ContextKeys.Logger] ?: error("No Logger in Context!")

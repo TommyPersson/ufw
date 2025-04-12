@@ -7,6 +7,7 @@ import io.tpersson.ufw.mediator.Command
 import io.tpersson.ufw.mediator.CommandHandler
 import io.tpersson.ufw.mediator.Context
 import io.tpersson.ufw.mediator.middleware.loggable.Loggable
+import io.tpersson.ufw.mediator.middleware.loggable.logger
 import io.tpersson.ufw.mediator.middleware.retryable.Retryable
 import io.tpersson.ufw.mediator.middleware.transactional.Transactional
 import io.tpersson.ufw.mediator.middleware.transactional.unitOfWork
@@ -45,9 +46,9 @@ public class PerformGreetingCommandHandler @Inject constructor(
 
         context.unitOfWork.addPostCommitHook {
             val updated = keyValueStore.get(numGreetingsPerformedKey)?.value ?: 0
-            println("$updated greetings have been performed")
+            context.logger.info("$updated greetings have been performed")
         }
 
-        println("Hello, ${command.target}!")
+        context.logger.info("Hello, ${command.target}!")
     }
 }

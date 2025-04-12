@@ -3,6 +3,7 @@ package io.tpersson.ufw.databasequeue.worker
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
 import io.tpersson.ufw.core.logging.createLogger
+import io.tpersson.ufw.core.utils.LoggerCache
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.databasequeue.*
@@ -10,6 +11,7 @@ import io.tpersson.ufw.databasequeue.internal.*
 import io.tpersson.ufw.databasequeue.worker.SingleWorkItemProcessor.ProcessingResult
 import kotlinx.coroutines.slf4j.MDCContext
 import kotlinx.coroutines.withContext
+import org.slf4j.Logger
 import org.slf4j.MDC
 import java.time.Instant
 import java.time.Clock
@@ -95,7 +97,11 @@ public class SingleWorkItemProcessorImpl(
             }
 
             try {
-                val context = createHandleContext(workItem, successUnitOfWork)
+                val context = createHandleContext(
+                    handler = handler,
+                    workItem = workItem,
+                    unitOfWork = successUnitOfWork
+                )
 
                 handler.handle(transformedItem, context)
 
@@ -168,6 +174,7 @@ public class SingleWorkItemProcessorImpl(
             override val timestamp: Instant = now
             override val failureCount: Int = failureCount
             override val unitOfWork: UnitOfWork = unitOfWork
+            override val logger: Logger = LoggerCache.get(handler.handlerClassName)
         }
 
         val failureAction = if (transformedItem != null) {
@@ -211,6 +218,7 @@ public class SingleWorkItemProcessorImpl(
     }
 
     private fun createHandleContext(
+        handler: WorkItemHandler<Any>,
         workItem: WorkItemDbEntity,
         unitOfWork: UnitOfWork
     ) = object : WorkItemContext {
@@ -218,6 +226,7 @@ public class SingleWorkItemProcessorImpl(
         override val timestamp: Instant = this@SingleWorkItemProcessorImpl.clock.instant()
         override val failureCount: Int = workItem.numFailures
         override val unitOfWork: UnitOfWork = unitOfWork
+        override val logger: Logger = LoggerCache.get(handler.handlerClassName)
     }
 
     private suspend fun isItemDeletedOrCancelled(

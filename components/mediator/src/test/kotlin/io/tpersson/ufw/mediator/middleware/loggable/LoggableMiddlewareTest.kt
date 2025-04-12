@@ -1,8 +1,10 @@
 package io.tpersson.ufw.mediator.middleware.loggable
 
+import io.tpersson.ufw.core.utils.LoggerCache
 import io.tpersson.ufw.mediator.Command
 import io.tpersson.ufw.mediator.CommandHandler
 import io.tpersson.ufw.mediator.Context
+import io.tpersson.ufw.mediator.ContextKey
 import io.tpersson.ufw.mediator.internal.ContextImpl
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -19,6 +21,7 @@ internal class CacheableMiddlewareTest {
     @BeforeEach
     fun beforeEach() {
         handler.lastMDC = emptyMap()
+        handler.lastContext = emptyMap()
     }
 
     @Test
@@ -44,6 +47,14 @@ internal class CacheableMiddlewareTest {
         assertThat(handler.lastMDC).containsEntry("requestType", "TestCommand")
     }
 
+    @Test
+    fun `handle - Contains 'Logger' in Context`(): Unit = runBlocking {
+        handle(TestCommand("Hello"))
+
+        assertThat(handler.lastContext[LoggableMiddleware.ContextKeys.Logger])
+            .isEqualTo(LoggerCache.get(TestCommand::class))
+    }
+
     private suspend fun handle(command: TestCommand): Any? {
         val context = ContextImpl()
 
@@ -63,9 +74,11 @@ internal class CacheableMiddlewareTest {
 
     class TestCommandHandler : CommandHandler<TestCommand, Result> {
         var lastMDC = emptyMap<String, String>()
+        var lastContext = emptyMap<ContextKey<*>, Any>()
 
         override suspend fun handle(command: TestCommand, context: Context): Result {
             lastMDC = MDC.getCopyOfContextMap()
+            lastContext = context.toMap()
 
             if (command.shouldFail) {
                 throw TestException()

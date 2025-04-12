@@ -11,11 +11,9 @@ public class ExampleDurableEventHandler @Inject constructor(
     private val keyValueStore: KeyValueStore,
 ) : DurableEventHandler {
 
-    private val logger = createLogger()
-
     @EventHandler(topic = "example-topic")
     public suspend fun handle(event: ExampleEventV1, context: DurableEventContext): Unit {
-        logger.info("Counting: $event")
+        context.logger.info("Counting: $event")
 
         val key = KeyValueStore.Key.of<Int>("num-example-events-processed")
 

@@ -11,6 +11,7 @@ import io.tpersson.ufw.durablejobs.DurableJob
 import io.tpersson.ufw.durablejobs.DurableJobHandler
 import io.tpersson.ufw.durablejobs.DurableJobContext
 import io.tpersson.ufw.durablejobs.DurableJobFailureContext
+import org.slf4j.Logger
 import java.time.Instant
 import java.time.Clock
 
@@ -20,7 +21,7 @@ public class DurableJobHandlerAdapter<TJob : DurableJob>(
     private val objectMapper: ObjectMapper,
 ) : WorkItemHandler<TJob> {
 
-    override val handlerClassName: String = handler::class.simpleName!!
+    override val handlerClassName: String = handler::class.qualifiedName!!
 
     public override suspend fun handle(item: TJob, context: WorkItemContext) {
         val jobContext = object : DurableJobContext {
@@ -28,6 +29,7 @@ public class DurableJobHandlerAdapter<TJob : DurableJob>(
             override val timestamp: Instant = context.timestamp
             override val failureCount: Int = context.failureCount
             override val unitOfWork: UnitOfWork = context.unitOfWork
+            override val logger: Logger = context.logger
         }
 
         handler.handle(item, jobContext)
@@ -49,6 +51,7 @@ public class DurableJobHandlerAdapter<TJob : DurableJob>(
             override val timestamp: Instant = context.timestamp
             override val failureCount: Int = context.failureCount
             override val unitOfWork: UnitOfWork = context.unitOfWork
+            override val logger: Logger = context.logger
         }
 
         return handler.onFailure(item, error, jobFailureContext)

@@ -496,7 +496,7 @@ internal class SingleWorkItemProcessorImplTest {
             }
         }
 
-        override val handlerClassName: String = this::class.simpleName!!
+        override val handlerClassName: String = this::class.qualifiedName!!
 
         override fun transformItem(rawItem: WorkItemDbEntity): TestWorkItem1 {
             return CoreComponent.defaultObjectMapper.readValue<TestWorkItem1>(rawItem.dataJson)
@@ -525,7 +525,7 @@ internal class SingleWorkItemProcessorImplTest {
     }
 
     class UnparsableWorkItemHandler : WorkItemHandler<UnparsableWorkItem> {
-        override val handlerClassName: String = this::class.simpleName!!
+        override val handlerClassName: String = this::class.qualifiedName!!
 
         override fun transformItem(rawItem: WorkItemDbEntity): UnparsableWorkItem {
             error("unable to parse item")

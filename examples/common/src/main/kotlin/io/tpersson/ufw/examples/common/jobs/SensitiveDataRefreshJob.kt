@@ -1,6 +1,5 @@
 package io.tpersson.ufw.examples.common.jobs
 
-import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.durablecaches.DurableCaches
 import io.tpersson.ufw.durablejobs.*
 import io.tpersson.ufw.examples.common.caches.AppCaches
@@ -20,12 +19,10 @@ public class SensitiveDataRefreshJobHandler @Inject constructor(
     private val caches: DurableCaches,
 ) : DurableJobHandler<SensitiveDataRefreshJob> {
 
-    private val logger = createLogger()
-
     private val cache = caches.get(AppCaches.SensitiveDataCache)
 
     override suspend fun handle(job: SensitiveDataRefreshJob, context: DurableJobContext) {
-        logger.info("Refreshing sensitive data")
+        context.logger.info("Refreshing sensitive data")
         cache.put("some-sensitive-data", "not-really")
     }
 }
