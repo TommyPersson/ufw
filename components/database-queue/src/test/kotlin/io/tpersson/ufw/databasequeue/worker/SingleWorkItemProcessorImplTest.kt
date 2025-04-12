@@ -19,7 +19,7 @@ import org.mockito.Mockito.mock
 import org.mockito.kotlin.*
 import org.slf4j.MDC
 import java.time.Instant
-import java.time.InstantSource
+import java.time.Clock
 import java.util.*
 
 internal class SingleWorkItemProcessorImplTest {
@@ -31,7 +31,7 @@ internal class SingleWorkItemProcessorImplTest {
     private lateinit var queueStateChecker: QueueStateChecker
     private lateinit var watchdogId: String
 
-    private lateinit var clock: InstantSource
+    private lateinit var clock: Clock
     private lateinit var now: Instant
 
     private lateinit var processor: SingleWorkItemProcessorImpl

@@ -12,4 +12,3 @@ public inline fun <T> measureTimedValue(block: () -> T): Pair<T, Duration> {
 
     return result to Duration.ofMillis(millis)
 }
-

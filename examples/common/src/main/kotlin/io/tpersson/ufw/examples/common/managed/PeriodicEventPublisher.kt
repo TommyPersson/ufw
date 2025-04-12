@@ -14,13 +14,13 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import java.time.InstantSource
+import java.time.Clock
 
 public class PeriodicEventPublisher @Inject constructor(
     private val unitOfWorkFactory: UnitOfWorkFactory,
     private val transactionalEventPublisher: DurableEventPublisher,
     private val featureToggles: FeatureToggles,
-    private val clock: InstantSource
+    private val clock: Clock
 ) : ManagedJob() {
 
     private val featureToggleHandle = featureToggles.get(AppFeatureToggles.PeriodicEventPublisher)

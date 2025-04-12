@@ -31,7 +31,6 @@ import io.tpersson.ufw.examples.common.managed.PeriodicEventPublisher
 import io.tpersson.ufw.examples.common.managed.PeriodicJobScheduler
 import io.tpersson.ufw.examples.common.managed.PeriodicLogger
 import io.tpersson.ufw.examples.common.managed.PrometheusServer
-import io.tpersson.ufw.examples.common.queries.TestAdminQuery1
 import io.tpersson.ufw.examples.common.queries.TestAdminQuery1Handler
 import io.tpersson.ufw.featuretoggles.dsl.featureToggles
 import io.tpersson.ufw.keyvaluestore.dsl.keyValueStore
@@ -52,7 +51,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
 
     val ufw = UFW.build {
         core {
-            clock = Clock.systemUTC()
+            clock = Clock.systemDefaultZone()
             meterRegistry = Globals.meterRegistry
 
             objectMapper {

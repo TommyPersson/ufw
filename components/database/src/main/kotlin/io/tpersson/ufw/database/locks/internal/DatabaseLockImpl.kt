@@ -3,13 +3,13 @@ package io.tpersson.ufw.database.locks.internal
 import io.tpersson.ufw.database.locks.DatabaseLock
 import io.tpersson.ufw.database.locks.DatabaseLockHandle
 import java.time.Duration
-import java.time.InstantSource
+import java.time.Clock
 
 public class DatabaseLockImpl(
     private val lockId: String,
     private val instanceId: String,
     private val databaseLocksDAO: DatabaseLocksDAO,
-    private val clock: InstantSource,
+    private val clock: Clock,
 ) : DatabaseLock {
 
     override suspend fun tryAcquire(stealIfOlderThan: Duration?): DatabaseLockHandle? {

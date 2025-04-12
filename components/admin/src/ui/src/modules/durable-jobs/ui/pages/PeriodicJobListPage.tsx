@@ -4,8 +4,17 @@ import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined"
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined"
 import PendingOutlinedIcon from "@mui/icons-material/PendingOutlined"
 import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined"
-import { Card, CardContent, Chip, Divider, Table, TableBody, TableCell, TableRow } from "@mui/material"
-import { SvgIconOwnProps } from "@mui/material/SvgIcon/SvgIcon"
+import {
+  Card,
+  CardContent,
+  Chip,
+  Divider,
+  type SvgIconOwnProps,
+  Table,
+  TableBody,
+  TableCell,
+  TableRow
+} from "@mui/material"
 import { useQuery } from "@tanstack/react-query"
 import { uniqBy } from "es-toolkit"
 import * as React from "react"

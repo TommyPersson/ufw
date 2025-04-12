@@ -1,20 +1,20 @@
 package io.tpersson.ufw.durablecaches.internal
 
 import com.github.benmanes.caffeine.cache.Caffeine
-import io.tpersson.ufw.core.utils.InstantSourceTicker
+import io.tpersson.ufw.core.utils.ClockTicker
 import io.tpersson.ufw.core.utils.PaginatedList
 import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.durablecaches.CacheEntry
 import io.tpersson.ufw.durablecaches.DurableCache
 import io.tpersson.ufw.durablecaches.DurableCacheDefinition
 import io.tpersson.ufw.keyvaluestore.KeyValueStore
-import java.time.InstantSource
+import java.time.Clock
 import kotlin.reflect.KClass
 
 public class DurableCacheImpl<TValue : Any>(
     override val definition: DurableCacheDefinition<TValue>,
     private val keyValueStore: KeyValueStore,
-    private val clock: InstantSource
+    private val clock: Clock
 ) : DurableCache<TValue> {
 
     private val keyPrefix = "__dc__cache:${definition.id}:"
@@ -22,7 +22,7 @@ public class DurableCacheImpl<TValue : Any>(
     private val inMemoryCache = definition.inMemoryExpiration?.let { expiration ->
         Caffeine.newBuilder()
             .expireAfterWrite(expiration)
-            .ticker(InstantSourceTicker(clock))
+            .ticker(ClockTicker(clock))
             .build<String, TValue>()
     }
 

@@ -2,16 +2,18 @@ import PlaylistPlayIcon from "@mui/icons-material/PlaylistPlay"
 import { makeApiRequest } from "../../../common/utils/api"
 import { Command } from "../../../common/utils/commands"
 import { queryClient } from "../../../common/utils/tsq"
+import { navigate } from "../../../router"
 
 export const SchedulePeriodicJobNowCommand: Command<{ queueId: string, jobType: string }> = {
   mutationOptions: ({
     mutationKey: ["durable-jobs", "SchedulePeriodicJobNow"],
     mutationFn: async ({ queueId, jobType }) => {
-      await makeApiRequest(`/admin/api/durable-jobs/periodic-jobs/${queueId}/${jobType}/actions/schedule-now`, {
+      return await makeApiRequest<{ jobId: string }>(`/admin/api/durable-jobs/periodic-jobs/${queueId}/${jobType}/actions/schedule-now`, {
         method: "POST"
       })
     },
-    onSuccess: async () => {
+    onSuccess: async ({ jobId }, { queueId }) => {
+      await navigate(`/durable-jobs/queues/${queueId}/jobs/by-id/${jobId}/details`)
       queryClient.invalidateQueries({ queryKey: ["durable-jobs"] }).then()
     }
   }),

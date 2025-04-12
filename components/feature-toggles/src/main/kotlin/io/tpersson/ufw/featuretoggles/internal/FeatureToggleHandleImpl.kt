@@ -4,12 +4,12 @@ import io.tpersson.ufw.featuretoggles.FeatureToggle
 import io.tpersson.ufw.featuretoggles.FeatureToggleDefinition
 import io.tpersson.ufw.featuretoggles.FeatureToggleHandle
 import io.tpersson.ufw.keyvaluestore.KeyValueStore
-import java.time.InstantSource
+import java.time.Clock
 
 public class FeatureToggleHandleImpl(
     public override val definition: FeatureToggleDefinition,
     private val keyValueStore: KeyValueStore,
-    private val clock: InstantSource,
+    private val clock: Clock,
 ) : FeatureToggleHandle {
 
     private val key = KeyValueStore.Key.of<FeatureToggleData>("${Constants.KEY_PREFIX}${definition.id}")

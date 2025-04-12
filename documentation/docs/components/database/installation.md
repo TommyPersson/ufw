@@ -22,7 +22,7 @@ title: Installation
 ```kotlin title="YourApp.kt" linenums="1"
 ufw = UFW.build {
     core {
-        instantSource = Clock.systemUTC()
+        clock = Clock.systemDefaultZone()
     }
     database {
         dataSource = MyDataSource() // Mandatory
@@ -62,7 +62,7 @@ Add an instance of `DatabaseGuiceModule` to the Guice injector. The provide a bi
 ```kotlin title="YourGuiceApp.kt" linenums="1"
 val injector = Guice.createInjector(
     Module {
-        it.bind(InstantSource::class.java).toInstance(Clock.systemUTC())
+        it.bind(Clock::class.java).toInstance(Clock.systemDefaultZone())
         it.bind(DataSource::class.java).toInstance(MyDataSource())
     },
     CoreGuiceModule(

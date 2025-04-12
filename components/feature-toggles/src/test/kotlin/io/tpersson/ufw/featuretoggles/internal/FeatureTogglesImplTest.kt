@@ -2,7 +2,7 @@ package io.tpersson.ufw.featuretoggles.internal
 
 import io.tpersson.ufw.featuretoggles.FeatureToggleDefinition
 import io.tpersson.ufw.keyvaluestore.KeyValueStore
-import io.tpersson.ufw.test.TestInstantSource
+import io.tpersson.ufw.test.TestClock
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -12,14 +12,14 @@ internal class FeatureTogglesImplTest {
 
     private lateinit var keyValueStoreMock: KeyValueStore
 
-    private lateinit var testClock: TestInstantSource
+    private lateinit var testClock: TestClock
 
     private lateinit var featureToggles: FeatureTogglesImpl
 
     @BeforeEach
     fun setUp() {
         keyValueStoreMock = mock<KeyValueStore>()
-        testClock = TestInstantSource()
+        testClock = TestClock()
 
         featureToggles = FeatureTogglesImpl(
             keyValueStore = keyValueStoreMock,

@@ -11,13 +11,13 @@ import jakarta.inject.Named
 import jakarta.inject.Singleton
 import java.time.Duration
 import java.time.Instant
-import java.time.InstantSource
+import java.time.Clock
 import kotlin.reflect.KClass
 
 @Singleton
 public class KeyValueStoreImpl @Inject constructor(
     private val storageEngine: StorageEngine,
-    private val clock: InstantSource,
+    private val clock: Clock,
     @Named(NamedBindings.ObjectMapper) private val objectMapper: ObjectMapper,
 ) : KeyValueStore {
 

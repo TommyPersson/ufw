@@ -17,6 +17,13 @@ import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.database.unitofwork.use
 import io.tpersson.ufw.databasequeue.guice.DatabaseQueueGuiceModule
 import io.tpersson.ufw.durablecaches.guice.DurableCachesGuiceModule
+import io.tpersson.ufw.durableevents.guice.DurableEventsGuiceModule
+import io.tpersson.ufw.durableevents.publisher.DurableEventPublisher
+import io.tpersson.ufw.durableevents.publisher.OutgoingEventTransport
+import io.tpersson.ufw.durableevents.publisher.transports.DirectOutgoingEventTransport
+import io.tpersson.ufw.durablejobs.DurableJobQueue
+import io.tpersson.ufw.durablejobs.DurableJobsConfig
+import io.tpersson.ufw.durablejobs.guice.DurableJobsGuiceModule
 import io.tpersson.ufw.examples.common.Globals
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregate
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregateRepository
@@ -24,26 +31,18 @@ import io.tpersson.ufw.examples.common.commands.PerformGreetingCommand
 import io.tpersson.ufw.examples.common.events.ExampleEventV1
 import io.tpersson.ufw.examples.common.jobs.PrintJob
 import io.tpersson.ufw.examples.common.jobs.PrintJob2
-import io.tpersson.ufw.durablejobs.DurableJobQueue
-import io.tpersson.ufw.durablejobs.DurableJobsConfig
-import io.tpersson.ufw.durablejobs.guice.DurableJobsGuiceModule
+import io.tpersson.ufw.featuretoggles.guice.FeatureTogglesGuiceModule
 import io.tpersson.ufw.keyvaluestore.KeyValueStoreConfig
 import io.tpersson.ufw.keyvaluestore.guice.KeyValueStoreGuiceModule
 import io.tpersson.ufw.managed.ManagedComponent
 import io.tpersson.ufw.managed.guice.ManagedGuiceModule
 import io.tpersson.ufw.mediator.Mediator
 import io.tpersson.ufw.mediator.guice.MediatorGuiceModule
-import io.tpersson.ufw.durableevents.guice.DurableEventsGuiceModule
-import io.tpersson.ufw.durableevents.publisher.OutgoingEventTransport
-import io.tpersson.ufw.durableevents.publisher.DurableEventPublisher
-import io.tpersson.ufw.durableevents.publisher.transports.DirectOutgoingEventTransport
-import io.tpersson.ufw.featuretoggles.guice.FeatureTogglesGuiceModule
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.slf4j.MDCContext
 import org.slf4j.bridge.SLF4JBridgeHandler
 import java.time.Clock
 import java.time.Duration
-import java.time.InstantSource
 import java.util.*
 import javax.sql.DataSource
 
@@ -56,7 +55,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
     val injector = Guice.createInjector(
         Module {
             it.bind(DataSource::class.java).toInstance(Globals.dataSource)
-            it.bind(InstantSource::class.java).toInstance(Clock.systemUTC())
+            it.bind(Clock::class.java).toInstance(Clock.systemDefaultZone())
 
             OptionalBinder.newOptionalBinder(it, MeterRegistry::class.java)
                 .setBinding().toInstance(Globals.meterRegistry)
@@ -140,7 +139,7 @@ private suspend fun testJobQueue(injector: Injector) {
 private suspend fun testAggregates(injector: Injector) {
     val counterRepository = injector.getInstance(CounterAggregateRepository::class.java)
     val unitOfWorkFactory = injector.getInstance(UnitOfWorkFactory::class.java)
-    val clock = injector.getInstance(InstantSource::class.java)
+    val clock = injector.getInstance(Clock::class.java)
 
     val counterId = unitOfWorkFactory.use { uow ->
         val counter = CounterAggregate.new(clock.instant())

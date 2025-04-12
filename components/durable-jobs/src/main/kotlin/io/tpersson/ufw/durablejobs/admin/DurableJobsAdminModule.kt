@@ -267,9 +267,11 @@ public class DurableJobsAdminModule @Inject constructor(
                     it.handler.jobDefinition.type == jobType && it.handler.jobDefinition.queueId == queueId
                 } ?: HttpStatusCode.NotFound.raise()
 
-                periodicJobManager.scheduleJobNow(periodicJob)
+                val jobId = periodicJobManager.scheduleJobNow(periodicJob)
 
-                call.respond(HttpStatusCode.NoContent)
+                call.respond(
+                    SchedulePeriodicJobNowResponseDTO(jobId = jobId)
+                )
             }
         }
     }

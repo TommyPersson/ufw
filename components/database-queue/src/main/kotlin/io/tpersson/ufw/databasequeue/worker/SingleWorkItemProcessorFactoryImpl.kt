@@ -8,7 +8,7 @@ import io.tpersson.ufw.databasequeue.internal.WorkItemFailuresDAO
 import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
 import io.tpersson.ufw.databasequeue.internal.WorkQueueInternal
 import jakarta.inject.Inject
-import java.time.InstantSource
+import java.time.Clock
 
 public class SingleWorkItemProcessorFactoryImpl @Inject constructor(
     private val workItemsDAO: WorkItemsDAO,
@@ -17,7 +17,7 @@ public class SingleWorkItemProcessorFactoryImpl @Inject constructor(
     private val queueStateChecker: QueueStateChecker,
     private val unitOfWorkFactory: UnitOfWorkFactory,
     private val meterRegistry: MeterRegistry,
-    private val clock: InstantSource,
+    private val clock: Clock,
     private val config: DatabaseQueueConfig,
 ) : SingleWorkItemProcessorFactory {
 

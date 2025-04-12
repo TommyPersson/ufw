@@ -10,7 +10,7 @@ import io.tpersson.ufw.databasequeue.dsl.databaseQueue
 import io.tpersson.ufw.durablejobs.DurableJobQueueId
 import io.tpersson.ufw.durablejobs.dsl.durableJobs
 import io.tpersson.ufw.managed.dsl.managed
-import io.tpersson.ufw.test.TestInstantSource
+import io.tpersson.ufw.test.TestClock
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -38,7 +38,7 @@ internal class PeriodicJobsDAOImplTest {
             it.isAutoCommit = false
         }
 
-        val testClock = TestInstantSource()
+        val testClock = TestClock()
 
         val ufw = UFW.build {
             core {

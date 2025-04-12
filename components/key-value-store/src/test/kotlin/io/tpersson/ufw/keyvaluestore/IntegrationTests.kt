@@ -6,6 +6,7 @@ import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.keyvaluestore.storageengine.PostgresStorageEngine
 import io.tpersson.ufw.managed.ManagedComponent
+import io.tpersson.ufw.test.TestClock
 import io.tpersson.ufw.test.isEqualToIgnoringNanos
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -17,7 +18,7 @@ import org.testcontainers.lifecycle.Startables
 import org.testcontainers.utility.DockerImageName
 import java.time.Duration
 import java.time.Instant
-import java.time.InstantSource
+import java.time.Clock
 
 internal class IntegrationTests {
 
@@ -36,7 +37,7 @@ internal class IntegrationTests {
         }
 
         val dataSource = HikariDataSource(config)
-        val testClock = TestInstantSource()
+        val testClock = TestClock()
         val coreComponent = CoreComponent.create(testClock)
         val databaseComponent = DatabaseComponent.create(coreComponent, dataSource)
         val unitOfWorkFactory = databaseComponent.unitOfWorkFactory
@@ -315,16 +316,4 @@ internal class IntegrationTests {
 
     fun String.asStringKey() = KeyValueStore.Key.of<String>(this)
     fun String.asIntKey() = KeyValueStore.Key.of<Int>(this)
-
-    class TestInstantSource : InstantSource {
-        private var now = Instant.now()
-
-        override fun instant(): Instant {
-            return now
-        }
-
-        fun advance(duration: Duration) {
-            now += duration
-        }
-    }
 }

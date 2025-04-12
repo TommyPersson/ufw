@@ -10,18 +10,16 @@ import jakarta.inject.Inject
 import jakarta.inject.Named
 import jakarta.inject.Singleton
 import java.time.Clock
-import java.time.InstantSource
-import java.util.*
 
 @Singleton
 public class CoreComponent @Inject private constructor(
-    public val clock: InstantSource,
+    public val clock: Clock,
     @Named(NamedBindings.ObjectMapper) public val objectMapper: ObjectMapper,
     public val meterRegistry: MeterRegistry,
 ) {
     public companion object {
         public fun create(
-            clock: InstantSource = Clock.systemUTC(),
+            clock: Clock = Clock.systemDefaultZone(),
             meterRegistry: MeterRegistry = SimpleMeterRegistry(),
             objectMapper: ObjectMapper = defaultObjectMapper,
         ): CoreComponent {
@@ -34,6 +32,5 @@ public class CoreComponent @Inject private constructor(
                 it.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                 it.disable(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS)
             }
-
     }
 }

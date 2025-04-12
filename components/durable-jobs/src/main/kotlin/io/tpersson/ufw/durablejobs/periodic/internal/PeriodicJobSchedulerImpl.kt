@@ -7,6 +7,7 @@ import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.databasequeue.worker.QueueStateChecker
 import io.tpersson.ufw.durablejobs.DurableJob
+import io.tpersson.ufw.durablejobs.DurableJobId
 import io.tpersson.ufw.durablejobs.DurableJobQueue
 import io.tpersson.ufw.durablejobs.internal.jobDefinition
 import io.tpersson.ufw.durablejobs.internal.toWorkItemQueueId
@@ -16,7 +17,7 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import java.time.Duration
 import java.time.Instant
-import java.time.InstantSource
+import java.time.Clock
 import java.time.ZoneId
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
@@ -29,7 +30,7 @@ public class PeriodicJobSchedulerImpl @Inject constructor(
     private val databaseLocks: DatabaseLocks,
     private val periodicJobsDAO: PeriodicJobsDAO,
     private val unitOfWorkFactory: UnitOfWorkFactory,
-    private val clock: InstantSource,
+    private val clock: Clock,
 ) : PeriodicJobScheduler {
 
     private val logger = createLogger()
@@ -59,15 +60,14 @@ public class PeriodicJobSchedulerImpl @Inject constructor(
     override suspend fun scheduleJobNow(
         periodicJobSpec: PeriodicJobSpec<*>,
         now: Instant,
-    ) {
+    ): DurableJobId {
         val jobDefinition = periodicJobSpec.handler.jobDefinition
         val jobClass = jobDefinition.jobClass
 
         val job = try {
             jobClass.primaryConstructor?.callBy(emptyMap()) as DurableJob
         } catch (e: Exception) {
-            logger.error("Cannot construct instance of class ${periodicJobSpec::class.simpleName}", e)
-            return
+            throw IllegalArgumentException("Cannot construct instance of class ${periodicJobSpec::class.simpleName}", e)
         }
 
         val unitOfWork = unitOfWorkFactory.create()
@@ -82,6 +82,8 @@ public class PeriodicJobSchedulerImpl @Inject constructor(
         )
 
         unitOfWork.commit()
+
+        return job.id
     }
 
     private suspend fun trySchedulePeriodicJobs(now: Instant) {
@@ -124,8 +126,9 @@ public class PeriodicJobSchedulerImpl @Inject constructor(
         periodicJobSpec: PeriodicJobSpec<out DurableJob>,
         now: Instant
     ): Instant? {
+        val zonedNow = now.atZone(clock.zone)
         return ExecutionTime.forCron(periodicJobSpec.cronInstance)
-            .nextExecution(now.atZone(ZoneId.of("UTC"))) // TODO Allow the timezone to be configurable, or schedules involving specific hours will be wierd
+            .nextExecution(zonedNow)
             .getOrNull()
             ?.toInstant()
     }

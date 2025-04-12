@@ -2,19 +2,20 @@ package io.tpersson.ufw.durablejobs.periodic.internal
 
 import io.tpersson.ufw.core.utils.forever
 import io.tpersson.ufw.databasequeue.WorkItemState
+import io.tpersson.ufw.durablejobs.DurableJobId
 import io.tpersson.ufw.durablejobs.periodic.internal.dao.PeriodicJobsDAO
 import io.tpersson.ufw.durablejobs.internal.jobDefinition
 import io.tpersson.ufw.managed.ManagedJob
 import jakarta.inject.Inject
 import kotlinx.coroutines.delay
 import java.time.Instant
-import java.time.InstantSource
+import java.time.Clock
 
 public class PeriodicJobManager @Inject constructor(
     private val periodicJobSpecsProvider: PeriodicJobSpecsProvider,
     private val periodicJobScheduler: PeriodicJobScheduler,
     private val periodicJobsDAO: PeriodicJobsDAO,
-    private val clock: InstantSource,
+    private val clock: Clock,
 ) : ManagedJob() {
 
     public val periodicJobSpecs: List<PeriodicJobSpec<*>> get() = periodicJobSpecsProvider.periodicJobSpecs
@@ -44,8 +45,8 @@ public class PeriodicJobManager @Inject constructor(
     public suspend fun scheduleJobNow(
         periodicJobSpec: PeriodicJobSpec<*>,
         now: Instant = clock.instant(),
-    ) {
-        periodicJobScheduler.scheduleJobNow(periodicJobSpec, now)
+    ): DurableJobId {
+        return periodicJobScheduler.scheduleJobNow(periodicJobSpec, now)
     }
 }
 

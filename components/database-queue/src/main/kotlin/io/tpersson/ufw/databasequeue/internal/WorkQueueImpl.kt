@@ -5,10 +5,12 @@ import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.database.unitofwork.extendOrCommit
 import io.tpersson.ufw.databasequeue.*
 import jakarta.inject.Inject
+import jakarta.inject.Singleton
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import java.time.Instant
 
+@Singleton
 public class WorkQueueImpl @Inject constructor(
     private val workItemsDAO: WorkItemsDAO,
     private val unitOfWorkFactory: UnitOfWorkFactory,
@@ -27,8 +29,6 @@ public class WorkQueueImpl @Inject constructor(
             workItemsDAO.scheduleNewItem(newItem = item, now = now, unitOfWork = uow)
 
             uow.addPostCommitHook {
-                // TODO signal consumers
-
                 _stateChanges.emit(
                     WorkItemStateChange(
                         queueId = item.queueId,
@@ -131,6 +131,30 @@ public class WorkQueueImpl @Inject constructor(
                 item = item,
                 fromState = WorkItemState.IN_PROGRESS,
                 toState = WorkItemState.FAILED,
+                timestamp = now,
+            )
+        }
+    }
+
+    override suspend fun manuallyRescheduleFailedItem(
+        item: WorkItemDbEntity,
+        scheduleFor: Instant,
+        now: Instant,
+        unitOfWork: UnitOfWork
+    ) {
+        workItemsDAO.manuallyRescheduleFailedItem(
+            queueId = WorkItemQueueId(item.queueId),
+            itemId = WorkItemId(item.itemId),
+            scheduleFor = scheduleFor,
+            now = now,
+            unitOfWork = unitOfWork,
+        )
+
+        unitOfWork.addPostCommitHook {
+            notifyStateChange(
+                item = item,
+                fromState = WorkItemState.FAILED,
+                toState = WorkItemState.SCHEDULED,
                 timestamp = now,
             )
         }

@@ -8,7 +8,7 @@ The purpose of the Core component is to provide utilities to the other UFW compo
 
 Among other things:
 
-* The `InstantSource` to use as the time provider for all components.
+* The `Clock` to use as the time provider for all components.
 * The MicroMeter `MeterRegistry` used to record metrics in all components.
 * Options for the Jackson `ObjectMapper` used for serializing objects in all components.
 

@@ -9,13 +9,13 @@ import io.tpersson.ufw.durableevents.common.IncomingEvent
 import io.tpersson.ufw.durableevents.common.IncomingEventIngester
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
-import java.time.InstantSource
+import java.time.Clock
 
 @Singleton
 public class IncomingEventIngesterImpl @Inject constructor(
     private val eventHandlersProvider: DurableEventHandlersProvider,
     private val workItemsDAO: WorkItemsDAO,
-    private val clock: InstantSource,
+    private val clock: Clock,
 ) : IncomingEventIngester {
 
     private val queuesByTopicAndType: Map<Pair<String, String>, List<DurableEventQueueId>> by Memoized({ eventHandlersProvider.get() }) { handlers ->

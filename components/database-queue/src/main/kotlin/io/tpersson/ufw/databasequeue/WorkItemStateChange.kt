@@ -1,6 +1,5 @@
 package io.tpersson.ufw.databasequeue
 
-import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import java.time.Instant
 
 public data class WorkItemStateChange(

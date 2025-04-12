@@ -7,11 +7,11 @@ import io.tpersson.ufw.keyvaluestore.storageengine.StorageEngine
 import io.tpersson.ufw.managed.ManagedJob
 import jakarta.inject.Inject
 import kotlinx.coroutines.delay
-import java.time.InstantSource
+import java.time.Clock
 
 public class ExpiredEntryReaper @Inject constructor(
     private val storageEngine: StorageEngine,
-    private val clock: InstantSource,
+    private val clock: Clock,
     private val config: KeyValueStoreConfig,
 ) : ManagedJob() {
 

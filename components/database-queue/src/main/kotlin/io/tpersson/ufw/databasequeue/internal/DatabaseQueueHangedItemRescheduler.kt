@@ -6,11 +6,11 @@ import io.tpersson.ufw.managed.ManagedJob
 import jakarta.inject.Inject
 import kotlinx.coroutines.delay
 import java.time.Duration
-import java.time.InstantSource
+import java.time.Clock
 
 public class DatabaseQueueHangedItemRescheduler @Inject constructor(
     private val workItemsDAO: WorkItemsDAO,
-    private val clock: InstantSource,
+    private val clock: Clock,
     private val config: DatabaseQueueConfig
 ): ManagedJob() {
     override suspend fun launch() {

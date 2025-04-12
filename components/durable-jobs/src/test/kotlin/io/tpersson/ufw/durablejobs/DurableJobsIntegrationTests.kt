@@ -13,7 +13,7 @@ import io.tpersson.ufw.durablejobs.dsl.jobQueue
 import io.tpersson.ufw.durablejobs.dsl.durableJobs
 import io.tpersson.ufw.durablejobs.internal.toWorkItemQueueId
 import io.tpersson.ufw.managed.dsl.managed
-import io.tpersson.ufw.test.TestInstantSource
+import io.tpersson.ufw.test.TestClock
 import io.tpersson.ufw.test.suspendingUntil
 import kotlinx.coroutines.runBlocking
 import org.awaitility.kotlin.await
@@ -42,7 +42,7 @@ internal class DurableJobsIntegrationTests {
             it.isAutoCommit = false
         }
 
-        val testClock = TestInstantSource()
+        val testClock = TestClock()
 
         val ufw = UFW.build {
             core {
