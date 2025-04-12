@@ -12,6 +12,7 @@ import jakarta.inject.Inject
 public class DatabaseQueueComponent @Inject constructor(
     public val databaseQueueWorkerFactory: DatabaseQueueWorkerFactory,
     public val workQueue: WorkQueue,
+    public val workQueueInternal: WorkQueueInternal,
     public val workItemsDAO: WorkItemsDAO, // TODO cleaner queue interface
     public val workItemFailuresDAO: WorkItemFailuresDAO, // TODO cleaner queue interface
     public val workQueuesDAO: WorkQueuesDAO,
@@ -76,6 +77,7 @@ public class DatabaseQueueComponent @Inject constructor(
                 workItemsDAO = workItemsDAO,
                 workQueuesDAO = workQueuesDAO,
                 workItemFailuresDAO = workItemFailuresDAO,
+                workQueue = workQueue,
                 clock = coreComponent.clock,
                 unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
             )
@@ -83,6 +85,7 @@ public class DatabaseQueueComponent @Inject constructor(
             return DatabaseQueueComponent(
                 databaseQueueWorkerFactory = databaseQueueWorkerFactory,
                 workQueue = workQueue,
+                workQueueInternal = workQueue,
                 workItemsDAO = workItemsDAO,
                 workItemFailuresDAO = workItemFailuresDAO,
                 workQueuesDAO = workQueuesDAO,

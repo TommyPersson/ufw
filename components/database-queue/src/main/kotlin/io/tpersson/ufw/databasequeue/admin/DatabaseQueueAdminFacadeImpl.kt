@@ -14,6 +14,7 @@ public class DatabaseQueueAdminFacadeImpl @Inject constructor(
     private val workItemsDAO: WorkItemsDAO,
     private val workItemFailuresDAO: WorkItemFailuresDAO,
     private val workQueuesDAO: WorkQueuesDAO,
+    private val workQueue: WorkQueueInternal,
     private val unitOfWorkFactory: UnitOfWorkFactory,
     private val clock: InstantSource,
 ) : DatabaseQueueAdminFacade {
@@ -57,9 +58,11 @@ public class DatabaseQueueAdminFacadeImpl @Inject constructor(
         val uow = unitOfWorkFactory.create()
         val now = clock.instant()
 
-        workItemsDAO.manuallyRescheduleFailedItem(
-            queueId = queueId,
-            itemId = itemId,
+        val item = workItemsDAO.getById(queueId, itemId)
+            ?: return
+
+        workQueue.manuallyRescheduleFailedItem(
+            item = item,
             scheduleFor = now,
             now = now,
             unitOfWork = uow

@@ -36,4 +36,11 @@ public interface WorkQueueInternal : WorkQueue {
         now: Instant,
         unitOfWork: UnitOfWork,
     )
+
+    public suspend fun manuallyRescheduleFailedItem(
+        item: WorkItemDbEntity,
+        scheduleFor: Instant,
+        now: Instant,
+        unitOfWork: UnitOfWork
+    )
 }

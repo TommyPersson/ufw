@@ -136,6 +136,30 @@ public class WorkQueueImpl @Inject constructor(
         }
     }
 
+    override suspend fun manuallyRescheduleFailedItem(
+        item: WorkItemDbEntity,
+        scheduleFor: Instant,
+        now: Instant,
+        unitOfWork: UnitOfWork
+    ) {
+        workItemsDAO.manuallyRescheduleFailedItem(
+            queueId = WorkItemQueueId(item.queueId),
+            itemId = WorkItemId(item.itemId),
+            scheduleFor = scheduleFor,
+            now = now,
+            unitOfWork = unitOfWork,
+        )
+
+        unitOfWork.addPostCommitHook {
+            notifyStateChange(
+                item = item,
+                fromState = WorkItemState.FAILED,
+                toState = WorkItemState.SCHEDULED,
+                timestamp = now,
+            )
+        }
+    }
+
     private suspend fun notifyStateChange(
         item: WorkItemDbEntity,
         fromState: WorkItemState,

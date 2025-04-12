@@ -90,6 +90,7 @@ public class DurableEventsComponent @Inject constructor(
                         workItemsDAO = databaseQueueComponent.workItemsDAO,
                         workItemFailuresDAO = databaseQueueComponent.workItemFailuresDAO,
                         workQueuesDAO = databaseQueueComponent.workQueuesDAO,
+                        workQueue = databaseQueueComponent.workQueueInternal,
                         unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
                         clock = coreComponent.clock
                     )
