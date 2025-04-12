@@ -8,7 +8,7 @@ import kotlinx.coroutines.delay
 import java.time.Duration
 import java.time.InstantSource
 
-public class DatabaseQueueExpiredItemReaper @Inject constructor(
+public class DatabaseQueueHangedItemRescheduler @Inject constructor(
     private val workItemsDAO: WorkItemsDAO,
     private val clock: InstantSource,
     private val config: DatabaseQueueConfig
@@ -22,10 +22,16 @@ public class DatabaseQueueExpiredItemReaper @Inject constructor(
     }
 
     public suspend fun runOnce() {
-        val numDeleted = workItemsDAO.deleteExpiredItems(now = clock.instant())
+        val now = clock.instant()
 
-        if (numDeleted > 0) {
-            logger.info("Deleted $numDeleted expired work items")
+        val numRescheduled = workItemsDAO.rescheduleAllHangedItems(
+            rescheduleIfWatchdogOlderThan = now.minus(config.watchdogTimeout),
+            scheduleFor = now,
+            now = now,
+        )
+
+        if (numRescheduled > 0) {
+            logger.info("Rescheduled $numRescheduled hanged work items")
         }
     }
 }

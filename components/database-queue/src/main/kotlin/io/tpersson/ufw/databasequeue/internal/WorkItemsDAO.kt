@@ -107,6 +107,12 @@ public interface WorkItemsDAO {
         now: Instant,
     )
 
+    public suspend fun rescheduleAllHangedItems(
+        rescheduleIfWatchdogOlderThan: Instant,
+        scheduleFor: Instant,
+        now: Instant,
+    ): Int
+
     public suspend fun deleteAllFailedItems(queueId: WorkItemQueueId)
 
     public suspend fun deleteFailedItem(

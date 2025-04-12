@@ -226,12 +226,32 @@ public class WorkItemsDAOImpl @Inject constructor(
         )
     }
 
+    override suspend fun rescheduleAllHangedItems(
+        rescheduleIfWatchdogOlderThan: Instant,
+        scheduleFor: Instant,
+        now: Instant
+    ): Int {
+        return database.update(
+            Queries.Updates.RescheduleAllHangedItems(
+                scheduleFor = scheduleFor,
+                rescheduleIfWatchdogOlderThan = rescheduleIfWatchdogOlderThan,
+                now = now,
+                eventJson = """
+                    [
+                        { "@type": "HANGED", "timestamp": "$now" },
+                        { "@type": "AUTOMATICALLY_RESCHEDULED", "timestamp": "$now", "scheduledFor": "$scheduleFor" }
+                    ]
+                    """.trimIndent()
+            )
+        )
+    }
+
     override suspend fun deleteAllFailedItems(queueId: WorkItemQueueId) {
         database.update(Queries.Updates.DeleteAllFailedItems(queueId = queueId.value))
     }
 
     override suspend fun deleteFailedItem(queueId: WorkItemQueueId, itemId: WorkItemId): Boolean {
-        val affectedRows =  database.update(Queries.Updates.DeleteFailedItem(queueId.value, itemId.value))
+        val affectedRows = database.update(Queries.Updates.DeleteFailedItem(queueId.value, itemId.value))
         return affectedRows > 0
     }
 
@@ -634,6 +654,27 @@ public class WorkItemsDAOImpl @Inject constructor(
                    events = events || :eventJson::jsonb
                 WHERE queue_id = :queueId
                   AND state = ${WorkItemState.FAILED.dbOrdinal}
+                """.trimIndent(),
+                minimumAffectedRows = 0
+            )
+
+            data class RescheduleAllHangedItems(
+                val scheduleFor: Instant,
+                val rescheduleIfWatchdogOlderThan: Instant,
+                val now: Instant,
+                val eventJson: String,
+            ) : TypedUpdate(
+                """
+                UPDATE $TableName SET
+                   state = ${WorkItemState.SCHEDULED.dbOrdinal},
+                   state_changed_at = :now,
+                   next_scheduled_for = :now,
+                   watchdog_timestamp = NULL,
+                   watchdog_owner = NULL,
+                   expires_at = NULL,
+                   events = events || :eventJson::jsonb
+                WHERE state = ${WorkItemState.IN_PROGRESS.dbOrdinal}
+                  AND watchdog_timestamp < :rescheduleIfWatchdogOlderThan
                 """.trimIndent(),
                 minimumAffectedRows = 0
             )

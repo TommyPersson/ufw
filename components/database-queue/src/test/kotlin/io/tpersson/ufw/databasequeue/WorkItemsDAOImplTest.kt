@@ -7,6 +7,7 @@ import io.tpersson.ufw.core.dsl.core
 import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.database.exceptions.MinimumAffectedRowsException
 import io.tpersson.ufw.database.unitofwork.use
+import io.tpersson.ufw.databasequeue.WorkItemsDAOImplTest.Companion.testClock
 import io.tpersson.ufw.databasequeue.dsl.databaseQueue
 import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
 import io.tpersson.ufw.databasequeue.internal.WorkItemEvent
@@ -1047,6 +1048,89 @@ internal class WorkItemsDAOImplTest {
         assertTransitionEvents(
             insertedItem,
             { it is WorkItemEvent.ManuallyRescheduled && it.timestamp == now && it.scheduledFor == now }
+        )
+    }
+
+    @Test
+    fun `rescheduleAllHangedItems - Shall reschedule all hanged items`(): Unit = runBlocking {
+        val queueId = "testQueueId".toWorkItemQueueId()
+        val testWatchdogTimeoutSeconds = 30L
+
+        // Arrange
+        val now = testClock.dbNow
+
+        debugInsertItems(
+            makeWorkItem(
+                "1",
+                state = WorkItemState.IN_PROGRESS.dbOrdinal,
+                watchdogTimestamp = now.minusSeconds(testWatchdogTimeoutSeconds)
+            ),
+            makeWorkItem(
+                "2",
+                state = WorkItemState.IN_PROGRESS.dbOrdinal,
+                watchdogTimestamp = now.minusSeconds(testWatchdogTimeoutSeconds - 2)
+            ),
+            makeWorkItem(
+                "3",
+                state = WorkItemState.SUCCESSFUL.dbOrdinal,
+                watchdogTimestamp = null
+            ),
+            makeWorkItem(
+                "4",
+                state = WorkItemState.FAILED.dbOrdinal,
+                watchdogTimestamp = null
+            )
+        )
+
+        // Act
+        dao.rescheduleAllHangedItems(
+            rescheduleIfWatchdogOlderThan = now.minusSeconds(testWatchdogTimeoutSeconds - 1),
+            scheduleFor = now,
+            now = now
+        )
+
+        // Assert
+        val item1 = dao.getById(queueId, "1".toWorkItemId())!!
+        val item2 = dao.getById(queueId, "2".toWorkItemId())!!
+        val item3 = dao.getById(queueId, "3".toWorkItemId())!!
+        val item4 = dao.getById(queueId, "4".toWorkItemId())!!
+
+        assertThat(item1.state).isEqualTo(WorkItemState.SCHEDULED.dbOrdinal)
+        assertThat(item1.nextScheduledFor).isEqualTo(now)
+
+        assertThat(item2.state).isEqualTo(WorkItemState.IN_PROGRESS.dbOrdinal)
+
+        assertThat(item3.state).isEqualTo(WorkItemState.SUCCESSFUL.dbOrdinal)
+
+        assertThat(item4.state).isEqualTo(WorkItemState.FAILED.dbOrdinal)
+    }
+
+    @Test
+    fun `rescheduleAllHangedItems - Shall record state transition events`(): Unit = runBlocking {
+        val testWatchdogTimeoutSeconds = 30L
+
+        // Arrange
+        val now = testClock.dbNow
+
+        val insertedItem = makeWorkItem(
+            "1",
+            state = WorkItemState.IN_PROGRESS.dbOrdinal,
+            watchdogTimestamp = now.minusSeconds(testWatchdogTimeoutSeconds)
+        )
+        debugInsertItems(insertedItem)
+
+        // Act
+        dao.rescheduleAllHangedItems(
+            rescheduleIfWatchdogOlderThan = now.minusSeconds(testWatchdogTimeoutSeconds - 1),
+            scheduleFor = now,
+            now = now
+        )
+
+        // Assert
+        assertTransitionEvents(
+            insertedItem,
+            { it is WorkItemEvent.Hanged && it.timestamp == now },
+            { it is WorkItemEvent.AutomaticallyRescheduled && it.timestamp == now && it.scheduledFor == now }
         )
     }
 
