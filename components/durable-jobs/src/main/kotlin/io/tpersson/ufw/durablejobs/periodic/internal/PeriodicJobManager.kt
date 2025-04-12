@@ -27,11 +27,14 @@ public class PeriodicJobManager @Inject constructor(
 
 
     override suspend fun launch() {
-        forever(logger) {
-            periodicJobScheduler.scheduleAnyPendingJobs()
-
+        forever(logger, errorDelay = Duration.ofSeconds(5)) {
+            runOnce()
             delay(schedulingInterval.toMillis())
         }
+    }
+
+    public suspend fun runOnce() {
+        periodicJobScheduler.scheduleAnyPendingJobs()
     }
 
     public suspend fun getState(): List<PeriodicJobStateData> {
