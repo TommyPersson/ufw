@@ -1,7 +1,9 @@
 package io.tpersson.ufw.durablejobs.periodic.internal
 
+import com.cronutils.model.Cron
 import com.cronutils.model.time.ExecutionTime
 import io.tpersson.ufw.core.logging.createLogger
+import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.database.locks.DatabaseLocks
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
@@ -11,6 +13,7 @@ import io.tpersson.ufw.durablejobs.DurableJobId
 import io.tpersson.ufw.durablejobs.DurableJobQueue
 import io.tpersson.ufw.durablejobs.internal.jobDefinition
 import io.tpersson.ufw.durablejobs.internal.toWorkItemQueueId
+import io.tpersson.ufw.durablejobs.periodic.internal.dao.PeriodicJobStateData
 import io.tpersson.ufw.durablejobs.periodic.internal.dao.PeriodicJobsDAO
 import jakarta.inject.Inject
 import kotlinx.coroutines.NonCancellable
@@ -87,13 +90,19 @@ public class PeriodicJobSchedulerImpl @Inject constructor(
     }
 
     private suspend fun trySchedulePeriodicJobs(now: Instant) {
-        // TODO more efficient to lookup all state at one time, instead of per spec
+        val stateByKey = periodicJobsDAO.getAll(PaginationOptions.DEFAULT).items
+            .associateBy { it.key }
 
         for (periodicJobSpec in periodicJobSpecsProvider.periodicJobSpecs) {
-            val state = getState(periodicJobSpec)
+            val state = stateByKey[periodicJobSpec.key]
 
-            if (state.nextSchedulingAttempt != null && state.nextSchedulingAttempt.isAfter(now)) {
-                continue // TODO only schedule "new" specs in their window
+            val shouldSchedule = when {
+                state?.nextSchedulingAttempt != null -> now.isAfter(state.nextSchedulingAttempt)
+                else -> periodicJobSpec.cronInstance.isMatch(now)
+            }
+
+            if (!shouldSchedule) {
+                continue
             }
 
             val jobQueueId = periodicJobSpec.handler.jobDefinition.queueId
@@ -106,7 +115,7 @@ public class PeriodicJobSchedulerImpl @Inject constructor(
 
                 setSchedulingInfo(
                     periodicJobSpec = periodicJobSpec,
-                    lastSchedulingAttempt = state.lastSchedulingAttempt,
+                    lastSchedulingAttempt = state?.lastSchedulingAttempt,
                     nextSchedulingAttempt = nextSchedulingAttempt,
                     unitOfWork = unitOfWork
                 )
@@ -133,18 +142,6 @@ public class PeriodicJobSchedulerImpl @Inject constructor(
             ?.toInstant()
     }
 
-    private suspend fun getState(spec: PeriodicJobSpec<*>): PeriodicJobState {
-        return periodicJobsDAO.get(
-            queueId = spec.handler.jobDefinition.queueId,
-            jobType = spec.handler.jobDefinition.type
-        )?.let {
-            PeriodicJobState(
-                lastSchedulingAttempt = it.lastSchedulingAttempt,
-                nextSchedulingAttempt = it.nextSchedulingAttempt
-            )
-        } ?: PeriodicJobState()
-    }
-
     private suspend fun setSchedulingInfo(
         periodicJobSpec: PeriodicJobSpec<*>,
         lastSchedulingAttempt: Instant?,
@@ -160,5 +157,10 @@ public class PeriodicJobSchedulerImpl @Inject constructor(
             nextSchedulingAttempt = nextSchedulingAttempt,
             unitOfWork = unitOfWork
         )
+    }
+
+    private fun Cron.isMatch(timestamp: Instant): Boolean {
+        val zonedTimestamp = timestamp.atZone(clock.zone)
+        return ExecutionTime.forCron(this).isMatch(zonedTimestamp)
     }
 }

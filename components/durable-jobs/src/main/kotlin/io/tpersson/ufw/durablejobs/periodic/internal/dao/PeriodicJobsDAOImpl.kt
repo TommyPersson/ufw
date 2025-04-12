@@ -1,6 +1,9 @@
 package io.tpersson.ufw.durablejobs.periodic.internal.dao
 
+import io.tpersson.ufw.core.utils.PaginatedList
+import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.database.jdbc.Database
+import io.tpersson.ufw.database.typedqueries.TypedSelectList
 import io.tpersson.ufw.database.typedqueries.TypedSelectSingle
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
@@ -14,6 +17,10 @@ public class PeriodicJobsDAOImpl @Inject constructor(
 ) : PeriodicJobsDAO {
     override suspend fun get(queueId: DurableJobQueueId, jobType: String): PeriodicJobStateData? {
         return database.select(Queries.Selects.Get(queueId, jobType))
+    }
+
+    override suspend fun getAll(paginationOptions: PaginationOptions): PaginatedList<PeriodicJobStateData> {
+        return database.select(Queries.Selects.GetAll(paginationOptions))
     }
 
     override suspend fun setSchedulingInfo(
@@ -54,6 +61,15 @@ public class PeriodicJobsDAOImpl @Inject constructor(
                 FROM $tableName 
                 WHERE queue_id = :queueId.value 
                   AND job_type = :jobType
+                """.trimIndent()
+            )
+
+            data class GetAll(
+                override val paginationOptions: PaginationOptions,
+            ) : TypedSelectList<PeriodicJobStateData>(
+                """
+                SELECT * 
+                FROM $tableName
                 """.trimIndent()
             )
         }

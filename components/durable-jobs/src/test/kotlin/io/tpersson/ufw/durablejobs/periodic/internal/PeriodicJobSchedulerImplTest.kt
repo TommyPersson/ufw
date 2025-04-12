@@ -1,5 +1,7 @@
 package io.tpersson.ufw.durablejobs.periodic.internal
 
+import io.tpersson.ufw.core.utils.PaginatedList
+import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.database.locks.DatabaseLock
 import io.tpersson.ufw.database.locks.DatabaseLockHandle
 import io.tpersson.ufw.database.locks.DatabaseLocks
@@ -100,6 +102,54 @@ internal class PeriodicJobSchedulerImplTest {
     }
 
     @Test
+    fun `scheduleAnyPendingJobs - Shall schedule any jobs only within their Cron window, if no next attempt time is available #1`(): Unit =
+        runBlocking {
+            testClock.reset(Instant.parse("2022-02-02T13:00:05Z"))
+
+            setupState(
+                EveryMinuteJob::class to null,
+                EveryHourJob::class to null,
+                EveryDayJob::class to null,
+            )
+
+            periodicJobScheduler.scheduleAnyPendingJobs()
+
+            verify(jobQueueMock).enqueue(argWhere { it is EveryMinuteJob && it.text == "every-minute" }, any(), any())
+            verify(jobQueueMock).enqueue(argWhere { it is EveryHourJob && it.text == "every-hour" }, any(), any())
+            verify(jobQueueMock).enqueue(argWhere { it is EveryDayJob && it.text == "every-day" }, any(), any())
+        }
+
+    @Test
+    fun `scheduleAnyPendingJobs - Shall schedule any jobs only within their Cron window, if no next attempt time is available #2`(): Unit =
+        runBlocking {
+            testClock.reset(Instant.parse("2022-02-02T13:02:05Z"))
+
+            setupState(
+                EveryMinuteJob::class to null,
+                EveryHourJob::class to null,
+                EveryDayJob::class to null,
+            )
+
+            periodicJobScheduler.scheduleAnyPendingJobs()
+
+            verify(jobQueueMock, times(1)).enqueue(
+                argWhere { it is EveryMinuteJob && it.text == "every-minute" },
+                any(),
+                any()
+            )
+            verify(jobQueueMock, times(0)).enqueue(
+                argWhere { it is EveryHourJob && it.text == "every-hour" },
+                any(),
+                any()
+            )
+            verify(jobQueueMock, times(0)).enqueue(
+                argWhere { it is EveryDayJob && it.text == "every-day" },
+                any(),
+                any()
+            )
+        }
+
+    @Test
     fun `scheduleAnyPendingJobs - Shall update the next scheduling attempt time`(): Unit = runBlocking {
         val now = Instant.parse("2022-02-02T13:00:05Z")
         testClock.reset(now)
@@ -120,7 +170,6 @@ internal class PeriodicJobSchedulerImplTest {
         assertThat(getStateFor(EveryHourJob::class)?.lastSchedulingAttempt).isEqualTo(now)
         assertThat(getStateFor(EveryDayJob::class)?.lastSchedulingAttempt).isEqualTo(now)
     }
-
 
     @Test
     fun `scheduleAnyPendingJobs - Shall not schedule any jobs without their next attempt time passed`(): Unit =
@@ -236,14 +285,14 @@ internal class PeriodicJobSchedulerImplTest {
         assertThat(getStateFor(EveryMinuteJob::class)?.lastSchedulingAttempt).isEqualTo(now)
     }
 
-    private suspend fun setupState(vararg nextSchedulingAttemptsForJobClass: Pair<KClass<out DurableJob>, String>) {
+    private suspend fun setupState(vararg nextSchedulingAttemptsForJobClass: Pair<KClass<out DurableJob>, String?>) {
         val nextSchedulingAttemptsPerJobClass = nextSchedulingAttemptsForJobClass.toMap()
 
         val uow = UnitOfWorkFake()
 
         for ((jobClass, nextAttemptString) in nextSchedulingAttemptsPerJobClass) {
             val jobDefinition = jobClass.jobDefinition2
-            val nextAttempt = Instant.parse(nextAttemptString)
+            val nextAttempt = nextAttemptString?.let { Instant.parse(it) }
 
             periodicJobsDAOFake.setSchedulingInfo(
                 queueId = jobDefinition.queueId,
@@ -305,6 +354,14 @@ internal class PeriodicJobSchedulerImplTest {
 
         override suspend fun get(queueId: DurableJobQueueId, jobType: String): PeriodicJobStateData? {
             return database[queueId to jobType]
+        }
+
+        override suspend fun getAll(paginationOptions: PaginationOptions): PaginatedList<PeriodicJobStateData> {
+            return PaginatedList(
+                items = database.values.toList(),
+                options = paginationOptions,
+                hasMoreItems = false,
+            )
         }
 
         override suspend fun setSchedulingInfo(

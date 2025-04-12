@@ -4,7 +4,9 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.core.dsl.UFW
 import io.tpersson.ufw.core.dsl.core
+import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.database.dsl.database
+import io.tpersson.ufw.database.unitofwork.use
 import io.tpersson.ufw.databasequeue.WorkItemState
 import io.tpersson.ufw.databasequeue.dsl.databaseQueue
 import io.tpersson.ufw.durablejobs.DurableJobQueueId
@@ -79,6 +81,32 @@ internal class PeriodicJobsDAOImplTest {
         val result = dao.get(queueId, jobType)
 
         assertThat(result).isNull()
+    }
+
+    @Test
+    fun `getAll - Returns all data`(): Unit = runBlocking {
+        unitOfWorkFactory.use { uow ->
+            dao.setSchedulingInfo(
+                queueId = DurableJobQueueId("1"),
+                jobType = "2",
+                lastSchedulingAttempt = Instant.now(),
+                nextSchedulingAttempt = Instant.now(),
+                unitOfWork = uow
+            )
+
+            dao.setExecutionInfo(
+                queueId = DurableJobQueueId("3"),
+                jobType = "4",
+                state = WorkItemState.SUCCESSFUL,
+                stateChangeTimestamp = Instant.now(),
+                unitOfWork = uow
+            )
+        }
+
+        val result = dao.getAll(PaginationOptions.DEFAULT)
+
+        assertThat(result.items.firstOrNull { it.queueId == "1" && it.jobType == "2"  })
+        assertThat(result.items.firstOrNull { it.queueId == "3" && it.jobType == "4"  })
     }
 
     @Test

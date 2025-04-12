@@ -26,6 +26,7 @@ import io.tpersson.ufw.durablejobs.periodic.PeriodicJob
 import io.tpersson.ufw.durablejobs.admin.contracts.*
 import io.tpersson.ufw.durablejobs.internal.*
 import io.tpersson.ufw.durablejobs.periodic.internal.PeriodicJobManager
+import io.tpersson.ufw.durablejobs.periodic.internal.key
 import jakarta.inject.Inject
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -234,24 +235,26 @@ public class DurableJobsAdminModule @Inject constructor(
             }
 
             get("/admin/api/durable-jobs/periodic-jobs") {
+                val stateByKey = periodicJobManager.getState().associateBy { it.key }
+
                 val periodicJobs = periodicJobManager.periodicJobSpecs.map { spec ->
+                    val state = stateByKey[spec.key]
                     val jobDefinition = spec.handler.jobDefinition
                     val jobQueueId = jobDefinition.queueId
                     val workQueueId = jobQueueId.toWorkItemQueueId()
-                    val periodicJobState = periodicJobManager.getState(spec)
 
                     PeriodicJobDTO(
                         type = jobDefinition.type,
                         description = jobDefinition.description,
                         cronExpression = spec.cronExpression,
                         cronDescription = CronDescriptor.instance(Locale.US).describe(spec.cronInstance),
-                        lastSchedulingAttempt = periodicJobState.lastSchedulingAttempt,
-                        nextSchedulingAttempt = periodicJobState.nextSchedulingAttempt,
+                        lastSchedulingAttempt = state?.lastSchedulingAttempt,
+                        nextSchedulingAttempt = state?.nextSchedulingAttempt,
                         queueId = jobQueueId,
                         queueState = databaseQueueAdminFacade.getQueueStatus(queueId = workQueueId).state,
                         queueNumFailures = databaseQueueAdminFacade.getQueueStatistics(workQueueId).numFailed,
-                        lastExecutionState = periodicJobState.lastExecutionState,
-                        lastExecutionStateChangeTimestamp = periodicJobState.lastExecutionStateChangeTimestamp,
+                        lastExecutionState = state?.lastExecutionState?.let { WorkItemState.fromDbOrdinal(it) },
+                        lastExecutionStateChangeTimestamp = state?.lastExecutionStateChangeTimestamp,
                         applicationModule = jobDefinition.jobClass.findModuleMolecule().toApplicationModuleDTO()
                     )
                 }
