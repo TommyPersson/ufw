@@ -22,6 +22,10 @@
     <dependencies>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
+            <artifactId>ufw-cluster</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.tpersson.ufw</groupId>
             <artifactId>ufw-core-guice</artifactId>
         </dependency>
         <dependency>

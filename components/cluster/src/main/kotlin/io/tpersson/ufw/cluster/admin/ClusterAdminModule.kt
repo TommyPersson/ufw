@@ -6,7 +6,9 @@ import io.ktor.server.routing.*
 import io.tpersson.ufw.admin.AdminModule
 import io.tpersson.ufw.admin.utils.getPaginationOptions
 import jakarta.inject.Inject
+import jakarta.inject.Singleton
 
+@Singleton
 public class ClusterAdminModule @Inject constructor(
     private val adminFacade: ClusterAdminFacade,
 ) : AdminModule {

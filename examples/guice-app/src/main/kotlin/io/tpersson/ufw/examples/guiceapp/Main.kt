@@ -9,6 +9,7 @@ import io.micrometer.core.instrument.MeterRegistry
 import io.tpersson.ufw.admin.AdminComponentConfig
 import io.tpersson.ufw.admin.guice.AdminGuiceModule
 import io.tpersson.ufw.aggregates.guice.AggregatesGuiceModule
+import io.tpersson.ufw.cluster.guice.ClusterGuiceModule
 import io.tpersson.ufw.core.CoreGuiceModule
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.guice.DatabaseGuiceModule
@@ -93,6 +94,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
         DurableEventsGuiceModule(),
         FeatureTogglesGuiceModule(),
         DurableCachesGuiceModule(),
+        ClusterGuiceModule(),
         ManagedGuiceModule(),
     )
 
