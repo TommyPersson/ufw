@@ -7,6 +7,7 @@ import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.databasequeue.worker.QueueStateChecker
 import io.tpersson.ufw.durablejobs.DurableJob
+import io.tpersson.ufw.durablejobs.DurableJobId
 import io.tpersson.ufw.durablejobs.DurableJobQueue
 import io.tpersson.ufw.durablejobs.internal.jobDefinition
 import io.tpersson.ufw.durablejobs.internal.toWorkItemQueueId
@@ -59,15 +60,14 @@ public class PeriodicJobSchedulerImpl @Inject constructor(
     override suspend fun scheduleJobNow(
         periodicJobSpec: PeriodicJobSpec<*>,
         now: Instant,
-    ) {
+    ): DurableJobId {
         val jobDefinition = periodicJobSpec.handler.jobDefinition
         val jobClass = jobDefinition.jobClass
 
         val job = try {
             jobClass.primaryConstructor?.callBy(emptyMap()) as DurableJob
         } catch (e: Exception) {
-            logger.error("Cannot construct instance of class ${periodicJobSpec::class.simpleName}", e)
-            return
+            throw IllegalArgumentException("Cannot construct instance of class ${periodicJobSpec::class.simpleName}", e)
         }
 
         val unitOfWork = unitOfWorkFactory.create()
@@ -82,6 +82,8 @@ public class PeriodicJobSchedulerImpl @Inject constructor(
         )
 
         unitOfWork.commit()
+
+        return job.id
     }
 
     private suspend fun trySchedulePeriodicJobs(now: Instant) {
