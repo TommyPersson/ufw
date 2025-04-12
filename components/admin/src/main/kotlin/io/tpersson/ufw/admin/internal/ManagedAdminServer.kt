@@ -9,7 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.http.content.*
 import io.ktor.server.netty.*
-import io.ktor.server.plugins.callloging.*
+import io.ktor.server.plugins.calllogging.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
@@ -29,7 +29,7 @@ public class ManagedAdminServer @Inject constructor(
     private val adminModulesProvider: AdminModulesProvider,
 ) : Managed() {
 
-    private var server: ApplicationEngine? = null
+    private var server: EmbeddedServer<*, *>? = null
 
     override suspend fun onStarted() {
         server = embeddedServer(Netty, port = config.port) {
