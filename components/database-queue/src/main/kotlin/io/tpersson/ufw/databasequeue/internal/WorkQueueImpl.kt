@@ -5,10 +5,12 @@ import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.database.unitofwork.extendOrCommit
 import io.tpersson.ufw.databasequeue.*
 import jakarta.inject.Inject
+import jakarta.inject.Singleton
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import java.time.Instant
 
+@Singleton
 public class WorkQueueImpl @Inject constructor(
     private val workItemsDAO: WorkItemsDAO,
     private val unitOfWorkFactory: UnitOfWorkFactory,
@@ -27,8 +29,6 @@ public class WorkQueueImpl @Inject constructor(
             workItemsDAO.scheduleNewItem(newItem = item, now = now, unitOfWork = uow)
 
             uow.addPostCommitHook {
-                // TODO signal consumers
-
                 _stateChanges.emit(
                     WorkItemStateChange(
                         queueId = item.queueId,
