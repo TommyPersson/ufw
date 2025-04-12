@@ -12,7 +12,7 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "npm"
-    directories: "**/*"
+    directories: ["**/*"]
     groups:
       majors:
         update-types: [ "major" ]
