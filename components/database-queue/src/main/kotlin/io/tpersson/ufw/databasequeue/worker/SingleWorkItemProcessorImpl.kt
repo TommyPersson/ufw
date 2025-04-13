@@ -2,11 +2,14 @@ package io.tpersson.ufw.databasequeue.worker
 
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
+import io.tpersson.ufw.core.configuration.ConfigProvider
+import io.tpersson.ufw.core.configuration.Configs
 import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.core.utils.LoggerCache
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.databasequeue.*
+import io.tpersson.ufw.databasequeue.configuration.DatabaseQueue
 import io.tpersson.ufw.databasequeue.internal.*
 import io.tpersson.ufw.databasequeue.worker.SingleWorkItemProcessor.ProcessingResult
 import kotlinx.coroutines.slf4j.MDCContext
@@ -30,10 +33,13 @@ public class SingleWorkItemProcessorImpl(
     private val meterRegistry: MeterRegistry,
     private val clock: Clock,
     private val adapterSettings: DatabaseQueueAdapterSettings,
-    private val config: DatabaseQueueConfig,
+    private val configProvider: ConfigProvider,
 ) : SingleWorkItemProcessor {
 
     private val logger = createLogger()
+
+    private val successfulItemExpirationDelay = configProvider.get(Configs.DatabaseQueue.SuccessfulItemExpirationDelay)
+    private val failedItemExpirationDelay = configProvider.get(Configs.DatabaseQueue.FailedItemExpirationDelay)
 
     private val timers = Collections.synchronizedMap(mutableMapOf<WorkItemQueueId, Timer>())
 
@@ -141,7 +147,7 @@ public class SingleWorkItemProcessorImpl(
     ) {
         workQueue.markInProgressItemAsSuccessful(
             item = workItem,
-            expiresAt = clock.instant().plus(config.successfulItemExpirationDelay),
+            expiresAt = clock.instant().plus(successfulItemExpirationDelay),
             watchdogId = watchdogId,
             now = clock.instant(),
             unitOfWork = unitOfWork,
@@ -209,7 +215,7 @@ public class SingleWorkItemProcessorImpl(
         } else {
             workQueue.markInProgressItemAsFailed(
                 item = workItem,
-                expiresAt = now.plus(config.failedItemExpirationDelay),
+                expiresAt = now.plus(failedItemExpirationDelay),
                 watchdogId = watchdogId,
                 now = now,
                 unitOfWork = unitOfWork,

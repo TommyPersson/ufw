@@ -1,7 +1,6 @@
 package io.tpersson.ufw.admin.dsl
 
 import io.tpersson.ufw.admin.AdminComponent
-import io.tpersson.ufw.admin.AdminComponentConfig
 import io.tpersson.ufw.core.dsl.UFWBuilder
 import io.tpersson.ufw.core.dsl.UFWRegistry
 import io.tpersson.ufw.core.dsl.UfwDslMarker
@@ -16,19 +15,10 @@ public fun UFWBuilder.RootBuilder.admin(builder: AdminComponentBuilder.() -> Uni
 @UfwDslMarker
 public class AdminComponentBuilder(public val components: UFWRegistry) {
 
-    public var config: AdminComponentConfig = AdminComponentConfig()
-
-    public var port: Int
-        get() = config.port
-        set(value) {
-            config = config.copy(port = value)
-        }
-
     public fun build(): AdminComponent {
         return AdminComponent.create(
             coreComponent = components.core,
             managedComponent = components.managed,
-            config = config,
         )
     }
 }

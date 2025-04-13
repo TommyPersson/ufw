@@ -1,9 +1,9 @@
 package io.tpersson.ufw.databasequeue.worker
 
 import io.micrometer.core.instrument.MeterRegistry
+import io.tpersson.ufw.core.configuration.ConfigProvider
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.databasequeue.DatabaseQueueAdapterSettings
-import io.tpersson.ufw.databasequeue.DatabaseQueueConfig
 import io.tpersson.ufw.databasequeue.internal.WorkItemFailuresDAO
 import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
 import io.tpersson.ufw.databasequeue.internal.WorkQueueInternal
@@ -18,7 +18,7 @@ public class SingleWorkItemProcessorFactoryImpl @Inject constructor(
     private val unitOfWorkFactory: UnitOfWorkFactory,
     private val meterRegistry: MeterRegistry,
     private val clock: Clock,
-    private val config: DatabaseQueueConfig,
+    private val configProvider: ConfigProvider,
 ) : SingleWorkItemProcessorFactory {
 
     override fun create(
@@ -35,7 +35,7 @@ public class SingleWorkItemProcessorFactoryImpl @Inject constructor(
             meterRegistry = meterRegistry,
             clock = clock,
             adapterSettings = adapterSettings,
-            config = config,
+            configProvider = configProvider,
         )
     }
 

@@ -42,7 +42,6 @@ public class DurableEventsComponent @Inject constructor(
             adminComponent: AdminComponent,
             outgoingEventTransport: OutgoingEventTransport?,
             handlers: Set<DurableEventHandler>,
-            config: DurableEventsConfig = DurableEventsConfig(),
         ): DurableEventsComponent {
 
             val durableEventHandlersProvider = SimpleDurableEventHandlersProvider(handlers)

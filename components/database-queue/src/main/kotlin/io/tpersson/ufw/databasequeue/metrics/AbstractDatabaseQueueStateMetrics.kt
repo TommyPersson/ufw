@@ -2,9 +2,12 @@ package io.tpersson.ufw.databasequeue.metrics
 
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tag
+import io.tpersson.ufw.core.configuration.ConfigProvider
+import io.tpersson.ufw.core.configuration.Configs
 import io.tpersson.ufw.databasequeue.DatabaseQueueAdapterSettings
 import io.tpersson.ufw.databasequeue.WorkItemQueueId
 import io.tpersson.ufw.databasequeue.WorkItemState
+import io.tpersson.ufw.databasequeue.configuration.DatabaseQueue
 import io.tpersson.ufw.databasequeue.convertQueueId
 import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
 import io.tpersson.ufw.managed.ManagedJob
@@ -16,11 +19,13 @@ import java.util.concurrent.atomic.AtomicInteger
 public abstract class AbstractDatabaseQueueStateMetrics(
     private val meterRegistry: MeterRegistry,
     private val workItemsDAO: WorkItemsDAO,
-    private val measurementInterval: Duration,
+    private val configProvider: ConfigProvider,
     private val adapterSettings: DatabaseQueueAdapterSettings,
 ) : ManagedJob() {
 
     protected abstract val queueIds: List<WorkItemQueueId>
+
+    private val measurementInterval = configProvider.get(Configs.DatabaseQueue.MetricsMeasurementInterval)
 
     private val gauges = ConcurrentHashMap<Pair<WorkItemQueueId, WorkItemState>, AtomicInteger>()
 

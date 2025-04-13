@@ -32,7 +32,6 @@ public class DurableJobsComponent @Inject constructor(
             databaseComponent: DatabaseComponent,
             databaseQueueComponent: DatabaseQueueComponent,
             adminComponent: AdminComponent?,
-            config: DurableJobsConfig,
             durableJobHandlers: Set<DurableJobHandler<*>>,
         ): DurableJobsComponent {
 
@@ -45,7 +44,6 @@ public class DurableJobsComponent @Inject constructor(
             )
 
             val jobQueue = DurableJobQueueImpl(
-                config = config,
                 clock = coreComponent.clock,
                 workQueue = databaseQueueComponent.workQueue,
                 objectMapper = coreComponent.objectMapper,
@@ -81,7 +79,7 @@ public class DurableJobsComponent @Inject constructor(
                 meterRegistry = coreComponent.meterRegistry,
                 jobHandlersProvider = durableJobHandlersProvider,
                 workItemsDAO = databaseQueueComponent.workItemsDAO,
-                config = config,
+                configProvider = coreComponent.configProvider,
             )
 
             val periodicJobsStateTracker = PeriodicJobsStateTracker(

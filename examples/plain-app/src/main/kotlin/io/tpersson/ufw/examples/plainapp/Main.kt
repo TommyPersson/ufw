@@ -43,12 +43,11 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.slf4j.MDCContext
 import org.slf4j.bridge.SLF4JBridgeHandler
 import java.time.Clock
-import java.time.Duration
 import java.util.*
 
 
 public fun main(): Unit = runBlocking(MDCContext()) {
-    SLF4JBridgeHandler.removeHandlersForRootLogger();
+    SLF4JBridgeHandler.removeHandlersForRootLogger()
     SLF4JBridgeHandler.install()
 
     val ufw = UFW.build {
@@ -63,12 +62,8 @@ public fun main(): Unit = runBlocking(MDCContext()) {
             }
         }
         managed {
-            instances = setOf(
-                PrometheusServer(Globals.meterRegistry),
-            )
         }
         admin {
-            port = 8081
         }
         database {
             dataSource = Globals.dataSource
@@ -76,9 +71,6 @@ public fun main(): Unit = runBlocking(MDCContext()) {
         databaseQueue {
         }
         keyValueStore {
-            configure {
-                expiredEntryReapingInterval = Duration.ofMinutes(1)
-            }
         }
         durableCaches {
         }
@@ -94,10 +86,6 @@ public fun main(): Unit = runBlocking(MDCContext()) {
             )
         }
         durableJobs {
-            configure {
-                stalenessDetectionInterval = Duration.ofMinutes(1)
-                stalenessAge = Duration.ofMinutes(1)
-            }
             durableJobHandlers = setOf(
                 PrintJobHandler(),
                 PrintJob2Handler(),
@@ -125,6 +113,8 @@ public fun main(): Unit = runBlocking(MDCContext()) {
     val counterRepository = CounterAggregateRepository(ufw.aggregates)
 
     ufw.aggregates.register(counterRepository)
+
+    ufw.managed.register(PrometheusServer(Globals.meterRegistry))
 
     ufw.managed.register(
         PeriodicLogger(

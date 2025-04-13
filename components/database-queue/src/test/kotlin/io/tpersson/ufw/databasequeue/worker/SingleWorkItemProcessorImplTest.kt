@@ -3,10 +3,13 @@ package io.tpersson.ufw.databasequeue.worker
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.tpersson.ufw.core.CoreComponent
+import io.tpersson.ufw.core.configuration.ConfigProvider
+import io.tpersson.ufw.core.configuration.Configs
 import io.tpersson.ufw.core.utils.LoggerCache
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.databasequeue.*
+import io.tpersson.ufw.databasequeue.configuration.DatabaseQueue
 import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
 import io.tpersson.ufw.databasequeue.internal.WorkItemFailuresDAO
 import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
@@ -38,8 +41,6 @@ internal class SingleWorkItemProcessorImplTest {
 
     private lateinit var processor: SingleWorkItemProcessorImpl
 
-    private val config = DatabaseQueueConfig()
-
     @BeforeEach
     fun setUp(): Unit = runBlocking {
         watchdogId = UUID.randomUUID().toString()
@@ -70,7 +71,7 @@ internal class SingleWorkItemProcessorImplTest {
             meterRegistry = SimpleMeterRegistry(),
             clock = clock,
             adapterSettings = TestAdapterSettings,
-            config = config,
+            configProvider = ConfigProvider.empty()
         )
     }
 
@@ -163,7 +164,7 @@ internal class SingleWorkItemProcessorImplTest {
 
         verify(workQueue).markInProgressItemAsSuccessful(
             item = eq(stubbedWorkItem),
-            expiresAt = eq(now.plus(config.successfulItemExpirationDelay)),
+            expiresAt = eq(now.plus(Configs.DatabaseQueue.SuccessfulItemExpirationDelay.default)),
             watchdogId = eq(watchdogId),
             now = eq(now),
             unitOfWork = same(TestWorkItem1Handler.successContextUnitOfWork!!)
@@ -183,7 +184,7 @@ internal class SingleWorkItemProcessorImplTest {
 
         verify(workQueue).markInProgressItemAsFailed(
             item = eq(stubbedWorkItem),
-            expiresAt = eq(now.plus(config.failedItemExpirationDelay)),
+            expiresAt = eq(now.plus(Configs.DatabaseQueue.FailedItemExpirationDelay.default)),
             watchdogId = eq(watchdogId),
             now = eq(now),
             unitOfWork = same(TestWorkItem1Handler.failureContextUnitOfWork!!)
@@ -295,7 +296,7 @@ internal class SingleWorkItemProcessorImplTest {
 
         verify(workQueue).markInProgressItemAsFailed(
             item = eq(stubbedWorkItem),
-            expiresAt = eq(now.plus(config.failedItemExpirationDelay)),
+            expiresAt = eq(now.plus(Configs.DatabaseQueue.FailedItemExpirationDelay.default)),
             watchdogId = eq(watchdogId),
             now = eq(now),
             unitOfWork = unitOfWorkCaptor.capture()

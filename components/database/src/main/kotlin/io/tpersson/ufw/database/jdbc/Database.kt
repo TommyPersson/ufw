@@ -1,17 +1,16 @@
 package io.tpersson.ufw.database.jdbc
 
 import io.tpersson.ufw.core.utils.PaginatedList
-import io.tpersson.ufw.database.DatabaseModuleConfig
 import io.tpersson.ufw.database.exceptions.TypedUpdateMinimumAffectedRowsException
 import io.tpersson.ufw.database.typedqueries.*
 import jakarta.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.withContext
 import java.sql.Connection
 
 public class Database @Inject constructor(
     private val connectionProvider: ConnectionProvider,
-    private val config: DatabaseModuleConfig
 ) {
     public suspend fun <T : Any> select(query: TypedSelectSingle<T>): T? = io {
         connectionProvider.get(autoCommit = true).use {
@@ -95,7 +94,7 @@ public class Database @Inject constructor(
     }
 
     private suspend fun <T> io(block: suspend () -> T): T {
-        return withContext(currentCoroutineContext() + config.ioContext) {
+        return withContext(currentCoroutineContext() + Dispatchers.IO) {
             block()
         }
     }

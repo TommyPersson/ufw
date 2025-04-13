@@ -1,6 +1,6 @@
 package io.tpersson.ufw.databasequeue.internal
 
-import io.tpersson.ufw.databasequeue.DatabaseQueueConfig
+import io.tpersson.ufw.core.configuration.ConfigProvider
 import io.tpersson.ufw.test.TestClock
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
@@ -22,7 +22,7 @@ internal class DatabaseQueueExpiredItemReaperTest {
         val reaper = DatabaseQueueExpiredItemReaper(
             workItemsDAO = workItemsDAOMock,
             clock = clock,
-            config = DatabaseQueueConfig(),
+            configProvider = ConfigProvider.empty()
         )
 
         reaper.runOnce()

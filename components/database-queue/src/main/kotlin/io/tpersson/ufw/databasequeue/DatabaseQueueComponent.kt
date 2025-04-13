@@ -18,7 +18,6 @@ public class DatabaseQueueComponent @Inject constructor(
     public val workQueuesDAO: WorkQueuesDAO,
     public val queueStateChecker: QueueStateChecker,
     public val adminManager: DatabaseQueueAdminFacade,
-    public val config: DatabaseQueueConfig,
 ) {
 
     init {
@@ -32,7 +31,6 @@ public class DatabaseQueueComponent @Inject constructor(
         public fun create(
             coreComponent: CoreComponent,
             databaseComponent: DatabaseComponent,
-            config: DatabaseQueueConfig,
         ): DatabaseQueueComponent {
             val workItemsDAO = WorkItemsDAOImpl(
                 database = databaseComponent.database,
@@ -65,7 +63,7 @@ public class DatabaseQueueComponent @Inject constructor(
                 unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
                 meterRegistry = coreComponent.meterRegistry,
                 clock = coreComponent.clock,
-                config = config,
+                configProvider = coreComponent.configProvider,
             )
 
             val databaseQueueWorkerFactory = DatabaseQueueWorkerFactoryImpl(
@@ -91,7 +89,6 @@ public class DatabaseQueueComponent @Inject constructor(
                 workQueuesDAO = workQueuesDAO,
                 queueStateChecker = queueStateChecker,
                 adminManager = databaseQueueAdminManager,
-                config = config
             )
         }
     }

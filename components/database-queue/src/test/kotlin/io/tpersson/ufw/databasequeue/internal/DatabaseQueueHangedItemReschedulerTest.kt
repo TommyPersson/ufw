@@ -1,6 +1,8 @@
 package io.tpersson.ufw.databasequeue.internal
 
-import io.tpersson.ufw.databasequeue.DatabaseQueueConfig
+import io.tpersson.ufw.core.configuration.ConfigProvider
+import io.tpersson.ufw.core.configuration.Configs
+import io.tpersson.ufw.databasequeue.configuration.DatabaseQueue
 import io.tpersson.ufw.test.TestClock
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
@@ -9,7 +11,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import java.time.Duration
 import java.time.Instant
 
 internal class DatabaseQueueHangedItemReschedulerTest {
@@ -31,9 +32,7 @@ internal class DatabaseQueueHangedItemReschedulerTest {
         rescheduler = DatabaseQueueHangedItemRescheduler(
             workItemsDAO = workItemsDAO,
             clock = clock,
-            config = DatabaseQueueConfig(
-                watchdogTimeout = Duration.ofMinutes(5)
-            )
+            configProvider = ConfigProvider.empty()
         )
     }
 
@@ -45,7 +44,7 @@ internal class DatabaseQueueHangedItemReschedulerTest {
         rescheduler.runOnce()
 
         verify(workItemsDAO).rescheduleAllHangedItems(
-            rescheduleIfWatchdogOlderThan = now.minus(Duration.ofMinutes(5)),
+            rescheduleIfWatchdogOlderThan = now.minus(Configs.DatabaseQueue.WatchdogTimeout.default),
             scheduleFor = now,
             now = now,
         )

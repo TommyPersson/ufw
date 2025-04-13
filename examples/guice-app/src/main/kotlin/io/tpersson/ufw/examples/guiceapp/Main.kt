@@ -6,7 +6,6 @@ import com.google.inject.Injector
 import com.google.inject.Module
 import com.google.inject.multibindings.OptionalBinder
 import io.micrometer.core.instrument.MeterRegistry
-import io.tpersson.ufw.admin.AdminComponentConfig
 import io.tpersson.ufw.admin.guice.AdminGuiceModule
 import io.tpersson.ufw.aggregates.guice.AggregatesGuiceModule
 import io.tpersson.ufw.cluster.guice.ClusterGuiceModule
@@ -23,7 +22,6 @@ import io.tpersson.ufw.durableevents.publisher.DurableEventPublisher
 import io.tpersson.ufw.durableevents.publisher.OutgoingEventTransport
 import io.tpersson.ufw.durableevents.publisher.transports.DirectOutgoingEventTransport
 import io.tpersson.ufw.durablejobs.DurableJobQueue
-import io.tpersson.ufw.durablejobs.DurableJobsConfig
 import io.tpersson.ufw.durablejobs.guice.DurableJobsGuiceModule
 import io.tpersson.ufw.examples.common.Globals
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregate
@@ -33,7 +31,6 @@ import io.tpersson.ufw.examples.common.events.ExampleEventV1
 import io.tpersson.ufw.examples.common.jobs.PrintJob
 import io.tpersson.ufw.examples.common.jobs.PrintJob2
 import io.tpersson.ufw.featuretoggles.guice.FeatureTogglesGuiceModule
-import io.tpersson.ufw.keyvaluestore.KeyValueStoreConfig
 import io.tpersson.ufw.keyvaluestore.guice.KeyValueStoreGuiceModule
 import io.tpersson.ufw.managed.ManagedComponent
 import io.tpersson.ufw.managed.guice.ManagedGuiceModule
@@ -77,24 +74,12 @@ public fun main(): Unit = runBlocking(MDCContext()) {
                 enable(SerializationFeature.INDENT_OUTPUT)
             }
         ),
-        AdminGuiceModule(
-            config = AdminComponentConfig(
-                port = 8081
-            )
-        ),
+        AdminGuiceModule(),
         DatabaseGuiceModule(),
         DatabaseQueueGuiceModule(),
-        KeyValueStoreGuiceModule(
-            config = KeyValueStoreConfig(
-                expiredEntryReapingInterval = Duration.ofMinutes(1)
-            )
-        ),
+        KeyValueStoreGuiceModule(),
         MediatorGuiceModule(),
-        DurableJobsGuiceModule(
-            config = DurableJobsConfig(
-                stalenessDetectionInterval = Duration.ofSeconds(30)
-            )
-        ),
+        DurableJobsGuiceModule(),
         AggregatesGuiceModule(),
         DurableEventsGuiceModule(),
         FeatureTogglesGuiceModule(),

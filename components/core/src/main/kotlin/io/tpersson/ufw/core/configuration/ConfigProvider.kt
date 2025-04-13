@@ -100,25 +100,3 @@ public interface ConfigProvider {
         JavaProperties,
     }
 }
-
-public val Configs.DatabaseQueue: DatabaseQueueConfigs get() = DatabaseQueueConfigs
-
-public object DatabaseQueueConfigs {
-    public val FallbackPollingInterval: ConfigElement<Duration> = ConfigElement.of<Duration>(
-        "database-queue",
-        "fallback-polling-interval",
-        default = Duration.ofSeconds(10)
-    )
-    public val Thing: ConfigElement<Duration?> = ConfigElement.of<Duration?>(
-        "database-queue",
-        "thing",
-        default = null
-    )
-    public val Stuff: ConfigElement<Int?> = ConfigElement.of<Int?>(
-        "database-queue",
-        "stuff",
-        default = 123
-    )
-}
-
-

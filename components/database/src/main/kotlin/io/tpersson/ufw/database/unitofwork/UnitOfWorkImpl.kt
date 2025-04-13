@@ -1,18 +1,17 @@
 package io.tpersson.ufw.database.unitofwork
 
-import io.tpersson.ufw.database.DatabaseModuleConfig
 import io.tpersson.ufw.database.exceptions.MinimumAffectedRowsException
 import io.tpersson.ufw.database.exceptions.TypedUpdateMinimumAffectedRowsException
 import io.tpersson.ufw.database.jdbc.ConnectionProvider
 import io.tpersson.ufw.database.jdbc.useInTransaction
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.sql.Connection
 import java.sql.PreparedStatement
 
 public class UnitOfWorkImpl(
     private val connectionProvider: ConnectionProvider,
-    private val config: DatabaseModuleConfig,
 ) : UnitOfWork {
     private val operations = mutableListOf<Operation>()
 
@@ -31,7 +30,7 @@ public class UnitOfWorkImpl(
     }
 
     override suspend fun commit() {
-        withContext(config.ioContext) {
+        withContext(Dispatchers.IO) {
             connectionProvider.get().useInTransaction {
                 for (operation in operations) {
                     try {

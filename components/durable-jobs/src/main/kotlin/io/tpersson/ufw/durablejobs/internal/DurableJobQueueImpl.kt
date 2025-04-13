@@ -7,7 +7,6 @@ import io.tpersson.ufw.databasequeue.NewWorkItem
 import io.tpersson.ufw.databasequeue.WorkQueue
 import io.tpersson.ufw.durablejobs.DurableJob
 import io.tpersson.ufw.durablejobs.DurableJobOptionsBuilder
-import io.tpersson.ufw.durablejobs.DurableJobsConfig
 import jakarta.inject.Inject
 import jakarta.inject.Named
 import jakarta.inject.Singleton
@@ -15,7 +14,6 @@ import java.time.Clock
 
 @Singleton
 public class DurableJobQueueImpl @Inject constructor(
-    private val config: DurableJobsConfig,
     private val clock: Clock,
     private val workQueue: WorkQueue,
     @Named(NamedBindings.ObjectMapper) private val objectMapper: ObjectMapper,

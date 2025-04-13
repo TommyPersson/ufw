@@ -9,9 +9,7 @@ import io.tpersson.ufw.managed.ManagedComponent
 import jakarta.inject.Inject
 
 public class AdminComponent @Inject constructor(
-    public val config: AdminComponentConfig,
     private val adminModulesProvider: AdminModulesProvider,
-    private val server: ManagedAdminServer,
 ) {
     public fun register(adminModule: AdminModule) {
         if (adminModulesProvider is SimpleAdminModulesProvider) {
@@ -25,18 +23,17 @@ public class AdminComponent @Inject constructor(
         public fun create(
             coreComponent: CoreComponent,
             managedComponent: ManagedComponent,
-            config: AdminComponentConfig,
         ): AdminComponent {
 
             val adminModulesProvider = SimpleAdminModulesProvider().also {
                 it.add(CoreAdminModule(it, coreComponent.appInfoProvider))
             }
 
-            val managedAdminServer = ManagedAdminServer(config, adminModulesProvider)
+            val managedAdminServer = ManagedAdminServer(adminModulesProvider, coreComponent.configProvider)
 
             managedComponent.register(managedAdminServer)
 
-            return AdminComponent(config, adminModulesProvider, managedAdminServer)
+            return AdminComponent(adminModulesProvider)
         }
     }
 }

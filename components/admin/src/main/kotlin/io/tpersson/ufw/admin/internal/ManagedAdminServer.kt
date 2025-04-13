@@ -14,9 +14,11 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.tpersson.ufw.admin.AdminComponentConfig
 import io.tpersson.ufw.admin.ApiException
 import io.tpersson.ufw.admin.HttpException
+import io.tpersson.ufw.admin.configuration.Admin
+import io.tpersson.ufw.core.configuration.ConfigProvider
+import io.tpersson.ufw.core.configuration.Configs
 import io.tpersson.ufw.managed.Managed
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
@@ -25,14 +27,16 @@ import java.text.SimpleDateFormat
 
 @Singleton
 public class ManagedAdminServer @Inject constructor(
-    private val config: AdminComponentConfig,
     private val adminModulesProvider: AdminModulesProvider,
+    private val configProvider: ConfigProvider
 ) : Managed() {
+
+    private val serverPort = configProvider.get(Configs.Admin.ServerPort)
 
     private var server: EmbeddedServer<*, *>? = null
 
     override suspend fun onStarted() {
-        server = embeddedServer(Netty, port = config.port) {
+        server = embeddedServer(Netty, port = serverPort) {
             install(ContentNegotiation) {
                 jackson {
                     configureJackson(this)

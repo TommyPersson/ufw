@@ -57,19 +57,9 @@ internal class DurableJobsIntegrationTests {
             }
             durableJobs {
                 durableJobHandlers = setOf(MyJobHandler())
-
-                configure {
-                    stalenessDetectionInterval = Duration.ofMillis(50)
-                    stalenessAge = Duration.ofMillis(90)
-                    watchdogRefreshInterval = Duration.ofMillis(20)
-                    successfulJobRetention = Duration.ofDays(1)
-                    failedJobRetention = Duration.ofDays(2)
-                    expiredJobReapingInterval = Duration.ofMillis(50)
-                }
             }
         }
 
-        val database = ufw.database.database
         val unitOfWorkFactory = ufw.database.unitOfWorkFactory
         val workItemsDAO = ufw.databaseQueue.workItemsDAO
 

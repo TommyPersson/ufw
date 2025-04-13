@@ -25,7 +25,6 @@ public class KeyValueStoreComponent @Inject constructor(
             coreComponent: CoreComponent,
             databaseComponent: DatabaseComponent,
             managedComponent: ManagedComponent,
-            config: KeyValueStoreConfig = KeyValueStoreConfig(),
         ): KeyValueStoreComponent {
             val storageEngine = PostgresStorageEngine(
                 unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
@@ -41,7 +40,7 @@ public class KeyValueStoreComponent @Inject constructor(
             val expiredEntryReaper = ExpiredEntryReaper(
                 storageEngine = storageEngine,
                 clock = coreComponent.clock,
-                config = config,
+                configProvider = coreComponent.configProvider,
             )
 
             managedComponent.register(expiredEntryReaper)
