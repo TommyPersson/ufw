@@ -1,0 +1,10 @@
+{
+  "base": {
+    "test": {
+      "nullable": null,
+      "duration": "PT10S",
+      "nullableDuration": null,
+      "durationFromEnv": "{{DURATION_FROM_ENV}}"
+    }
+  }
+}

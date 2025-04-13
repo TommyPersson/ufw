@@ -1,6 +1,7 @@
 package io.tpersson.ufw.durableevents.handler.internal
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.tpersson.ufw.core.utils.LoggerCache
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.databasequeue.FailureAction
 import io.tpersson.ufw.databasequeue.WorkItemContext
@@ -21,7 +22,9 @@ public class DurableEventHandlerAdapter<TEvent : DurableEvent>(
     private val objectMapper: ObjectMapper,
 ) : WorkItemHandler<TEvent> {
 
-    override val handlerClassName: String = handler::class.qualifiedName!!
+    override val handlerClassName: String = handler::class.simpleName!!
+
+    override val logger: Logger = LoggerCache.get(handler::class)
 
     override fun transformItem(rawItem: WorkItemDbEntity): TEvent {
         return objectMapper.readValue(rawItem.dataJson, method.eventClass.java)

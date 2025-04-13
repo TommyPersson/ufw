@@ -3,6 +3,7 @@
     <option name="MAIN_CLASS_NAME" value="io.tpersson.ufw.examples.plainapp.MainKt" />
     <module name="example-plain-app" />
     <shortenClasspath name="NONE" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/examples/plain-app" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

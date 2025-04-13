@@ -3,6 +3,7 @@ package io.tpersson.ufw.databasequeue.worker
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.tpersson.ufw.core.CoreComponent
+import io.tpersson.ufw.core.utils.LoggerCache
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.databasequeue.*
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.*
+import org.slf4j.Logger
 import org.slf4j.MDC
 import java.time.Instant
 import java.time.Clock
@@ -496,7 +498,9 @@ internal class SingleWorkItemProcessorImplTest {
             }
         }
 
-        override val handlerClassName: String = this::class.qualifiedName!!
+        override val handlerClassName: String = this::class.simpleName!!
+
+        override val logger: Logger = LoggerCache.get(this::class)
 
         override fun transformItem(rawItem: WorkItemDbEntity): TestWorkItem1 {
             return CoreComponent.defaultObjectMapper.readValue<TestWorkItem1>(rawItem.dataJson)
@@ -525,7 +529,9 @@ internal class SingleWorkItemProcessorImplTest {
     }
 
     class UnparsableWorkItemHandler : WorkItemHandler<UnparsableWorkItem> {
-        override val handlerClassName: String = this::class.qualifiedName!!
+        override val handlerClassName: String = this::class.simpleName!!
+
+        override val logger: Logger = LoggerCache.get(this::class)
 
         override fun transformItem(rawItem: WorkItemDbEntity): UnparsableWorkItem {
             error("unable to parse item")

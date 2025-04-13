@@ -7,6 +7,7 @@ import io.tpersson.ufw.core.AppInfo
 import io.tpersson.ufw.core.AppInfoProvider
 import io.tpersson.ufw.core.CoreComponent
 import io.tpersson.ufw.core.SimpleAppInfoProvider
+import io.tpersson.ufw.core.configuration.ConfigProvider
 import java.time.Clock
 
 
@@ -20,11 +21,19 @@ public class CoreComponentBuilder {
     public var clock: Clock = Clock.systemDefaultZone()
     public var meterRegistry: MeterRegistry = SimpleMeterRegistry()
     public var appInfoProvider: AppInfoProvider = SimpleAppInfoProvider(AppInfo("unknown", "unknown", "unknown"))
+    // TODO naming ...
+    public var configProviderFactory: () -> ConfigProvider = { ConfigProvider.default() }
 
     internal var protoObjectMapper = CoreComponent.defaultObjectMapper
 
     public fun build(): CoreComponent {
-        return CoreComponent.create(clock, meterRegistry, appInfoProvider, protoObjectMapper)
+        return CoreComponent.create(
+            clock,
+            meterRegistry,
+            appInfoProvider,
+            protoObjectMapper,
+            configProviderFactory
+        )
     }
 }
 

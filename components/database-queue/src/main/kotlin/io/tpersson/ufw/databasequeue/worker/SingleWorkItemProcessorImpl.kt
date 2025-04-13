@@ -174,7 +174,7 @@ public class SingleWorkItemProcessorImpl(
             override val timestamp: Instant = now
             override val failureCount: Int = failureCount
             override val unitOfWork: UnitOfWork = unitOfWork
-            override val logger: Logger = LoggerCache.get(handler.handlerClassName)
+            override val logger: Logger = handler.logger
         }
 
         val failureAction = if (transformedItem != null) {
@@ -226,7 +226,7 @@ public class SingleWorkItemProcessorImpl(
         override val timestamp: Instant = this@SingleWorkItemProcessorImpl.clock.instant()
         override val failureCount: Int = workItem.numFailures
         override val unitOfWork: UnitOfWork = unitOfWork
-        override val logger: Logger = LoggerCache.get(handler.handlerClassName)
+        override val logger: Logger = handler.logger
     }
 
     private suspend fun isItemDeletedOrCancelled(

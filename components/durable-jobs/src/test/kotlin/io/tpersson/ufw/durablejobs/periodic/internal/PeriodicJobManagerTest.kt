@@ -1,5 +1,6 @@
 package io.tpersson.ufw.durablejobs.periodic.internal
 
+import io.tpersson.ufw.core.configuration.ConfigProvider
 import io.tpersson.ufw.core.utils.PaginatedList
 import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.durablejobs.periodic.internal.dao.PeriodicJobStateData
@@ -33,6 +34,7 @@ internal class PeriodicJobManagerTest {
             periodicJobSpecsProvider = mock(),
             periodicJobScheduler = periodicJobScheduler,
             periodicJobsDAO = periodicJobsDAO,
+            configProvider = ConfigProvider.empty(),
             clock = clock
         )
     }

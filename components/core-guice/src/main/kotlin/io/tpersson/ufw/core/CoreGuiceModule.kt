@@ -9,6 +9,7 @@ import io.github.classgraph.ClassGraph
 import io.github.classgraph.ScanResult
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import io.tpersson.ufw.core.configuration.ConfigProvider
 
 public class CoreGuiceModule(
     private val configureObjectMapper: ObjectMapper.() -> Unit = {},
@@ -29,6 +30,10 @@ public class CoreGuiceModule(
         OptionalBinder.newOptionalBinder(binder, AppInfoProvider::class.java)
             .setDefault()
             .toInstance(AppInfoProvider.simple())
+
+        OptionalBinder.newOptionalBinder(binder, ConfigProvider::class.java)
+            .setDefault()
+            .toInstance(ConfigProvider.default())
 
         val finalScanPackages = scanPackages + setOf("io.tpersson.ufw")
 

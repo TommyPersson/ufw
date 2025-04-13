@@ -1,10 +1,13 @@
 package io.tpersson.ufw.databasequeue
 
 import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
+import org.slf4j.Logger
 
 public interface WorkItemHandler<TItem> {
 
     public val handlerClassName: String
+
+    public val logger: Logger
 
     public fun transformItem(rawItem: WorkItemDbEntity): TItem & Any
 

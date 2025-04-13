@@ -73,6 +73,7 @@ public class DurableJobsComponent @Inject constructor(
                 periodicJobSpecsProvider = periodicJobSpecsProvider,
                 periodicJobScheduler = periodicJobScheduler,
                 periodicJobsDAO = periodicJobsDAO,
+                configProvider = coreComponent.configProvider,
                 clock = coreComponent.clock,
             )
 

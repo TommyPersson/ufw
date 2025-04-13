@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import io.tpersson.ufw.core.configuration.ConfigProvider
 import jakarta.inject.Inject
 import jakarta.inject.Named
 import jakarta.inject.Singleton
@@ -17,6 +18,7 @@ public class CoreComponent @Inject private constructor(
     @Named(NamedBindings.ObjectMapper) public val objectMapper: ObjectMapper,
     public val meterRegistry: MeterRegistry,
     public val appInfoProvider: AppInfoProvider,
+    public val configProvider: ConfigProvider,
 ) {
     public companion object {
         public fun create(
@@ -24,8 +26,9 @@ public class CoreComponent @Inject private constructor(
             meterRegistry: MeterRegistry = SimpleMeterRegistry(),
             appInfoProvider: AppInfoProvider = AppInfoProvider.simple(),
             objectMapper: ObjectMapper = defaultObjectMapper,
+            configProviderFactory: () -> ConfigProvider = { ConfigProvider.default() },
         ): CoreComponent {
-            return CoreComponent(clock, objectMapper, meterRegistry, appInfoProvider)
+            return CoreComponent(clock, objectMapper, meterRegistry, appInfoProvider, configProviderFactory())
         }
 
         public val defaultObjectMapper: ObjectMapper =

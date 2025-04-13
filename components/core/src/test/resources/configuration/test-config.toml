@@ -1,0 +1,3 @@
+[base.test]
+duration = "PT10S"
+durationFromEnv = "{{DURATION_FROM_ENV}}"

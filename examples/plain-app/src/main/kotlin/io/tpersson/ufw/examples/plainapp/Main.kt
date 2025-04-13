@@ -5,6 +5,7 @@ import io.tpersson.ufw.admin.dsl.admin
 import io.tpersson.ufw.aggregates.dsl.aggregates
 import io.tpersson.ufw.cluster.dsl.cluster
 import io.tpersson.ufw.core.AppInfoProvider
+import io.tpersson.ufw.core.configuration.ConfigProvider
 import io.tpersson.ufw.core.dsl.UFW
 import io.tpersson.ufw.core.dsl.UFWRegistry
 import io.tpersson.ufw.core.dsl.core
@@ -55,6 +56,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
             clock = Clock.systemDefaultZone()
             meterRegistry = Globals.meterRegistry
             appInfoProvider = AppInfoProvider.simple(name = "Example (plain)", version = "0.0.1", environment = "dev")
+            configProviderFactory = ConfigProvider.Companion::default
 
             objectMapper {
                 enable(SerializationFeature.INDENT_OUTPUT)

@@ -1,6 +1,7 @@
 package io.tpersson.ufw.durablejobs.internal
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.tpersson.ufw.core.utils.LoggerCache
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.databasequeue.FailureAction
 import io.tpersson.ufw.databasequeue.WorkItemContext
@@ -21,7 +22,9 @@ public class DurableJobHandlerAdapter<TJob : DurableJob>(
     private val objectMapper: ObjectMapper,
 ) : WorkItemHandler<TJob> {
 
-    override val handlerClassName: String = handler::class.qualifiedName!!
+    override val handlerClassName: String = handler::class.simpleName!!
+
+    override val logger: Logger = LoggerCache.get(handler::class)
 
     public override suspend fun handle(item: TJob, context: WorkItemContext) {
         val jobContext = object : DurableJobContext {
