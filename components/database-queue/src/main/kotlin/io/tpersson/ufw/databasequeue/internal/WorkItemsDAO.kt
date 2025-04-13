@@ -28,10 +28,6 @@ public interface WorkItemsDAO {
         paginationOptions: PaginationOptions = PaginationOptions.DEFAULT
     ): PaginatedList<WorkItemDbEntity>
 
-    public suspend fun getLatestCompletedItem(
-        queueId: WorkItemQueueId
-    ): WorkItemDbEntity?
-
     public suspend fun takeNext(
         queueId: WorkItemQueueId,
         watchdogId: String,
