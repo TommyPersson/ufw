@@ -2,8 +2,8 @@ package io.tpersson.ufw.mediator
 
 import io.tpersson.ufw.admin.AdminComponent
 import io.tpersson.ufw.core.CoreComponent
-import io.tpersson.ufw.core.dsl.ComponentKey
-import io.tpersson.ufw.core.dsl.UFWComponent
+import io.tpersson.ufw.core.builder.ComponentKey
+import io.tpersson.ufw.core.builder.Component
 import io.tpersson.ufw.mediator.admin.AdminRequestsAdminFacadeImpl
 import io.tpersson.ufw.mediator.admin.AdminRequestsAdminModule
 import io.tpersson.ufw.mediator.internal.MediatorImpl
@@ -16,7 +16,7 @@ import io.tpersson.ufw.mediator.middleware.timelimited.TimeLimitedMiddleware
 import jakarta.inject.Singleton
 
 
-public interface MediatorComponent : UFWComponent<MediatorComponent> {
+public interface MediatorComponent : Component<MediatorComponent> {
     public val mediator: Mediator
 
     public fun register(requestHandler: RequestHandler<*, *>)

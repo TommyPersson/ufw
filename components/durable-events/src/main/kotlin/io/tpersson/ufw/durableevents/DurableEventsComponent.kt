@@ -2,8 +2,8 @@ package io.tpersson.ufw.durableevents
 
 import io.tpersson.ufw.admin.AdminComponent
 import io.tpersson.ufw.core.CoreComponent
-import io.tpersson.ufw.core.dsl.ComponentKey
-import io.tpersson.ufw.core.dsl.UFWComponent
+import io.tpersson.ufw.core.builder.ComponentKey
+import io.tpersson.ufw.core.builder.Component
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.databasequeue.DatabaseQueueComponent
@@ -26,7 +26,7 @@ import io.tpersson.ufw.durableevents.publisher.transports.DirectOutgoingEventTra
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 
-public interface DurableEventsComponent : UFWComponent<DurableEventsComponent> {
+public interface DurableEventsComponent : Component<DurableEventsComponent> {
     public val eventPublisher: DurableEventPublisher
     public val eventIngester: IncomingEventIngester
 

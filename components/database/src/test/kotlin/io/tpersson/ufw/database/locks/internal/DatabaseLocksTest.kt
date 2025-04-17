@@ -2,8 +2,8 @@ package io.tpersson.ufw.database.locks.internal
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.tpersson.ufw.core.dsl.UFW
-import io.tpersson.ufw.core.dsl.installCore
+import io.tpersson.ufw.core.builder.UFW
+import io.tpersson.ufw.core.builder.installCore
 import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.database.dsl.installDatabase
 import io.tpersson.ufw.test.TestClock

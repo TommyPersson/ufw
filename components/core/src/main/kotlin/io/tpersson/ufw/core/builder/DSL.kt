@@ -1,4 +1,4 @@
-package io.tpersson.ufw.core.dsl
+package io.tpersson.ufw.core.builder
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.micrometer.core.instrument.MeterRegistry
@@ -12,7 +12,7 @@ import java.time.Clock
 
 
 @UfwDslMarker
-public fun UFWBuilder.RootBuilder.installCore(builder: CoreComponentBuilderContext.() -> Unit = {}) {
+public fun UFWBuilder.Root.installCore(builder: CoreComponentBuilderContext.() -> Unit = {}) {
     val ctx = contexts.getOrPut(CoreComponent) { CoreComponentBuilderContext() }.also(builder)
     builder(ctx)
 
@@ -34,7 +34,7 @@ public class CoreComponentBuilder(
     private val context: CoreComponentBuilderContext,
 ) : ComponentBuilder<CoreComponent> {
 
-    public override fun build(components: UFWComponentRegistry): CoreComponent {
+    public override fun build(components: ComponentRegistry): CoreComponent {
         return CoreComponent.create(
             this.context.clock,
             this.context.meterRegistry,
@@ -45,4 +45,4 @@ public class CoreComponentBuilder(
     }
 }
 
-public val UFWComponentRegistry.core: CoreComponent get() = get(CoreComponent)
+public val ComponentRegistry.core: CoreComponent get() = get(CoreComponent)

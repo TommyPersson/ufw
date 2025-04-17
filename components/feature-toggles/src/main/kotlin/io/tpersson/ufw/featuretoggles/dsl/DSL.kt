@@ -2,13 +2,13 @@ package io.tpersson.ufw.featuretoggles.dsl
 
 import io.tpersson.ufw.admin.dsl.admin
 import io.tpersson.ufw.admin.dsl.installAdmin
-import io.tpersson.ufw.core.dsl.*
+import io.tpersson.ufw.core.builder.*
 import io.tpersson.ufw.featuretoggles.FeatureTogglesComponent
 import io.tpersson.ufw.keyvaluestore.dsl.installKeyValueStore
 import io.tpersson.ufw.keyvaluestore.dsl.keyValueStore
 
 @UfwDslMarker
-public fun UFWBuilder.RootBuilder.installFeatureToggles(configure: FeatureTogglesBuilderContext.() -> Unit = {}) {
+public fun UFWBuilder.Root.installFeatureToggles(configure: FeatureTogglesBuilderContext.() -> Unit = {}) {
     installCore()
     installKeyValueStore()
     installAdmin()
@@ -25,7 +25,7 @@ public class FeatureTogglesComponentBuilder(
     private val context: FeatureTogglesBuilderContext
 ) : ComponentBuilder<FeatureTogglesComponent> {
 
-    override fun build(components: UFWComponentRegistry): FeatureTogglesComponent {
+    override fun build(components: ComponentRegistry): FeatureTogglesComponent {
         return FeatureTogglesComponent.create(
             coreComponent = components.core,
             keyValueStoreComponent = components.keyValueStore,
@@ -34,4 +34,4 @@ public class FeatureTogglesComponentBuilder(
     }
 }
 
-public val UFWComponentRegistry.featureToggles: FeatureTogglesComponent get() = get(FeatureTogglesComponent)
+public val ComponentRegistry.featureToggles: FeatureTogglesComponent get() = get(FeatureTogglesComponent)

@@ -1,12 +1,11 @@
 package io.tpersson.ufw.database.dsl
 
-import io.tpersson.ufw.core.CoreComponent
-import io.tpersson.ufw.core.dsl.*
+import io.tpersson.ufw.core.builder.*
 import io.tpersson.ufw.database.DatabaseComponent
 import javax.sql.DataSource
 
 @UfwDslMarker
-public fun UFWBuilder.RootBuilder.installDatabase(configure: DatabaseComponentBuilderContext.() -> Unit = {}) {
+public fun UFWBuilder.Root.installDatabase(configure: DatabaseComponentBuilderContext.() -> Unit = {}) {
     installCore()
 
     val ctx = contexts.getOrPut(DatabaseComponent) { DatabaseComponentBuilderContext() }
@@ -23,10 +22,8 @@ public class DatabaseComponentBuilder(
     private val context: DatabaseComponentBuilderContext,
 ) : ComponentBuilder<DatabaseComponent> {
 
-    override val dependencies: List<ComponentKey<*>> get() = listOf(CoreComponent)
-
     public override fun build(
-        components: UFWComponentRegistry,
+        components: ComponentRegistry,
     ): DatabaseComponent {
         return DatabaseComponent.create(
             coreComponent = components.core,
@@ -35,6 +32,6 @@ public class DatabaseComponentBuilder(
     }
 }
 
-public val UFWComponentRegistry.database: DatabaseComponent get() = get(DatabaseComponent)
+public val ComponentRegistry.database: DatabaseComponent get() = get(DatabaseComponent)
 
 

@@ -4,15 +4,15 @@ import io.tpersson.ufw.admin.AdminComponent
 import io.tpersson.ufw.cluster.admin.ClusterAdminFacadeImpl
 import io.tpersson.ufw.cluster.admin.ClusterAdminModule
 import io.tpersson.ufw.core.CoreComponent
-import io.tpersson.ufw.core.dsl.ComponentKey
-import io.tpersson.ufw.core.dsl.UFWComponent
+import io.tpersson.ufw.core.builder.ComponentKey
+import io.tpersson.ufw.core.builder.Component
 import io.tpersson.ufw.keyvaluestore.KeyValueStoreComponent
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 
 
 @Singleton
-public class ClusterComponent @Inject constructor() : UFWComponent<ClusterComponent> {
+public class ClusterComponent @Inject constructor() : Component<ClusterComponent> {
 
     public companion object : ComponentKey<ClusterComponent> {
         public fun create(

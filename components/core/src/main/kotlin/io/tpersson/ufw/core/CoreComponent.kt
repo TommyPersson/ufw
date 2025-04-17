@@ -7,8 +7,8 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.tpersson.ufw.core.configuration.ConfigProvider
-import io.tpersson.ufw.core.dsl.ComponentKey
-import io.tpersson.ufw.core.dsl.UFWComponent
+import io.tpersson.ufw.core.builder.ComponentKey
+import io.tpersson.ufw.core.builder.Component
 import jakarta.inject.Inject
 import jakarta.inject.Named
 import jakarta.inject.Singleton
@@ -21,7 +21,7 @@ public class CoreComponent @Inject private constructor(
     public val meterRegistry: MeterRegistry,
     public val appInfoProvider: AppInfoProvider,
     public val configProvider: ConfigProvider,
-) : UFWComponent<CoreComponent> {
+) : Component<CoreComponent> {
 
     public companion object : ComponentKey<CoreComponent> {
 

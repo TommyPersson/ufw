@@ -7,10 +7,10 @@ import io.tpersson.ufw.aggregates.dsl.installAggregates
 import io.tpersson.ufw.cluster.dsl.installCluster
 import io.tpersson.ufw.core.AppInfoProvider
 import io.tpersson.ufw.core.configuration.ConfigProvider
-import io.tpersson.ufw.core.dsl.UFW
-import io.tpersson.ufw.core.dsl.UFWComponentRegistry
-import io.tpersson.ufw.core.dsl.core
-import io.tpersson.ufw.core.dsl.installCore
+import io.tpersson.ufw.core.builder.UFW
+import io.tpersson.ufw.core.builder.ComponentRegistry
+import io.tpersson.ufw.core.builder.core
+import io.tpersson.ufw.core.builder.installCore
 import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.database.dsl.installDatabase
 import io.tpersson.ufw.database.unitofwork.use
@@ -106,13 +106,11 @@ public fun main(): Unit = runBlocking(MDCContext()) {
     ufw.mediator.register(TransactionalMiddleware(ufw.database.unitOfWorkFactory))
 
     ufw.managed.register(PrometheusServer(Globals.meterRegistry))
-
     ufw.managed.register(
         PeriodicLogger(
             featureToggles = ufw.featureToggles.featureToggles
         ),
     )
-
     ufw.managed.register(
         PeriodicEventPublisher(
             unitOfWorkFactory = ufw.database.unitOfWorkFactory,
@@ -121,7 +119,6 @@ public fun main(): Unit = runBlocking(MDCContext()) {
             clock = ufw.core.clock
         )
     )
-
     ufw.managed.register(
         PeriodicJobScheduler(
             jobQueue = ufw.durableJobs.jobQueue,
@@ -150,7 +147,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
     println("Exiting")
 }
 
-private suspend fun testTransactionalEvents(ufw: UFWComponentRegistry) {
+private suspend fun testTransactionalEvents(ufw: ComponentRegistry) {
     val transactionalEventPublisher = ufw.durableEvents.eventPublisher
     val unitOfWorkFactory = ufw.database.unitOfWorkFactory
 
@@ -161,12 +158,12 @@ private suspend fun testTransactionalEvents(ufw: UFWComponentRegistry) {
     }
 }
 
-private suspend fun testMediator(ufw: UFWComponentRegistry) {
+private suspend fun testMediator(ufw: ComponentRegistry) {
     val mediator = ufw.mediator.mediator
     mediator.send(PerformGreetingCommand("World"))
 }
 
-private suspend fun testJobQueue(ufw: UFWComponentRegistry) {
+private suspend fun testJobQueue(ufw: ComponentRegistry) {
     val jobQueue = ufw.durableJobs.jobQueue
 
     ufw.database.unitOfWorkFactory.use { uow ->
@@ -177,7 +174,7 @@ private suspend fun testJobQueue(ufw: UFWComponentRegistry) {
     }
 }
 
-private suspend fun testAggregates(ufw: UFWComponentRegistry, counterRepository: CounterAggregateRepository) {
+private suspend fun testAggregates(ufw: ComponentRegistry, counterRepository: CounterAggregateRepository) {
     val unitOfWorkFactory = ufw.database.unitOfWorkFactory
     val clock = ufw.core.clock
 

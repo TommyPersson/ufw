@@ -3,12 +3,12 @@ package io.tpersson.ufw.cluster.dsl
 import io.tpersson.ufw.admin.dsl.admin
 import io.tpersson.ufw.admin.dsl.installAdmin
 import io.tpersson.ufw.cluster.ClusterComponent
-import io.tpersson.ufw.core.dsl.*
+import io.tpersson.ufw.core.builder.*
 import io.tpersson.ufw.keyvaluestore.dsl.installKeyValueStore
 import io.tpersson.ufw.keyvaluestore.dsl.keyValueStore
 
 @UfwDslMarker
-public fun UFWBuilder.RootBuilder.installCluster(configure: ClusterComponentBuilderContext.() -> Unit = {}) {
+public fun UFWBuilder.Root.installCluster(configure: ClusterComponentBuilderContext.() -> Unit = {}) {
     installCore()
     installKeyValueStore()
     installAdmin()
@@ -25,7 +25,7 @@ public class ClusterComponentBuilder(
     private val context: ClusterComponentBuilderContext
 ) : ComponentBuilder<ClusterComponent> {
 
-    override fun build(components: UFWComponentRegistry): ClusterComponent {
+    override fun build(components: ComponentRegistry): ClusterComponent {
         return ClusterComponent.create(
             coreComponent = components.core,
             keyValueStoreComponent = components.keyValueStore,
@@ -34,4 +34,4 @@ public class ClusterComponentBuilder(
     }
 }
 
-public val UFWComponentRegistry.cluster: ClusterComponent get() = get(ClusterComponent)
+public val ComponentRegistry.cluster: ClusterComponent get() = get(ClusterComponent)

@@ -2,8 +2,8 @@ package io.tpersson.ufw.durablejobs.periodic.internal.dao
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.tpersson.ufw.core.dsl.UFW
-import io.tpersson.ufw.core.dsl.installCore
+import io.tpersson.ufw.core.builder.UFW
+import io.tpersson.ufw.core.builder.installCore
 import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.database.dsl.installDatabase
@@ -47,15 +47,10 @@ internal class PeriodicJobsDAOImplTest {
             installCore {
                 clock = testClock
             }
-            installManaged {
-            }
             installDatabase {
                 dataSource = HikariDataSource(config)
             }
-            installDatabaseQueue {
-            }
-            installDurableJobs {
-            }
+            installDurableJobs()
         }
 
         val database = ufw.database.database

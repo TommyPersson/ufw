@@ -1,8 +1,8 @@
 package io.tpersson.ufw.database
 
 import io.tpersson.ufw.core.CoreComponent
-import io.tpersson.ufw.core.dsl.ComponentKey
-import io.tpersson.ufw.core.dsl.UFWComponent
+import io.tpersson.ufw.core.builder.ComponentKey
+import io.tpersson.ufw.core.builder.Component
 import io.tpersson.ufw.database.jdbc.ConnectionProvider
 import io.tpersson.ufw.database.jdbc.ConnectionProviderImpl
 import io.tpersson.ufw.database.jdbc.Database
@@ -24,7 +24,7 @@ public class DatabaseComponent @Inject constructor(
     public val unitOfWorkFactory: UnitOfWorkFactory,
     public val migrator: Migrator,
     public val locks: DatabaseLocks,
-) : UFWComponent<DatabaseComponent> {
+) : Component<DatabaseComponent> {
 
     init {
         Migrator.registerMigrationScript(

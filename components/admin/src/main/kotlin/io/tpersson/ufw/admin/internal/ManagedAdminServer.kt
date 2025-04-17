@@ -36,6 +36,11 @@ public class ManagedAdminServer @Inject constructor(
     private var server: EmbeddedServer<*, *>? = null
 
     override suspend fun onStarted() {
+        if (serverPort == null) {
+            logger.info("Admin ServerPort not configured, exiting!")
+            return
+        }
+
         server = embeddedServer(Netty, port = serverPort) {
             install(ContentNegotiation) {
                 jackson {

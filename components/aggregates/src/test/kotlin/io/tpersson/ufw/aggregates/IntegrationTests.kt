@@ -7,8 +7,8 @@ import io.tpersson.ufw.admin.dsl.installAdmin
 import io.tpersson.ufw.aggregates.dsl.aggregates
 import io.tpersson.ufw.aggregates.dsl.installAggregates
 import io.tpersson.ufw.aggregates.exceptions.AggregateVersionConflictException
-import io.tpersson.ufw.core.dsl.UFW
-import io.tpersson.ufw.core.dsl.installCore
+import io.tpersson.ufw.core.builder.UFW
+import io.tpersson.ufw.core.builder.installCore
 import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.database.dsl.installDatabase
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
@@ -61,20 +61,13 @@ internal class IntegrationTests {
             installCore {
                 clock = testClock
             }
-            installManaged {
-            }
-            installAdmin {
-            }
             installDatabase {
                 dataSource = HikariDataSource(config)
-            }
-            installDatabaseQueue {
             }
             installDurableEvents {
                 outgoingEventTransport = testOutgoingEventTransport
             }
-            installAggregates {
-            }
+            installAggregates()
         }
 
         val unitOfWorkFactory = ufw.database.unitOfWorkFactory

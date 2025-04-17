@@ -1,15 +1,12 @@
 package io.tpersson.ufw.admin.dsl
 
 import io.tpersson.ufw.admin.AdminComponent
-import io.tpersson.ufw.core.CoreComponent
-import io.tpersson.ufw.core.dsl.*
-import io.tpersson.ufw.managed.ManagedComponent
-import io.tpersson.ufw.managed.dsl.ManagedComponentBuilder
+import io.tpersson.ufw.core.builder.*
 import io.tpersson.ufw.managed.dsl.installManaged
 import io.tpersson.ufw.managed.dsl.managed
 
 @UfwDslMarker
-public fun UFWBuilder.RootBuilder.installAdmin(configure: AdminComponentBuilderContext.() -> Unit = {}) {
+public fun UFWBuilder.Root.installAdmin(configure: AdminComponentBuilderContext.() -> Unit = {}) {
     installCore()
     installManaged()
 
@@ -27,12 +24,7 @@ public class AdminComponentBuilder(
     private val context: AdminComponentBuilderContext
 ) : ComponentBuilder<AdminComponent> {
 
-    override val dependencies: List<ComponentKey<*>> = listOf(
-        CoreComponent,
-        ManagedComponent,
-    )
-
-    public override fun build(components: UFWComponentRegistry): AdminComponent {
+    public override fun build(components: ComponentRegistry): AdminComponent {
         return AdminComponent.create(
             coreComponent = components.core,
             managedComponent = components.managed,
@@ -40,4 +32,4 @@ public class AdminComponentBuilder(
     }
 }
 
-public val UFWComponentRegistry.admin: AdminComponent get() = get(AdminComponent)
+public val ComponentRegistry.admin: AdminComponent get() = get(AdminComponent)

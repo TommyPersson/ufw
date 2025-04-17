@@ -1,11 +1,10 @@
 package io.tpersson.ufw.managed.dsl
 
-import io.tpersson.ufw.core.CoreComponent
-import io.tpersson.ufw.core.dsl.*
+import io.tpersson.ufw.core.builder.*
 import io.tpersson.ufw.managed.ManagedComponent
 
 @UfwDslMarker
-public fun UFWBuilder.RootBuilder.installManaged(configure: ManagedComponentBuilderContext.() -> Unit = {}) {
+public fun UFWBuilder.Root.installManaged(configure: ManagedComponentBuilderContext.() -> Unit = {}) {
     installCore()
 
     val ctx = contexts.getOrPut(ManagedComponent) { ManagedComponentBuilderContext() }
@@ -20,11 +19,9 @@ public class ManagedComponentBuilder(
     private val context: ManagedComponentBuilderContext
 ) : ComponentBuilder<ManagedComponent> {
 
-    override val dependencies: List<ComponentKey<UFWComponent<Any>>> = listOf(CoreComponent)
-
-    override fun build(components: UFWComponentRegistry): ManagedComponent {
+    override fun build(components: ComponentRegistry): ManagedComponent {
         return ManagedComponent.create()
     }
 }
 
-public val UFWComponentRegistry.managed: ManagedComponent get() = get(ManagedComponent)
+public val ComponentRegistry.managed: ManagedComponent get() = get(ManagedComponent)

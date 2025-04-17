@@ -2,9 +2,9 @@ package io.tpersson.ufw.databasequeue
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.tpersson.ufw.core.dsl.UFW
-import io.tpersson.ufw.core.dsl.core
-import io.tpersson.ufw.core.dsl.installCore
+import io.tpersson.ufw.core.builder.UFW
+import io.tpersson.ufw.core.builder.core
+import io.tpersson.ufw.core.builder.installCore
 import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.database.dsl.installDatabase
@@ -53,8 +53,7 @@ internal class WorkItemFailuresDAOImplTest {
             installDatabase {
                 dataSource = HikariDataSource(config)
             }
-            installDatabaseQueue {
-            }
+            installDatabaseQueue()
         }
 
         val database = ufw.database.database

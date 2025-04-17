@@ -2,8 +2,8 @@ package io.tpersson.ufw.durablejobs
 
 import io.tpersson.ufw.admin.AdminComponent
 import io.tpersson.ufw.core.CoreComponent
-import io.tpersson.ufw.core.dsl.ComponentKey
-import io.tpersson.ufw.core.dsl.UFWComponent
+import io.tpersson.ufw.core.builder.ComponentKey
+import io.tpersson.ufw.core.builder.Component
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.databasequeue.DatabaseQueueComponent
@@ -19,7 +19,7 @@ import io.tpersson.ufw.managed.ManagedComponent
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 
-public interface DurableJobsComponent : UFWComponent<DurableJobsComponent> {
+public interface DurableJobsComponent : Component<DurableJobsComponent> {
     public val jobQueue: DurableJobQueue
 
     public fun register(handler: DurableJobHandler<*>)

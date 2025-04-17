@@ -5,6 +5,8 @@ import jakarta.inject.Inject
 import liquibase.Contexts
 import liquibase.LabelExpression
 import liquibase.Liquibase
+import liquibase.UpdateSummaryEnum
+import liquibase.UpdateSummaryOutputEnum
 import liquibase.database.DatabaseFactory
 import liquibase.database.jvm.JdbcConnection
 import liquibase.resource.ClassLoaderResourceAccessor
@@ -35,6 +37,8 @@ public class Migrator @Inject constructor(
 
             val resourceAccessor = ClassLoaderResourceAccessor()
             val liquibase = Liquibase(script.scriptLocation, resourceAccessor, database)
+            liquibase.setShowSummaryOutput(UpdateSummaryOutputEnum.LOG)
+            liquibase.setShowSummary(UpdateSummaryEnum.OFF)
             liquibase.update(Contexts(), LabelExpression("ufw__${script.componentName}"))
         }
 

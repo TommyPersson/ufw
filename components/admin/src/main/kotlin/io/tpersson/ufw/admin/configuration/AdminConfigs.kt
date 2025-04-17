@@ -4,10 +4,10 @@ import io.tpersson.ufw.core.configuration.ConfigElement
 import io.tpersson.ufw.core.configuration.Configs
 
 public object AdminConfigs {
-    public val ServerPort: ConfigElement<Int> = ConfigElement.of(
+    public val ServerPort: ConfigElement<Int?> = ConfigElement.of(
         "admin",
         "server-port",
-        default = 8081
+        default = null
     )
 }
 

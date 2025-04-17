@@ -1,12 +1,12 @@
 package io.tpersson.ufw.databasequeue.dsl
 
-import io.tpersson.ufw.core.dsl.*
+import io.tpersson.ufw.core.builder.*
 import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.database.dsl.installDatabase
 import io.tpersson.ufw.databasequeue.DatabaseQueueComponent
 
 @UfwDslMarker
-public fun UFWBuilder.RootBuilder.installDatabaseQueue(configure: DatabaseQueueComponentBuilderContext.() -> Unit = {}) {
+public fun UFWBuilder.Root.installDatabaseQueue(configure: DatabaseQueueComponentBuilderContext.() -> Unit = {}) {
     installCore()
     installDatabase()
 
@@ -23,7 +23,7 @@ public class DatabaseQueueComponentBuilder(
     private val context: DatabaseQueueComponentBuilderContext
 ) : ComponentBuilder<DatabaseQueueComponent> {
 
-    override fun build(components: UFWComponentRegistry): DatabaseQueueComponent {
+    override fun build(components: ComponentRegistry): DatabaseQueueComponent {
         return DatabaseQueueComponent.create(
             coreComponent = components.core,
             databaseComponent = components.database,
@@ -31,4 +31,4 @@ public class DatabaseQueueComponentBuilder(
     }
 }
 
-public val UFWComponentRegistry.databaseQueue: DatabaseQueueComponent get() = get(DatabaseQueueComponent)
+public val ComponentRegistry.databaseQueue: DatabaseQueueComponent get() = get(DatabaseQueueComponent)
