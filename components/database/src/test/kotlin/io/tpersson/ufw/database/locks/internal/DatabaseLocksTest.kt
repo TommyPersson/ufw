@@ -3,8 +3,9 @@ package io.tpersson.ufw.database.locks.internal
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.core.dsl.UFW
-import io.tpersson.ufw.core.dsl.core
+import io.tpersson.ufw.core.dsl.installCore
 import io.tpersson.ufw.database.dsl.database
+import io.tpersson.ufw.database.dsl.installDatabase
 import io.tpersson.ufw.test.TestClock
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -35,10 +36,10 @@ internal class DatabaseLocksTest {
         val testClock = TestClock()
 
         val ufw = UFW.build {
-            core {
+            installCore {
                 clock = testClock
             }
-            database {
+            installDatabase {
                 dataSource = HikariDataSource(config)
             }
         }

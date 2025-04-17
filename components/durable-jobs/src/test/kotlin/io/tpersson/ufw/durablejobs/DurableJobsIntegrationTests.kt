@@ -3,16 +3,19 @@ package io.tpersson.ufw.durablejobs
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.core.dsl.UFW
-import io.tpersson.ufw.core.dsl.core
+import io.tpersson.ufw.core.dsl.installCore
 import io.tpersson.ufw.database.dsl.database
+import io.tpersson.ufw.database.dsl.installDatabase
 import io.tpersson.ufw.databasequeue.FailureAction
 import io.tpersson.ufw.databasequeue.WorkItemId
 import io.tpersson.ufw.databasequeue.WorkItemState
 import io.tpersson.ufw.databasequeue.dsl.databaseQueue
-import io.tpersson.ufw.durablejobs.dsl.jobQueue
+import io.tpersson.ufw.databasequeue.dsl.installDatabaseQueue
 import io.tpersson.ufw.durablejobs.dsl.durableJobs
+import io.tpersson.ufw.durablejobs.dsl.installDurableJobs
 import io.tpersson.ufw.durablejobs.internal.toWorkItemQueueId
 import io.tpersson.ufw.managed.dsl.managed
+import io.tpersson.ufw.managed.dsl.installManaged
 import io.tpersson.ufw.test.TestClock
 import io.tpersson.ufw.test.suspendingUntil
 import kotlinx.coroutines.runBlocking
@@ -23,7 +26,6 @@ import org.junit.jupiter.api.Test
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.lifecycle.Startables
 import org.testcontainers.utility.DockerImageName
-import java.time.Duration
 
 internal class DurableJobsIntegrationTests {
 
@@ -45,17 +47,13 @@ internal class DurableJobsIntegrationTests {
         val testClock = TestClock()
 
         val ufw = UFW.build {
-            core {
+            installCore {
                 clock = testClock
             }
-            managed {
-            }
-            database {
+            installDatabase {
                 dataSource = HikariDataSource(config)
             }
-            databaseQueue {
-            }
-            durableJobs {
+            installDurableJobs {
                 durableJobHandlers = setOf(MyJobHandler())
             }
         }
@@ -84,7 +82,7 @@ internal class DurableJobsIntegrationTests {
     fun test1(): Unit = runBlocking {
         val uow = unitOfWorkFactory.create()
 
-        ufw.jobQueue.jobQueue.enqueue(MyJob(id = DurableJobId("the-id"), greeting = "Hello"), unitOfWork = uow)
+        ufw.durableJobs.jobQueue.enqueue(MyJob(id = DurableJobId("the-id"), greeting = "Hello"), unitOfWork = uow)
 
         uow.commit()
 

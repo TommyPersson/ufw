@@ -2,6 +2,8 @@ package io.tpersson.ufw.mediator
 
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.tpersson.ufw.mediator.internal.MediatorImpl
+import io.tpersson.ufw.mediator.internal.SimpleMediatorMiddlewareRegistry
+import io.tpersson.ufw.mediator.internal.SimpleMediatorRequestHandlerRegistry
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -94,16 +96,20 @@ internal class IntegrationTest {
 
     private fun createMediator() = MediatorImpl(
         meterRegistry = SimpleMeterRegistry(),
-        handlers = setOf(
-            TestCommand1Handler(),
-            TestQuery1Handler(),
-            TestCommandWithLoggingHandler(),
+        handlerRegistry = SimpleMediatorRequestHandlerRegistry(
+            setOf(
+                TestCommand1Handler(),
+                TestQuery1Handler(),
+                TestCommandWithLoggingHandler(),
+            )
         ),
-        middlewares = setOf(
-            AnyRequestMiddleware(),
-            AnyCommandMiddleware(),
-            AnyQueryMiddleware(),
-            LoggingRequestMiddleware(),
+        middlewareRegistry = SimpleMediatorMiddlewareRegistry(
+            setOf(
+                AnyRequestMiddleware(),
+                AnyCommandMiddleware(),
+                AnyQueryMiddleware(),
+                LoggingRequestMiddleware(),
+            )
         )
     )
 

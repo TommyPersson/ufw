@@ -12,15 +12,18 @@ import kotlin.reflect.full.findAnnotation
 public class PeriodicJobSpecsProviderImpl @Inject constructor(
     private val jobHandlersProvider: DurableJobHandlersProvider,
 ) : PeriodicJobSpecsProvider {
-    public override val periodicJobSpecs: List<PeriodicJobSpec<*>> = jobHandlersProvider.get().mapNotNull {
-        val annotation = it.jobDefinition.jobClass.findAnnotation<PeriodicJob>()
-            ?: return@mapNotNull null
 
-        PeriodicJobSpec(
-            handler = it,
-            cronExpression = annotation.cronExpression,
-            cronInstance = cronParser.parse(annotation.cronExpression).validate()
-        )
+    public override val periodicJobSpecs: List<PeriodicJobSpec<*>> by lazy {
+        jobHandlersProvider.get().mapNotNull {
+            val annotation = it.jobDefinition.jobClass.findAnnotation<PeriodicJob>()
+                ?: return@mapNotNull null
+
+            PeriodicJobSpec(
+                handler = it,
+                cronExpression = annotation.cronExpression,
+                cronInstance = cronParser.parse(annotation.cronExpression).validate()
+            )
+        }
     }
 
     public companion object {

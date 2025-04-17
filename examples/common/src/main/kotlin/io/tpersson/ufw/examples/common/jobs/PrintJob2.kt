@@ -2,6 +2,8 @@ package io.tpersson.ufw.examples.common.jobs
 
 import io.tpersson.ufw.databasequeue.FailureAction
 import io.tpersson.ufw.durablejobs.*
+import io.tpersson.ufw.examples.common.commands.PerformGreetingCommand
+import io.tpersson.ufw.mediator.Mediator
 import jakarta.inject.Inject
 import org.slf4j.MDC
 import java.time.Duration
@@ -9,7 +11,7 @@ import kotlin.random.Random
 
 @DurableJobTypeDefinition(
     description = """
-This is a very **cool** job that prints *things*! Though, it is unable to print texts containing unlucky numbers.
+This is a very **cool** job that performs a greeting command! Though, it is unable to greet texts containing unlucky numbers.
     """
 )
 public data class PrintJob2(
@@ -18,6 +20,7 @@ public data class PrintJob2(
 ) : DurableJob
 
 public class PrintJob2Handler @Inject constructor(
+    private val mediator: Mediator
 ) : DurableJobHandler<PrintJob2> {
 
     override suspend fun handle(job: PrintJob2, context: DurableJobContext) {
@@ -33,7 +36,7 @@ public class PrintJob2Handler @Inject constructor(
             error("oh no, there was a unlucky ${unluckyNumber}!")
         }
 
-        context.logger.info("Handling: $job")
+        mediator.send(PerformGreetingCommand(target = job.text))
     }
 
     override suspend fun onFailure(job: PrintJob2, error: Exception, context: DurableJobFailureContext): FailureAction {

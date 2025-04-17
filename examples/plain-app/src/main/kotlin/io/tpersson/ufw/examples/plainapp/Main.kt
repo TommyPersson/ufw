@@ -1,22 +1,26 @@
 package io.tpersson.ufw.examples.plainapp
 
 import com.fasterxml.jackson.databind.SerializationFeature
-import io.tpersson.ufw.admin.dsl.admin
+import io.tpersson.ufw.admin.dsl.installAdmin
 import io.tpersson.ufw.aggregates.dsl.aggregates
-import io.tpersson.ufw.cluster.dsl.cluster
+import io.tpersson.ufw.aggregates.dsl.installAggregates
+import io.tpersson.ufw.cluster.dsl.installCluster
 import io.tpersson.ufw.core.AppInfoProvider
 import io.tpersson.ufw.core.configuration.ConfigProvider
 import io.tpersson.ufw.core.dsl.UFW
-import io.tpersson.ufw.core.dsl.UFWRegistry
+import io.tpersson.ufw.core.dsl.UFWComponentRegistry
 import io.tpersson.ufw.core.dsl.core
-import io.tpersson.ufw.core.dsl.objectMapper
+import io.tpersson.ufw.core.dsl.installCore
 import io.tpersson.ufw.database.dsl.database
+import io.tpersson.ufw.database.dsl.installDatabase
 import io.tpersson.ufw.database.unitofwork.use
-import io.tpersson.ufw.databasequeue.dsl.databaseQueue
+import io.tpersson.ufw.databasequeue.dsl.installDatabaseQueue
 import io.tpersson.ufw.durablecaches.dsl.durableCaches
+import io.tpersson.ufw.durablecaches.dsl.installDurableCaches
 import io.tpersson.ufw.durableevents.dsl.durableEvents
+import io.tpersson.ufw.durableevents.dsl.installDurableEvents
 import io.tpersson.ufw.durablejobs.dsl.durableJobs
-import io.tpersson.ufw.durablejobs.dsl.jobQueue
+import io.tpersson.ufw.durablejobs.dsl.installDurableJobs
 import io.tpersson.ufw.examples.common.Globals
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregate
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregateRepository
@@ -35,9 +39,13 @@ import io.tpersson.ufw.examples.common.managed.PeriodicLogger
 import io.tpersson.ufw.examples.common.managed.PrometheusServer
 import io.tpersson.ufw.examples.common.queries.TestAdminQuery1Handler
 import io.tpersson.ufw.featuretoggles.dsl.featureToggles
+import io.tpersson.ufw.featuretoggles.dsl.installFeatureToggles
 import io.tpersson.ufw.keyvaluestore.dsl.keyValueStore
+import io.tpersson.ufw.keyvaluestore.dsl.installKeyValueStore
 import io.tpersson.ufw.managed.dsl.managed
+import io.tpersson.ufw.managed.dsl.installManaged
 import io.tpersson.ufw.mediator.dsl.mediator
+import io.tpersson.ufw.mediator.dsl.installMediator
 import io.tpersson.ufw.mediator.middleware.transactional.TransactionalMiddleware
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.slf4j.MDCContext
@@ -51,68 +59,51 @@ public fun main(): Unit = runBlocking(MDCContext()) {
     SLF4JBridgeHandler.install()
 
     val ufw = UFW.build {
-        core {
+        installCore { // "withCore", "withManaged"?
             clock = Clock.systemDefaultZone()
             meterRegistry = Globals.meterRegistry
             appInfoProvider = AppInfoProvider.simple(name = "Example (plain)", version = "0.0.1", environment = "dev")
             configProviderFactory = ConfigProvider.Companion::default
 
-            objectMapper {
-                enable(SerializationFeature.INDENT_OUTPUT)
-            }
+            objectMapper.enable(SerializationFeature.INDENT_OUTPUT)
         }
-        managed {
-        }
-        admin {
-        }
-        database {
+        installManaged()
+        installAdmin()
+        installDatabase {
             dataSource = Globals.dataSource
         }
-        databaseQueue {
+        installDatabaseQueue()
+        installKeyValueStore()
+        installDurableCaches()
+        installMediator()
+        installDurableJobs()
+        installDurableEvents {
+            outgoingEventTransport = null // TODO DirectOutgoingEventTransport()
         }
-        keyValueStore {
-        }
-        durableCaches {
-        }
-        mediator {
-            handlers = setOf(
-                PerformGreetingCommandHandler(components.keyValueStore.keyValueStore), // TODO allow handlers to be registered after build
-                TestAdminCommand1Handler(),
-                TestAdminCommand2Handler(),
-                TestAdminQuery1Handler(),
-            )
-            middlewares = setOf(
-                TransactionalMiddleware(components.database.unitOfWorkFactory)
-            )
-        }
-        durableJobs {
-            durableJobHandlers = setOf(
-                PrintJobHandler(),
-                PrintJob2Handler(),
-                ExpensiveCalculationJobHandler(components.durableCaches.durableCaches),
-                SensitiveDataRefreshJobHandler(components.durableCaches.durableCaches),
-                PeriodicPrintJobHandler(),
-                PeriodicPrintJob2Handler(),
-            )
-        }
-        durableEvents {
-            handlers = setOf(
-                ExampleDurableEventHandler(components.keyValueStore.keyValueStore)
-            )
-        }
-        aggregates {
-        }
-        featureToggles {
-        }
-        cluster {
-        }
+        installAggregates()
+        installFeatureToggles()
+        installCluster()
     }
 
-    ufw.database.runMigrations()
+    ufw.durableEvents.register(ExampleDurableEventHandler(ufw.keyValueStore.keyValueStore))
+
+    ufw.durableJobs.register(PrintJobHandler())
+    ufw.durableJobs.register(PrintJob2Handler(ufw.mediator.mediator))
+    ufw.durableJobs.register(ExpensiveCalculationJobHandler(ufw.durableCaches.durableCaches))
+    ufw.durableJobs.register(SensitiveDataRefreshJobHandler(ufw.durableCaches.durableCaches))
+    ufw.durableJobs.register(PeriodicPrintJobHandler())
+    ufw.durableJobs.register(PeriodicPrintJob2Handler())
 
     val counterRepository = CounterAggregateRepository(ufw.aggregates)
 
     ufw.aggregates.register(counterRepository)
+
+    ufw.mediator.register(PerformGreetingCommandHandler(ufw.keyValueStore.keyValueStore))
+    ufw.mediator.register(TestAdminCommand1Handler())
+    ufw.mediator.register(TestAdminCommand2Handler())
+    ufw.mediator.register(TestAdminQuery1Handler())
+
+    ufw.mediator.register(TransactionalMiddleware(ufw.database.unitOfWorkFactory))
 
     ufw.managed.register(PrometheusServer(Globals.meterRegistry))
 
@@ -133,11 +124,13 @@ public fun main(): Unit = runBlocking(MDCContext()) {
 
     ufw.managed.register(
         PeriodicJobScheduler(
-            jobQueue = ufw.jobQueue.jobQueue,
+            jobQueue = ufw.durableJobs.jobQueue,
             featureToggles = ufw.featureToggles.featureToggles,
             unitOfWorkFactory = ufw.database.unitOfWorkFactory,
         )
     )
+
+    ufw.database.runMigrations()
 
     ufw.managed.startAll(addShutdownHook = true)
 
@@ -157,7 +150,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
     println("Exiting")
 }
 
-private suspend fun testTransactionalEvents(ufw: UFWRegistry) {
+private suspend fun testTransactionalEvents(ufw: UFWComponentRegistry) {
     val transactionalEventPublisher = ufw.durableEvents.eventPublisher
     val unitOfWorkFactory = ufw.database.unitOfWorkFactory
 
@@ -168,13 +161,13 @@ private suspend fun testTransactionalEvents(ufw: UFWRegistry) {
     }
 }
 
-private suspend fun testMediator(ufw: UFWRegistry) {
+private suspend fun testMediator(ufw: UFWComponentRegistry) {
     val mediator = ufw.mediator.mediator
     mediator.send(PerformGreetingCommand("World"))
 }
 
-private suspend fun testJobQueue(ufw: UFWRegistry) {
-    val jobQueue = ufw.jobQueue.jobQueue
+private suspend fun testJobQueue(ufw: UFWComponentRegistry) {
+    val jobQueue = ufw.durableJobs.jobQueue
 
     ufw.database.unitOfWorkFactory.use { uow ->
         (1..3).forEach {
@@ -184,7 +177,7 @@ private suspend fun testJobQueue(ufw: UFWRegistry) {
     }
 }
 
-private suspend fun testAggregates(ufw: UFWRegistry, counterRepository: CounterAggregateRepository) {
+private suspend fun testAggregates(ufw: UFWComponentRegistry, counterRepository: CounterAggregateRepository) {
     val unitOfWorkFactory = ufw.database.unitOfWorkFactory
     val clock = ufw.core.clock
 

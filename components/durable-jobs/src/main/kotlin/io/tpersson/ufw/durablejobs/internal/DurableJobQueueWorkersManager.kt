@@ -20,7 +20,7 @@ public class DurableJobQueueWorkersManager @Inject constructor(
     workerFactory = workerFactory,
     adapterSettings = DurableJobsDatabaseQueueAdapterSettings
 ) {
-    protected override val handlersByTypeByQueueId: Map<WorkItemQueueId, Map<String, WorkItemHandler<*>>> =
+    protected override val handlersByTypeByQueueId: Map<WorkItemQueueId, Map<String, WorkItemHandler<*>>> by lazy {
         durableJobHandlersProvider.get()
             .groupBy { it.jobDefinition.queueId.toWorkItemQueueId() }
             .mapValues {
@@ -35,4 +35,5 @@ public class DurableJobQueueWorkersManager @Inject constructor(
                     }
                 )
             }
+    }
 }

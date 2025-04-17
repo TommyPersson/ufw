@@ -1,21 +1,31 @@
 package io.tpersson.ufw.featuretoggles.dsl
 
 import io.tpersson.ufw.admin.dsl.admin
-import io.tpersson.ufw.core.dsl.UFWBuilder
-import io.tpersson.ufw.core.dsl.UFWRegistry
-import io.tpersson.ufw.core.dsl.UfwDslMarker
-import io.tpersson.ufw.core.dsl.core
+import io.tpersson.ufw.admin.dsl.installAdmin
+import io.tpersson.ufw.core.dsl.*
 import io.tpersson.ufw.featuretoggles.FeatureTogglesComponent
+import io.tpersson.ufw.keyvaluestore.dsl.installKeyValueStore
 import io.tpersson.ufw.keyvaluestore.dsl.keyValueStore
 
 @UfwDslMarker
-public fun UFWBuilder.RootBuilder.featureToggles(builder: FeatureTogglesComponentBuilder.() -> Unit = {}) {
-    components["FeatureToggles"] = FeatureTogglesComponentBuilder(UFWRegistry(components)).also(builder).build()
+public fun UFWBuilder.RootBuilder.installFeatureToggles(configure: FeatureTogglesBuilderContext.() -> Unit = {}) {
+    installCore()
+    installKeyValueStore()
+    installAdmin()
+
+    val ctx = contexts.getOrPut(FeatureTogglesComponent) { FeatureTogglesBuilderContext() }
+        .apply(configure)
+
+    builders.add(FeatureTogglesComponentBuilder(ctx))
 }
 
-@UfwDslMarker
-public class FeatureTogglesComponentBuilder(public val components: UFWRegistry) {
-    public fun build(): FeatureTogglesComponent {
+public class FeatureTogglesBuilderContext : ComponentBuilderContext<FeatureTogglesComponent>
+
+public class FeatureTogglesComponentBuilder(
+    private val context: FeatureTogglesBuilderContext
+) : ComponentBuilder<FeatureTogglesComponent> {
+
+    override fun build(components: UFWComponentRegistry): FeatureTogglesComponent {
         return FeatureTogglesComponent.create(
             coreComponent = components.core,
             keyValueStoreComponent = components.keyValueStore,
@@ -24,4 +34,4 @@ public class FeatureTogglesComponentBuilder(public val components: UFWRegistry) 
     }
 }
 
-public val UFWRegistry.featureToggles: FeatureTogglesComponent get() = _components["FeatureToggles"] as FeatureTogglesComponent
+public val UFWComponentRegistry.featureToggles: FeatureTogglesComponent get() = get(FeatureTogglesComponent)

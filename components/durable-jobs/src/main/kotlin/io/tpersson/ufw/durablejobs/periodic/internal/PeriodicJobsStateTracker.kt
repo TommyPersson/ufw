@@ -20,7 +20,7 @@ public class PeriodicJobsStateTracker @Inject constructor(
     private val unitOfWorkFactory: UnitOfWorkFactory,
 ) : ManagedJob() {
 
-    private val specs = periodicJobSpecsProvider.periodicJobSpecs
+    private val specs by lazy { periodicJobSpecsProvider.periodicJobSpecs }
 
     override suspend fun launch() {
         forever(logger, errorDelay = Duration.ofSeconds(5)) {

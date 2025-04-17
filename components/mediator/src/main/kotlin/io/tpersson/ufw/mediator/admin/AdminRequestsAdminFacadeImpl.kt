@@ -19,8 +19,8 @@ public class AdminRequestsAdminFacadeImpl @Inject constructor(
     private val mediator: MediatorInternal,
 ) : AdminRequestsAdminFacade {
 
-    private val commandClasses = mediator.requestClasses.filter { Command::class.java.isAssignableFrom(it.java) }
-    private val queryClasses = mediator.requestClasses.filter { Query::class.java.isAssignableFrom(it.java) }
+    private val commandClasses get() = mediator.requestClasses.filter { Command::class.java.isAssignableFrom(it.java) }
+    private val queryClasses get() = mediator.requestClasses.filter { Query::class.java.isAssignableFrom(it.java) }
 
     override fun getRequests(requestType: RequestType): List<AdminRequestDTO> {
         val requestClasses = when (requestType) {

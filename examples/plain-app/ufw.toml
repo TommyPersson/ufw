@@ -1,2 +1,5 @@
 [ufw.durable-jobs]
 periodic-jobs-check-interval = "PT10S"
+
+[ufw.admin]
+server-port = 8081

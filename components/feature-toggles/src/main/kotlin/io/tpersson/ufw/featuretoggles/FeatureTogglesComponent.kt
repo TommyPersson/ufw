@@ -2,6 +2,8 @@ package io.tpersson.ufw.featuretoggles
 
 import io.tpersson.ufw.admin.AdminComponent
 import io.tpersson.ufw.core.CoreComponent
+import io.tpersson.ufw.core.dsl.ComponentKey
+import io.tpersson.ufw.core.dsl.UFWComponent
 import io.tpersson.ufw.featuretoggles.admin.FeatureTogglesAdminFacadeImpl
 import io.tpersson.ufw.featuretoggles.admin.FeatureTogglesAdminModule
 import io.tpersson.ufw.featuretoggles.internal.FeatureTogglesImpl
@@ -12,8 +14,9 @@ import jakarta.inject.Singleton
 @Singleton
 public class FeatureTogglesComponent @Inject constructor(
     public val featureToggles: FeatureToggles
-) {
-    public companion object {
+) : UFWComponent<FeatureTogglesComponent> {
+
+    public companion object : ComponentKey<FeatureTogglesComponent> {
         public fun create(
             coreComponent: CoreComponent,
             keyValueStoreComponent: KeyValueStoreComponent,
@@ -36,8 +39,8 @@ public class FeatureTogglesComponent @Inject constructor(
             adminComponent.register(featureTogglesAdminModule)
 
             return FeatureTogglesComponent(
-               featureToggles = featureToggles
-           )
+                featureToggles = featureToggles
+            )
         }
     }
 }

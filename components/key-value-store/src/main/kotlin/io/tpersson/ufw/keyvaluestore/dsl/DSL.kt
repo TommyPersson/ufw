@@ -1,27 +1,40 @@
 package io.tpersson.ufw.keyvaluestore.dsl
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import io.tpersson.ufw.core.dsl.UFWBuilder
-import io.tpersson.ufw.core.dsl.UFWRegistry
-import io.tpersson.ufw.core.dsl.UfwDslMarker
-import io.tpersson.ufw.core.dsl.core
+import io.tpersson.ufw.core.CoreComponent
+import io.tpersson.ufw.core.dsl.*
+import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.dsl.database
+import io.tpersson.ufw.database.dsl.installDatabase
 import io.tpersson.ufw.keyvaluestore.KeyValueStoreComponent
+import io.tpersson.ufw.managed.ManagedComponent
+import io.tpersson.ufw.managed.dsl.installManaged
 import io.tpersson.ufw.managed.dsl.managed
-import java.time.Duration
 
 @UfwDslMarker
-public fun UFWBuilder.RootBuilder.keyValueStore(builder: KeyValueStoreComponentBuilder.() -> Unit) {
-    components["KeyValueStore"] = KeyValueStoreComponentBuilder(UFWRegistry(components)).also(builder).build()
+public fun UFWBuilder.RootBuilder.installKeyValueStore(configure: KeyValueStoreBuilderContext.() -> Unit = {}) {
+    installCore()
+    installDatabase()
+    installManaged()
+
+    val ctx = contexts.getOrPut(KeyValueStoreComponent) { KeyValueStoreBuilderContext() }
+        .also(configure)
+
+    builders.add(KeyValueStoreComponentBuilder(ctx))
 }
 
-@UfwDslMarker
-public class KeyValueStoreComponentBuilder(
-    private val components: UFWRegistry
-) {
-    public var objectMapper: ObjectMapper? = null
+public class KeyValueStoreBuilderContext : ComponentBuilderContext<KeyValueStoreComponent>
 
-    public fun build(): KeyValueStoreComponent {
+public class KeyValueStoreComponentBuilder(
+    private val context: KeyValueStoreBuilderContext
+) : ComponentBuilder<KeyValueStoreComponent> {
+
+    override val dependencies: List<ComponentKey<*>> = listOf(
+        CoreComponent,
+        DatabaseComponent,
+        ManagedComponent,
+    )
+
+    override fun build(components: UFWComponentRegistry): KeyValueStoreComponent {
         return KeyValueStoreComponent.create(
             coreComponent = components.core,
             databaseComponent = components.database,
@@ -30,4 +43,4 @@ public class KeyValueStoreComponentBuilder(
     }
 }
 
-public val UFWRegistry.keyValueStore: KeyValueStoreComponent get() = _components["KeyValueStore"] as KeyValueStoreComponent
+public val UFWComponentRegistry.keyValueStore: KeyValueStoreComponent get() = get(KeyValueStoreComponent)

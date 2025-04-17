@@ -2,6 +2,8 @@ package io.tpersson.ufw.durableevents
 
 import io.tpersson.ufw.admin.AdminComponent
 import io.tpersson.ufw.core.CoreComponent
+import io.tpersson.ufw.core.dsl.ComponentKey
+import io.tpersson.ufw.core.dsl.UFWComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.databasequeue.DatabaseQueueComponent
@@ -9,6 +11,7 @@ import io.tpersson.ufw.databasequeue.admin.DatabaseQueueAdminFacadeImpl
 import io.tpersson.ufw.durableevents.admin.DurableEventsAdminModule
 import io.tpersson.ufw.durableevents.common.IncomingEventIngester
 import io.tpersson.ufw.durableevents.handler.DurableEventHandler
+import io.tpersson.ufw.durableevents.handler.internal.DurableEventHandlersProvider
 import io.tpersson.ufw.durableevents.handler.internal.DurableEventQueueWorkersManager
 import io.tpersson.ufw.durableevents.handler.internal.IncomingEventIngesterImpl
 import io.tpersson.ufw.durableevents.handler.internal.SimpleDurableEventHandlersProvider
@@ -21,11 +24,25 @@ import io.tpersson.ufw.durableevents.publisher.internal.managed.EventOutboxNotif
 import io.tpersson.ufw.durableevents.publisher.internal.managed.EventOutboxWorker
 import io.tpersson.ufw.durableevents.publisher.transports.DirectOutgoingEventTransport
 import jakarta.inject.Inject
+import jakarta.inject.Singleton
 
-public class DurableEventsComponent @Inject constructor(
-    public val eventPublisher: DurableEventPublisher,
-    public val eventIngester: IncomingEventIngester,
-) {
+public interface DurableEventsComponent : UFWComponent<DurableEventsComponent> {
+    public val eventPublisher: DurableEventPublisher
+    public val eventIngester: IncomingEventIngester
+
+    public fun register(handler: DurableEventHandler)
+}
+
+public interface DurableEventsComponentInternal : DurableEventsComponent {
+    public val eventHandlers: DurableEventHandlersProvider
+}
+
+@Singleton
+public class DurableEventsComponentImpl @Inject constructor(
+    public override val eventPublisher: DurableEventPublisher,
+    public override val eventIngester: IncomingEventIngester,
+    public override val eventHandlers: DurableEventHandlersProvider,
+) : DurableEventsComponentInternal {
     init {
         Migrator.registerMigrationScript(
             componentName = "durable_events",
@@ -33,7 +50,11 @@ public class DurableEventsComponent @Inject constructor(
         )
     }
 
-    public companion object {
+    public override fun register(handler: DurableEventHandler) {
+        eventHandlers.add(handler)
+    }
+
+    public companion object : ComponentKey<DurableEventsComponent> {
         public fun create(
             coreComponent: CoreComponent,
             databaseComponent: DatabaseComponent,
@@ -42,9 +63,9 @@ public class DurableEventsComponent @Inject constructor(
             adminComponent: AdminComponent,
             outgoingEventTransport: OutgoingEventTransport?,
             handlers: Set<DurableEventHandler>,
-        ): DurableEventsComponent {
+        ): DurableEventsComponentImpl {
 
-            val durableEventHandlersProvider = SimpleDurableEventHandlersProvider(handlers)
+            val durableEventHandlersProvider = SimpleDurableEventHandlersProvider(handlers.toMutableSet())
 
             val durableEventQueueWorkersManager = DurableEventQueueWorkersManager(
                 workerFactory = databaseQueueComponent.databaseQueueWorkerFactory,
@@ -99,9 +120,10 @@ public class DurableEventsComponent @Inject constructor(
             managedComponent.register(durableEventQueueWorkersManager)
             managedComponent.register(eventOutboxWorker)
 
-            return DurableEventsComponent(
+            return DurableEventsComponentImpl(
                 eventPublisher = publisher,
                 eventIngester = ingester,
+                eventHandlers = durableEventHandlersProvider,
             )
         }
     }

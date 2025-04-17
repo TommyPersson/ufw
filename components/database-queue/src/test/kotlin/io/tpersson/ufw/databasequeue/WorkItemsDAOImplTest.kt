@@ -4,10 +4,12 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.core.dsl.UFW
 import io.tpersson.ufw.core.dsl.core
+import io.tpersson.ufw.core.dsl.installCore
 import io.tpersson.ufw.database.dsl.database
+import io.tpersson.ufw.database.dsl.installDatabase
 import io.tpersson.ufw.database.exceptions.MinimumAffectedRowsException
 import io.tpersson.ufw.database.unitofwork.use
-import io.tpersson.ufw.databasequeue.dsl.databaseQueue
+import io.tpersson.ufw.databasequeue.dsl.installDatabaseQueue
 import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
 import io.tpersson.ufw.databasequeue.internal.WorkItemEvent
 import io.tpersson.ufw.databasequeue.internal.WorkItemsDAOImpl
@@ -46,13 +48,13 @@ internal class WorkItemsDAOImplTest {
         val testClock = TestClock()
 
         val ufw = UFW.build {
-            core {
+            installCore {
                 clock = testClock
             }
-            database {
+            installDatabase {
                 dataSource = HikariDataSource(config)
             }
-            databaseQueue {
+            installDatabaseQueue {
             }
         }
 

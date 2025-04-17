@@ -1,6 +1,8 @@
 package io.tpersson.ufw.databasequeue
 
 import io.tpersson.ufw.core.CoreComponent
+import io.tpersson.ufw.core.dsl.ComponentKey
+import io.tpersson.ufw.core.dsl.UFWComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.databasequeue.admin.DatabaseQueueAdminFacade
@@ -8,7 +10,9 @@ import io.tpersson.ufw.databasequeue.admin.DatabaseQueueAdminFacadeImpl
 import io.tpersson.ufw.databasequeue.internal.*
 import io.tpersson.ufw.databasequeue.worker.*
 import jakarta.inject.Inject
+import jakarta.inject.Singleton
 
+@Singleton
 public class DatabaseQueueComponent @Inject constructor(
     public val databaseQueueWorkerFactory: DatabaseQueueWorkerFactory,
     public val workQueue: WorkQueue,
@@ -18,7 +22,7 @@ public class DatabaseQueueComponent @Inject constructor(
     public val workQueuesDAO: WorkQueuesDAO,
     public val queueStateChecker: QueueStateChecker,
     public val adminManager: DatabaseQueueAdminFacade,
-) {
+) : UFWComponent<DatabaseQueueComponent> {
 
     init {
         Migrator.registerMigrationScript(
@@ -27,7 +31,7 @@ public class DatabaseQueueComponent @Inject constructor(
         )
     }
 
-    public companion object {
+    public companion object : ComponentKey<DatabaseQueueComponent> {
         public fun create(
             coreComponent: CoreComponent,
             databaseComponent: DatabaseComponent,

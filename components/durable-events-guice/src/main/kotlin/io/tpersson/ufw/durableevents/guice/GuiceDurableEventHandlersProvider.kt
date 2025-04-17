@@ -25,4 +25,8 @@ public class GuiceDurableEventHandlersProvider @Inject constructor(
     public override fun get(): Set<DurableEventHandler> {
         return handlers
     }
+
+    override fun add(handler: DurableEventHandler) {
+        error("Not supported")
+    }
 }

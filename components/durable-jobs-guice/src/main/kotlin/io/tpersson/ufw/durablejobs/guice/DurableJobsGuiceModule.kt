@@ -6,6 +6,8 @@ import io.tpersson.ufw.databasequeue.admin.DatabaseQueueAdminFacade
 import io.tpersson.ufw.databasequeue.admin.DatabaseQueueAdminFacadeImpl
 import io.tpersson.ufw.durablejobs.DurableJobQueue
 import io.tpersson.ufw.durablejobs.DurableJobsComponent
+import io.tpersson.ufw.durablejobs.DurableJobsComponentImpl
+import io.tpersson.ufw.durablejobs.DurableJobsComponentInternal
 import io.tpersson.ufw.durablejobs.internal.DurableJobHandlersProvider
 import io.tpersson.ufw.durablejobs.internal.DurableJobQueueImpl
 import io.tpersson.ufw.durablejobs.periodic.internal.PeriodicJobScheduler
@@ -26,7 +28,8 @@ public class DurableJobsGuiceModule() : Module {
             bind(PeriodicJobSpecsProvider::class.java).to(PeriodicJobSpecsProviderImpl::class.java)
             bind(PeriodicJobScheduler::class.java).to(PeriodicJobSchedulerImpl::class.java)
 
-            bind(DurableJobsComponent::class.java).asEagerSingleton()
+            bind(DurableJobsComponent::class.java).to(DurableJobsComponentImpl::class.java).asEagerSingleton()
+            bind(DurableJobsComponentInternal::class.java).to(DurableJobsComponentImpl::class.java).asEagerSingleton()
         }
     }
 }

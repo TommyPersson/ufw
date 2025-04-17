@@ -8,6 +8,8 @@ import io.tpersson.ufw.mediator.Middleware
 import io.tpersson.ufw.mediator.RequestHandler
 import io.tpersson.ufw.mediator.internal.MediatorImpl
 import io.tpersson.ufw.mediator.internal.MediatorInternal
+import io.tpersson.ufw.mediator.internal.SimpleMediatorMiddlewareRegistry
+import io.tpersson.ufw.mediator.internal.SimpleMediatorRequestHandlerRegistry
 import jakarta.inject.Inject
 import jakarta.inject.Named
 import jakarta.inject.Provider
@@ -36,7 +38,11 @@ public class MediatorInternalProvider @Inject constructor(
             .map { injector.getInstance(it.java) as Middleware<*, *> }
             .toSet()
 
-        MediatorImpl(meterRegistry, handlers, middlewares)
+        MediatorImpl(
+            meterRegistry = meterRegistry,
+            handlerRegistry = SimpleMediatorRequestHandlerRegistry(handlers),
+            middlewareRegistry = SimpleMediatorMiddlewareRegistry(middlewares)
+        )
     }
 
 

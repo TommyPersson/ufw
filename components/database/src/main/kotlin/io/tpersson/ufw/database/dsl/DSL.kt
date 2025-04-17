@@ -1,27 +1,40 @@
 package io.tpersson.ufw.database.dsl
 
-import io.tpersson.ufw.core.dsl.UFWBuilder
-import io.tpersson.ufw.core.dsl.UFWRegistry
-import io.tpersson.ufw.core.dsl.UfwDslMarker
-import io.tpersson.ufw.core.dsl.core
+import io.tpersson.ufw.core.CoreComponent
+import io.tpersson.ufw.core.dsl.*
 import io.tpersson.ufw.database.DatabaseComponent
 import javax.sql.DataSource
 
 @UfwDslMarker
-public fun UFWBuilder.RootBuilder.database(builder: DatabaseComponentBuilder.() -> Unit) {
-    components["database"] = DatabaseComponentBuilder(UFWRegistry(components)).also(builder).build()
+public fun UFWBuilder.RootBuilder.installDatabase(configure: DatabaseComponentBuilderContext.() -> Unit = {}) {
+    installCore()
+
+    val ctx = contexts.getOrPut(DatabaseComponent) { DatabaseComponentBuilderContext() }
+        .also(configure)
+
+    builders.add(DatabaseComponentBuilder(ctx))
 }
 
-@UfwDslMarker
-public class DatabaseComponentBuilder(private val components: UFWRegistry) {
+public class DatabaseComponentBuilderContext : ComponentBuilderContext<DatabaseComponent> {
     public var dataSource: DataSource? = null
+}
 
-    public fun build(): DatabaseComponent {
+public class DatabaseComponentBuilder(
+    private val context: DatabaseComponentBuilderContext,
+) : ComponentBuilder<DatabaseComponent> {
+
+    override val dependencies: List<ComponentKey<*>> get() = listOf(CoreComponent)
+
+    public override fun build(
+        components: UFWComponentRegistry,
+    ): DatabaseComponent {
         return DatabaseComponent.create(
             coreComponent = components.core,
-            dataSource = dataSource ?: error("dataSource must be set in 'database { }'!")
+            dataSource = context.dataSource ?: error("dataSource must be set for the database component!")
         )
     }
 }
 
-public val UFWRegistry.database: DatabaseComponent get() = _components["database"] as DatabaseComponent
+public val UFWComponentRegistry.database: DatabaseComponent get() = get(DatabaseComponent)
+
+

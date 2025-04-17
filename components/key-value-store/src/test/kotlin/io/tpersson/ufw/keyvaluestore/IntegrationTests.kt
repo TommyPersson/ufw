@@ -2,10 +2,15 @@ package io.tpersson.ufw.keyvaluestore
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.tpersson.ufw.core.CoreComponent
-import io.tpersson.ufw.database.DatabaseComponent
+import io.tpersson.ufw.core.dsl.UFW
+import io.tpersson.ufw.core.dsl.core
+import io.tpersson.ufw.core.dsl.installCore
+import io.tpersson.ufw.database.dsl.database
+import io.tpersson.ufw.database.dsl.installDatabase
+import io.tpersson.ufw.keyvaluestore.dsl.installKeyValueStore
+import io.tpersson.ufw.keyvaluestore.dsl.keyValueStore
 import io.tpersson.ufw.keyvaluestore.storageengine.PostgresStorageEngine
-import io.tpersson.ufw.managed.ManagedComponent
+import io.tpersson.ufw.managed.dsl.installManaged
 import io.tpersson.ufw.test.TestClock
 import io.tpersson.ufw.test.isEqualToIgnoringNanos
 import kotlinx.coroutines.runBlocking
@@ -17,8 +22,6 @@ import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.lifecycle.Startables
 import org.testcontainers.utility.DockerImageName
 import java.time.Duration
-import java.time.Instant
-import java.time.Clock
 
 internal class IntegrationTests {
 
@@ -36,18 +39,23 @@ internal class IntegrationTests {
             it.isAutoCommit = false
         }
 
-        val dataSource = HikariDataSource(config)
-        val testClock = TestClock()
-        val coreComponent = CoreComponent.create(testClock)
-        val databaseComponent = DatabaseComponent.create(coreComponent, dataSource)
-        val unitOfWorkFactory = databaseComponent.unitOfWorkFactory
-        val managedComponent = ManagedComponent.create(emptySet())
-        val keyValueStoreComponent = KeyValueStoreComponent.create(coreComponent, databaseComponent, managedComponent)
-        val storageEngine = keyValueStoreComponent.storageEngine as PostgresStorageEngine
-        val keyValueStore = keyValueStoreComponent.keyValueStore
+        val ufw = UFW.build {
+            installCore {
+                clock = TestClock()
+            }
+            installDatabase {
+                dataSource = HikariDataSource(config)
+            }
+            installKeyValueStore()
+        }
+
+        val testClock = ufw.core.clock as TestClock
+        val unitOfWorkFactory = ufw.database.unitOfWorkFactory
+        val storageEngine = ufw.keyValueStore.storageEngine as PostgresStorageEngine
+        val keyValueStore = ufw.keyValueStore.keyValueStore
 
         init {
-            databaseComponent.migrator.run()
+            ufw.database.migrator.run()
         }
     }
 

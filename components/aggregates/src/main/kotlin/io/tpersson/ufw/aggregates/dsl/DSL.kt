@@ -1,22 +1,45 @@
 package io.tpersson.ufw.aggregates.dsl
 
+import io.tpersson.ufw.admin.AdminComponent
 import io.tpersson.ufw.admin.dsl.admin
-import io.tpersson.ufw.core.dsl.UFWBuilder
-import io.tpersson.ufw.core.dsl.UFWRegistry
-import io.tpersson.ufw.core.dsl.UfwDslMarker
-import io.tpersson.ufw.core.dsl.core
+import io.tpersson.ufw.admin.dsl.installAdmin
 import io.tpersson.ufw.database.dsl.database
 import io.tpersson.ufw.aggregates.AggregatesComponent
+import io.tpersson.ufw.core.CoreComponent
+import io.tpersson.ufw.core.dsl.*
+import io.tpersson.ufw.database.DatabaseComponent
+import io.tpersson.ufw.database.dsl.installDatabase
+import io.tpersson.ufw.durableevents.DurableEventsComponentImpl
 import io.tpersson.ufw.durableevents.dsl.durableEvents
+import io.tpersson.ufw.durableevents.dsl.installDurableEvents
 
 @UfwDslMarker
-public fun UFWBuilder.RootBuilder.aggregates(builder: AggregatesComponentBuilder.() -> Unit) {
-    components["Aggregates"] = AggregatesComponentBuilder(UFWRegistry(components)).also(builder).build()
+public fun UFWBuilder.RootBuilder.installAggregates(configure: AggregatesComponentBuilderContext.() -> Unit = {}) {
+    installCore()
+    installDatabase()
+    installDurableEvents()
+    installAdmin()
+
+    val ctx = contexts.getOrPut(AggregatesComponent) { AggregatesComponentBuilderContext() }
+        .also(configure)
+
+    builders.add(AggregatesComponentBuilder(ctx))
 }
 
-@UfwDslMarker
-public class AggregatesComponentBuilder(public val components: UFWRegistry) {
-    public fun build(): AggregatesComponent {
+public class AggregatesComponentBuilderContext : ComponentBuilderContext<AggregatesComponent>
+
+public class AggregatesComponentBuilder(
+    private val context: AggregatesComponentBuilderContext
+) : ComponentBuilder<AggregatesComponent> {
+
+    override val dependencies: List<ComponentKey<*>> = listOf(
+        CoreComponent,
+        DatabaseComponent,
+        DurableEventsComponentImpl,
+        AdminComponent
+    )
+
+    public override fun build(components: UFWComponentRegistry): AggregatesComponent {
         return AggregatesComponent.create(
             coreComponent = components.core,
             databaseComponent = components.database,
@@ -26,4 +49,4 @@ public class AggregatesComponentBuilder(public val components: UFWRegistry) {
     }
 }
 
-public val UFWRegistry.aggregates: AggregatesComponent get() = _components["Aggregates"] as AggregatesComponent
+public val UFWComponentRegistry.aggregates: AggregatesComponent get() = get(AggregatesComponent)

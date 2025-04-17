@@ -1,21 +1,31 @@
 package io.tpersson.ufw.cluster.dsl
 
 import io.tpersson.ufw.admin.dsl.admin
-import io.tpersson.ufw.core.dsl.UFWBuilder
-import io.tpersson.ufw.core.dsl.UFWRegistry
-import io.tpersson.ufw.core.dsl.UfwDslMarker
-import io.tpersson.ufw.core.dsl.core
+import io.tpersson.ufw.admin.dsl.installAdmin
 import io.tpersson.ufw.cluster.ClusterComponent
+import io.tpersson.ufw.core.dsl.*
+import io.tpersson.ufw.keyvaluestore.dsl.installKeyValueStore
 import io.tpersson.ufw.keyvaluestore.dsl.keyValueStore
 
 @UfwDslMarker
-public fun UFWBuilder.RootBuilder.cluster(builder: ClusterComponentBuilder.() -> Unit = {}) {
-    components["Cluster"] = ClusterComponentBuilder(UFWRegistry(components)).also(builder).build()
+public fun UFWBuilder.RootBuilder.installCluster(configure: ClusterComponentBuilderContext.() -> Unit = {}) {
+    installCore()
+    installKeyValueStore()
+    installAdmin()
+
+    val ctx = contexts.getOrPut(ClusterComponent) { ClusterComponentBuilderContext() }
+        .also(configure)
+
+    builders.add(ClusterComponentBuilder(ctx))
 }
 
-@UfwDslMarker
-public class ClusterComponentBuilder(public val components: UFWRegistry) {
-    public fun build(): ClusterComponent {
+public class ClusterComponentBuilderContext : ComponentBuilderContext<ClusterComponent>
+
+public class ClusterComponentBuilder(
+    private val context: ClusterComponentBuilderContext
+) : ComponentBuilder<ClusterComponent> {
+
+    override fun build(components: UFWComponentRegistry): ClusterComponent {
         return ClusterComponent.create(
             coreComponent = components.core,
             keyValueStoreComponent = components.keyValueStore,
@@ -24,4 +34,4 @@ public class ClusterComponentBuilder(public val components: UFWRegistry) {
     }
 }
 
-public val UFWRegistry.cluster: ClusterComponent get() = _components["Cluster"] as ClusterComponent
+public val UFWComponentRegistry.cluster: ClusterComponent get() = get(ClusterComponent)

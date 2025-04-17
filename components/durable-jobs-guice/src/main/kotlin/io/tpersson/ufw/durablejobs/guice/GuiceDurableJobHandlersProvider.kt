@@ -22,4 +22,8 @@ public class GuiceDurableJobHandlersProvider @Inject constructor(
     public override fun get(): Set<DurableJobHandler<*>> {
         return handlers.toSet()
     }
+
+    override fun add(handler: DurableJobHandler<*>) {
+        error("Not supported")
+    }
 }

@@ -7,20 +7,21 @@ import io.tpersson.ufw.aggregates.internal.AggregateFactRepositoryImpl
 import io.tpersson.ufw.aggregates.internal.AggregateRepositoryProvider
 import io.tpersson.ufw.aggregates.internal.SimpleAggregateRepositoryProvider
 import io.tpersson.ufw.core.CoreComponent
+import io.tpersson.ufw.core.dsl.ComponentKey
+import io.tpersson.ufw.core.dsl.UFWComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.durableevents.DurableEventsComponent
 import io.tpersson.ufw.durableevents.publisher.DurableEventPublisher
 import jakarta.inject.Inject
+import jakarta.inject.Singleton
 
+@Singleton
 public class AggregatesComponent @Inject constructor(
     public val factRepository: AggregateFactRepository,
     public val eventPublisher: DurableEventPublisher,
     private val repositoryProvider: AggregateRepositoryProvider,
-) {
-    public fun register(repository: AggregateRepository<*, *>) {
-        repositoryProvider.add(repository)
-    }
+) : UFWComponent<AggregatesComponent> {
 
     init {
         Migrator.registerMigrationScript(
@@ -29,7 +30,11 @@ public class AggregatesComponent @Inject constructor(
         )
     }
 
-    public companion object {
+    public fun register(repository: AggregateRepository<*, *>) {
+        repositoryProvider.add(repository)
+    }
+
+    public companion object : ComponentKey<AggregatesComponent> {
         public fun create(
             coreComponent: CoreComponent,
             databaseComponent: DatabaseComponent,

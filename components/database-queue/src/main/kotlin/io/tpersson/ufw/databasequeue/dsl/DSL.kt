@@ -1,22 +1,29 @@
 package io.tpersson.ufw.databasequeue.dsl
 
-import io.tpersson.ufw.core.dsl.UFWBuilder
-import io.tpersson.ufw.core.dsl.UFWRegistry
-import io.tpersson.ufw.core.dsl.UfwDslMarker
-import io.tpersson.ufw.core.dsl.core
+import io.tpersson.ufw.core.dsl.*
 import io.tpersson.ufw.database.dsl.database
+import io.tpersson.ufw.database.dsl.installDatabase
 import io.tpersson.ufw.databasequeue.DatabaseQueueComponent
 
 @UfwDslMarker
-public fun UFWBuilder.RootBuilder.databaseQueue(builder: DatabaseQueueComponentBuilder.() -> Unit) {
-    components["DatabaseQueue"] = DatabaseQueueComponentBuilder(UFWRegistry(components)).also(builder).build()
+public fun UFWBuilder.RootBuilder.installDatabaseQueue(configure: DatabaseQueueComponentBuilderContext.() -> Unit = {}) {
+    installCore()
+    installDatabase()
+
+    val ctx = contexts.getOrPut(DatabaseQueueComponent) { DatabaseQueueComponentBuilderContext() }
+        .also(configure)
+
+    builders.add(DatabaseQueueComponentBuilder(ctx))
 }
 
-@UfwDslMarker
+
+public class DatabaseQueueComponentBuilderContext : ComponentBuilderContext<DatabaseQueueComponent>
+
 public class DatabaseQueueComponentBuilder(
-    private val components: UFWRegistry
-) {
-    public fun build(): DatabaseQueueComponent {
+    private val context: DatabaseQueueComponentBuilderContext
+) : ComponentBuilder<DatabaseQueueComponent> {
+
+    override fun build(components: UFWComponentRegistry): DatabaseQueueComponent {
         return DatabaseQueueComponent.create(
             coreComponent = components.core,
             databaseComponent = components.database,
@@ -24,4 +31,4 @@ public class DatabaseQueueComponentBuilder(
     }
 }
 
-public val UFWRegistry.databaseQueue: DatabaseQueueComponent get() = _components["DatabaseQueue"] as DatabaseQueueComponent
+public val UFWComponentRegistry.databaseQueue: DatabaseQueueComponent get() = get(DatabaseQueueComponent)

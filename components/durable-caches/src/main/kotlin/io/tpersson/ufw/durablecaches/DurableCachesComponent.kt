@@ -2,6 +2,8 @@ package io.tpersson.ufw.durablecaches
 
 import io.tpersson.ufw.admin.AdminComponent
 import io.tpersson.ufw.core.CoreComponent
+import io.tpersson.ufw.core.dsl.ComponentKey
+import io.tpersson.ufw.core.dsl.UFWComponent
 import io.tpersson.ufw.durablecaches.admin.DurableCachesAdminFacadeImpl
 import io.tpersson.ufw.durablecaches.admin.DurableCachesAdminModule
 import io.tpersson.ufw.durablecaches.internal.DurableCachesImpl
@@ -12,8 +14,9 @@ import jakarta.inject.Singleton
 @Singleton
 public class DurableCachesComponent @Inject constructor(
     public val durableCaches: DurableCaches
-) {
-    public companion object {
+) : UFWComponent<DurableCachesComponent> {
+
+    public companion object : ComponentKey<DurableCachesComponent> {
         public fun create(
             coreComponent: CoreComponent,
             keyValueStoreComponent: KeyValueStoreComponent,

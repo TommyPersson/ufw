@@ -1,10 +1,15 @@
 package io.tpersson.ufw.managed
 
+import io.tpersson.ufw.core.dsl.ComponentKey
+import io.tpersson.ufw.core.dsl.UFWComponent
 import jakarta.inject.Inject
+import jakarta.inject.Singleton
 
+@Singleton
 public class ManagedComponent @Inject constructor(
     public val managedRunner: ManagedRunner
-) {
+) : UFWComponent<ManagedComponent> {
+
     public fun register(instance: Managed) {
         managedRunner.register(instance)
     }
@@ -17,9 +22,9 @@ public class ManagedComponent @Inject constructor(
         managedRunner.stopAll()
     }
 
-    public companion object {
-        public fun create(instances: Set<Managed>): ManagedComponent {
-            val managedRunner = ManagedRunner(instances)
+    public companion object : ComponentKey<ManagedComponent> {
+        public fun create(): ManagedComponent {
+            val managedRunner = ManagedRunner(emptySet())
             return ManagedComponent(managedRunner)
         }
     }

@@ -1,18 +1,23 @@
 package io.tpersson.ufw.keyvaluestore
 
 import io.tpersson.ufw.core.CoreComponent
+import io.tpersson.ufw.core.dsl.ComponentKey
+import io.tpersson.ufw.core.dsl.UFWComponent
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
+import io.tpersson.ufw.keyvaluestore.dsl.KeyValueStoreComponentBuilder
 import io.tpersson.ufw.keyvaluestore.internal.ExpiredEntryReaper
 import io.tpersson.ufw.keyvaluestore.storageengine.PostgresStorageEngine
 import io.tpersson.ufw.keyvaluestore.storageengine.StorageEngine
 import io.tpersson.ufw.managed.ManagedComponent
 import jakarta.inject.Inject
+import jakarta.inject.Singleton
 
+@Singleton
 public class KeyValueStoreComponent @Inject constructor(
     public val keyValueStore: KeyValueStore,
     public val storageEngine: StorageEngine,
-) {
+) : UFWComponent<KeyValueStoreComponent> {
     init {
         Migrator.registerMigrationScript(
             componentName = "key_value_store",
@@ -20,7 +25,7 @@ public class KeyValueStoreComponent @Inject constructor(
         )
     }
 
-    public companion object {
+    public companion object : ComponentKey<KeyValueStoreComponent> {
         public fun create(
             coreComponent: CoreComponent,
             databaseComponent: DatabaseComponent,

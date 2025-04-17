@@ -5,12 +5,17 @@ import io.tpersson.ufw.admin.internal.CoreAdminModule
 import io.tpersson.ufw.admin.internal.ManagedAdminServer
 import io.tpersson.ufw.admin.internal.SimpleAdminModulesProvider
 import io.tpersson.ufw.core.CoreComponent
+import io.tpersson.ufw.core.dsl.ComponentKey
+import io.tpersson.ufw.core.dsl.UFWComponent
 import io.tpersson.ufw.managed.ManagedComponent
 import jakarta.inject.Inject
+import jakarta.inject.Singleton
 
+@Singleton
 public class AdminComponent @Inject constructor(
     private val adminModulesProvider: AdminModulesProvider,
-) {
+) : UFWComponent<AdminComponent> {
+
     public fun register(adminModule: AdminModule) {
         if (adminModulesProvider is SimpleAdminModulesProvider) {
             adminModulesProvider.add(adminModule)
@@ -19,7 +24,7 @@ public class AdminComponent @Inject constructor(
         }
     }
 
-    public companion object {
+    public companion object : ComponentKey<AdminComponent> {
         public fun create(
             coreComponent: CoreComponent,
             managedComponent: ManagedComponent,

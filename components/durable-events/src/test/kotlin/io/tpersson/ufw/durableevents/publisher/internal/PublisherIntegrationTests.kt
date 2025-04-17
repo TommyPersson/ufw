@@ -2,19 +2,22 @@ package io.tpersson.ufw.durableevents.publisher.internal
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.tpersson.ufw.admin.dsl.admin
+import io.tpersson.ufw.admin.dsl.installAdmin
 import io.tpersson.ufw.core.dsl.UFW
-import io.tpersson.ufw.core.dsl.core
+import io.tpersson.ufw.core.dsl.installCore
 import io.tpersson.ufw.database.dsl.database
+import io.tpersson.ufw.database.dsl.installDatabase
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.database.unitofwork.use
-import io.tpersson.ufw.databasequeue.dsl.databaseQueue
+import io.tpersson.ufw.databasequeue.dsl.installDatabaseQueue
 import io.tpersson.ufw.durableevents.common.DurableEvent
 import io.tpersson.ufw.durableevents.common.DurableEventId
 import io.tpersson.ufw.durableevents.common.EventDefinition
 import io.tpersson.ufw.managed.dsl.managed
+import io.tpersson.ufw.managed.dsl.installManaged
 import io.tpersson.ufw.test.TestClock
 import io.tpersson.ufw.durableevents.dsl.durableEvents
+import io.tpersson.ufw.durableevents.dsl.installDurableEvents
 import io.tpersson.ufw.durableevents.publisher.OutgoingEvent
 import io.tpersson.ufw.durableevents.publisher.OutgoingEventTransport
 import kotlinx.coroutines.delay
@@ -50,19 +53,19 @@ internal class PublisherIntegrationTests {
         val testOutgoingEventTransport = TestOutgoingEventTransport()
 
         val ufw = UFW.build {
-            core {
+            installCore {
                 clock = testClock
             }
-            managed {
+            installManaged {
             }
-            admin {
+            installAdmin {
             }
-            database {
+            installDatabase {
                 dataSource = HikariDataSource(config)
             }
-            databaseQueue {
+            installDatabaseQueue {
             }
-            durableEvents {
+            installDurableEvents {
                 outgoingEventTransport = testOutgoingEventTransport
             }
         }

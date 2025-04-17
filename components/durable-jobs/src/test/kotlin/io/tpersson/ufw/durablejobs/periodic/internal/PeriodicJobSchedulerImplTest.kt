@@ -50,7 +50,7 @@ internal class PeriodicJobSchedulerImplTest {
         runBlocking {
             periodicJobSpecsProvider = PeriodicJobSpecsProviderImpl(
                 jobHandlersProvider = SimpleDurableJobHandlersProvider(
-                    setOf(
+                    mutableSetOf(
                         EveryMinuteJobHandler(),
                         EveryHourJobHandler(),
                         EveryDayJobHandler(),
