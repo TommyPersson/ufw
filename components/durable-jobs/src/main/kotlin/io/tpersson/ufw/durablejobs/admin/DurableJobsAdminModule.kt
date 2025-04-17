@@ -13,6 +13,7 @@ import io.tpersson.ufw.admin.contracts.toApplicationModuleDTO
 import io.tpersson.ufw.admin.contracts.toDTO
 import io.tpersson.ufw.admin.raise
 import io.tpersson.ufw.admin.utils.getPaginationOptions
+import io.tpersson.ufw.core.utils.Memoized
 import io.tpersson.ufw.core.utils.findModuleMolecule
 import io.tpersson.ufw.databasequeue.WorkItemQueueId
 import io.tpersson.ufw.databasequeue.WorkItemState
@@ -42,11 +43,10 @@ public class DurableJobsAdminModule @Inject constructor(
 
     public override val moduleId: String = "durable-jobs"
 
-    private val jobHandlerDefinitions: List<DurableJobDefinition<*>> by lazy {
-        durableJobHandlersProvider.get()
-            .map { it.jobDefinition }
-            .sortedBy { it.queueId }
-    }
+    private val jobHandlerDefinitions: List<DurableJobDefinition<*>>
+            by Memoized({ durableJobHandlersProvider.get() }) { handlers ->
+                handlers.map { it.jobDefinition }.sortedBy { it.queueId }
+            }
 
     override fun configure(application: Application) {
         application.routing {

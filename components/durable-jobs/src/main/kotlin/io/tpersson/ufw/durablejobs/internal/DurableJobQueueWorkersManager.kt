@@ -2,6 +2,7 @@ package io.tpersson.ufw.durablejobs.internal
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.tpersson.ufw.core.NamedBindings
+import io.tpersson.ufw.core.utils.Memoized
 import io.tpersson.ufw.databasequeue.WorkItemHandler
 import io.tpersson.ufw.databasequeue.WorkItemQueueId
 import io.tpersson.ufw.databasequeue.worker.AbstractWorkQueueManager
@@ -20,20 +21,21 @@ public class DurableJobQueueWorkersManager @Inject constructor(
     workerFactory = workerFactory,
     adapterSettings = DurableJobsDatabaseQueueAdapterSettings
 ) {
-    protected override val handlersByTypeByQueueId: Map<WorkItemQueueId, Map<String, WorkItemHandler<*>>> by lazy {
-        durableJobHandlersProvider.get()
-            .groupBy { it.jobDefinition.queueId.toWorkItemQueueId() }
-            .mapValues {
-                it.value.associateBy(
-                    keySelector = { handler -> handler.jobDefinition.type },
-                    valueTransform = { handler ->
-                        DurableJobHandlerAdapter(
-                            handler.jobDefinition,
-                            handler as DurableJobHandler<DurableJob>,
-                            objectMapper
+    protected override val handlersByTypeByQueueId: Map<WorkItemQueueId, Map<String, WorkItemHandler<*>>>
+            by Memoized({ durableJobHandlersProvider.get() }) { handlers ->
+                handlers
+                    .groupBy { it.jobDefinition.queueId.toWorkItemQueueId() }
+                    .mapValues {
+                        it.value.associateBy(
+                            keySelector = { handler -> handler.jobDefinition.type },
+                            valueTransform = { handler ->
+                                DurableJobHandlerAdapter(
+                                    handler.jobDefinition,
+                                    handler as DurableJobHandler<DurableJob>,
+                                    objectMapper
+                                )
+                            }
                         )
                     }
-                )
             }
-    }
 }

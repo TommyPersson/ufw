@@ -1,5 +1,6 @@
 package io.tpersson.ufw.durablejobs.periodic.internal
 
+import io.tpersson.ufw.core.utils.Memoized
 import io.tpersson.ufw.core.utils.forever
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.database.unitofwork.use
@@ -20,7 +21,7 @@ public class PeriodicJobsStateTracker @Inject constructor(
     private val unitOfWorkFactory: UnitOfWorkFactory,
 ) : ManagedJob() {
 
-    private val specs by lazy { periodicJobSpecsProvider.periodicJobSpecs }
+    private val specs by Memoized({ periodicJobSpecsProvider.periodicJobSpecs }) { it }
 
     override suspend fun launch() {
         forever(logger, errorDelay = Duration.ofSeconds(5)) {

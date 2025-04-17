@@ -9,6 +9,7 @@ import io.tpersson.ufw.admin.contracts.toApplicationModuleDTO
 import io.tpersson.ufw.admin.contracts.toDTO
 import io.tpersson.ufw.admin.raise
 import io.tpersson.ufw.admin.utils.getPaginationOptions
+import io.tpersson.ufw.core.utils.Memoized
 import io.tpersson.ufw.core.utils.findModuleMolecule
 import io.tpersson.ufw.core.utils.nullIfBlank
 import io.tpersson.ufw.databasequeue.WorkItemQueueId
@@ -32,14 +33,14 @@ import kotlin.reflect.KClass
 public class DurableEventsAdminModule @Inject constructor(
     private val durableEventHandlersProvider: DurableEventHandlersProvider,
     private val databaseQueueAdminFacade: DatabaseQueueAdminFacade,
-
 ) : AdminModule {
 
     public override val moduleId: String = "durable-events"
 
-    private val eventHandlersByQueueId: Map<DurableEventQueueId, List<DurableEventHandlerMethod<*>>> by lazy {
-        durableEventHandlersProvider.get().associate { it.queueId to it.findHandlerMethods() }
-    }
+    private val eventHandlersByQueueId: Map<DurableEventQueueId, List<DurableEventHandlerMethod<*>>>
+            by Memoized({ durableEventHandlersProvider.get() }) { handlers ->
+                handlers.associate { it.queueId to it.findHandlerMethods() }
+            }
 
     override fun configure(application: Application) {
         application.routing {

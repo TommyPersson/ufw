@@ -1,6 +1,5 @@
 package io.tpersson.ufw.examples.common.events
 
-import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.durableevents.handler.DurableEventContext
 import io.tpersson.ufw.durableevents.handler.DurableEventHandler
 import io.tpersson.ufw.durableevents.handler.annotations.EventHandler

@@ -2,6 +2,7 @@ package io.tpersson.ufw.durableevents.handler.internal
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.tpersson.ufw.core.NamedBindings
+import io.tpersson.ufw.core.utils.Memoized
 import io.tpersson.ufw.core.utils.nullIfBlank
 import io.tpersson.ufw.databasequeue.WorkItemHandler
 import io.tpersson.ufw.databasequeue.WorkItemQueueId
@@ -30,20 +31,24 @@ public class DurableEventQueueWorkersManager @Inject constructor(
     workerFactory = workerFactory,
     adapterSettings = DurableEventsDatabaseQueueAdapterSettings
 ) {
-    public val handlerMethodsByQueue: Map<DurableEventQueueId, List<DurableEventHandlerMethod<*>>> =
-        durableEventHandlersProvider.get().associate { handler ->
-            val queueId = handler.queueId
-            val methods = handler.findHandlerMethods()
+    public val handlerMethodsByQueue: Map<DurableEventQueueId, List<DurableEventHandlerMethod<*>>>
+            by Memoized({ durableEventHandlersProvider.get() }) { handlers ->
+                handlers.associate { handler ->
+                    val queueId = handler.queueId
+                    val methods = handler.findHandlerMethods()
 
-            queueId to methods
-        }
-
-    protected override val handlersByTypeByQueueId: Map<WorkItemQueueId, Map<String, WorkItemHandler<*>>> =
-        handlerMethodsByQueue.map { (queueId, methods) ->
-            queueId.toWorkItemQueueId() to methods.associate { method ->
-                method.eventType to DurableEventHandlerAdapter(method.handler, method, objectMapper)
+                    queueId to methods
+                }
             }
-        }.toMap()
+
+    protected override val handlersByTypeByQueueId: Map<WorkItemQueueId, Map<String, WorkItemHandler<*>>>
+            by Memoized({ handlerMethodsByQueue }) { entries ->
+                entries.map { (queueId, methods) ->
+                    queueId.toWorkItemQueueId() to methods.associate { method ->
+                        method.eventType to DurableEventHandlerAdapter(method.handler, method, objectMapper)
+                    }
+                }.toMap()
+            }
 }
 
 public fun DurableEventHandler.findHandlerMethods(): List<DurableEventHandlerMethod<*>> {
