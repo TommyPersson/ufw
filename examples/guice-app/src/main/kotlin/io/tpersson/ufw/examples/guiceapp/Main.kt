@@ -17,17 +17,17 @@ import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.database.unitofwork.use
 import io.tpersson.ufw.databasequeue.guice.DatabaseQueueGuiceModule
 import io.tpersson.ufw.durablecaches.guice.DurableCachesGuiceModule
-import io.tpersson.ufw.durableevents.guice.DurableEventsGuiceModule
-import io.tpersson.ufw.durableevents.publisher.DurableEventPublisher
-import io.tpersson.ufw.durableevents.publisher.OutgoingEventTransport
-import io.tpersson.ufw.durableevents.publisher.transports.DirectOutgoingEventTransport
+import io.tpersson.ufw.durablemessages.guice.DurableEventsGuiceModule
+import io.tpersson.ufw.durablemessages.publisher.DurableMessagePublisher
+import io.tpersson.ufw.durablemessages.publisher.OutgoingMessageTransport
+import io.tpersson.ufw.durablemessages.publisher.transports.DirectOutgoingMessageTransport
 import io.tpersson.ufw.durablejobs.DurableJobQueue
 import io.tpersson.ufw.durablejobs.guice.DurableJobsGuiceModule
 import io.tpersson.ufw.examples.common.Globals
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregate
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregateRepository
 import io.tpersson.ufw.examples.common.commands.PerformGreetingCommand
-import io.tpersson.ufw.examples.common.events.ExampleEventV1
+import io.tpersson.ufw.examples.common.messages.ExampleEventV1
 import io.tpersson.ufw.examples.common.jobs.PrintJob
 import io.tpersson.ufw.examples.common.jobs.PrintJob2
 import io.tpersson.ufw.featuretoggles.guice.FeatureTogglesGuiceModule
@@ -62,8 +62,8 @@ public fun main(): Unit = runBlocking(MDCContext()) {
             OptionalBinder.newOptionalBinder(it, MeterRegistry::class.java)
                 .setBinding().toInstance(Globals.meterRegistry)
 
-            OptionalBinder.newOptionalBinder(it, OutgoingEventTransport::class.java)
-                .setBinding().to(DirectOutgoingEventTransport::class.java)
+            OptionalBinder.newOptionalBinder(it, OutgoingMessageTransport::class.java)
+                .setBinding().to(DirectOutgoingMessageTransport::class.java)
 
             it.bind(CounterAggregateRepository::class.java)
         },
@@ -154,7 +154,7 @@ private suspend fun testAggregates(injector: Injector) {
 }
 
 private suspend fun testTransactionalEvents(injector: Injector) {
-    val transactionalEventPublisher = injector.getInstance(DurableEventPublisher::class.java)
+    val transactionalEventPublisher = injector.getInstance(DurableMessagePublisher::class.java)
     val unitOfWorkFactory = injector.getInstance(UnitOfWorkFactory::class.java)
 
     val event = ExampleEventV1(myContent = "Hello, World!")

@@ -2,9 +2,9 @@ package io.tpersson.ufw.examples.common.managed
 
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.database.unitofwork.use
-import io.tpersson.ufw.durableevents.common.DurableEventId
-import io.tpersson.ufw.durableevents.publisher.DurableEventPublisher
-import io.tpersson.ufw.examples.common.events.ExampleEventV1
+import io.tpersson.ufw.durablemessages.common.DurableMessageId
+import io.tpersson.ufw.durablemessages.publisher.DurableMessagePublisher
+import io.tpersson.ufw.examples.common.messages.ExampleEventV1
 import io.tpersson.ufw.examples.common.featuretoggles.AppFeatureToggles
 import io.tpersson.ufw.featuretoggles.FeatureToggles
 import io.tpersson.ufw.managed.ManagedPeriodicTask
@@ -14,7 +14,7 @@ import java.time.Duration
 
 public class PeriodicEventPublisher @Inject constructor(
     private val unitOfWorkFactory: UnitOfWorkFactory,
-    private val transactionalEventPublisher: DurableEventPublisher,
+    private val transactionalEventPublisher: DurableMessagePublisher,
     private val featureToggles: FeatureToggles,
     private val clock: Clock
 ) : ManagedPeriodicTask(
@@ -34,7 +34,7 @@ public class PeriodicEventPublisher @Inject constructor(
 
         unitOfWorkFactory.use { uow ->
             val event = ExampleEventV1(
-                id = DurableEventId(),
+                id = DurableMessageId(),
                 timestamp = clock.instant(),
                 myContent = "$i"
             )

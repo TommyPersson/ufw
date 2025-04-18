@@ -13,14 +13,14 @@ import io.tpersson.ufw.database.component.installDatabase
 import io.tpersson.ufw.database.component.database
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.database.unitofwork.use
-import io.tpersson.ufw.durableevents.common.DurableEvent
-import io.tpersson.ufw.durableevents.common.DurableEventId
-import io.tpersson.ufw.durableevents.common.EventDefinition
-import io.tpersson.ufw.durableevents.common.eventDefinition
+import io.tpersson.ufw.durablemessages.common.DurableMessage
+import io.tpersson.ufw.durablemessages.common.DurableMessageId
+import io.tpersson.ufw.durablemessages.common.MessageDefinition
+import io.tpersson.ufw.durablemessages.common.messageDefinition
 import io.tpersson.ufw.test.TestClock
-import io.tpersson.ufw.durableevents.component.installDurableEvents
-import io.tpersson.ufw.durableevents.publisher.OutgoingEvent
-import io.tpersson.ufw.durableevents.publisher.OutgoingEventTransport
+import io.tpersson.ufw.durablemessages.component.installDurableMessages
+import io.tpersson.ufw.durablemessages.publisher.OutgoingMessage
+import io.tpersson.ufw.durablemessages.publisher.OutgoingMessageTransport
 import io.tpersson.ufw.managed.component.managed
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -53,7 +53,7 @@ internal class IntegrationTests {
 
         val testClock = TestClock()
 
-        val testOutgoingEventTransport = TestOutgoingEventTransport()
+        val testOutgoingEventTransport = TestOutgoingMessageTransport()
 
         val ufw = UFW.build {
             installCore {
@@ -62,8 +62,8 @@ internal class IntegrationTests {
             installDatabase {
                 dataSource = HikariDataSource(config)
             }
-            installDurableEvents {
-                outgoingEventTransport = testOutgoingEventTransport
+            installDurableMessages {
+                outgoingMessageTransport = testOutgoingEventTransport
             }
             installAggregates()
         }
@@ -228,9 +228,9 @@ internal class IntegrationTests {
         await.untilAsserted {
             val sentEvents = testOutgoingEventTransport.sentEvents
             assertThat(sentEvents).hasSize(3)
-            assertThat(sentEvents[0].type).isEqualTo(IncrementedEvent::class.eventDefinition.type)
-            assertThat(sentEvents[1].type).isEqualTo(IncrementedEvent::class.eventDefinition.type)
-            assertThat(sentEvents[2].type).isEqualTo(DecrementedEvent::class.eventDefinition.type)
+            assertThat(sentEvents[0].type).isEqualTo(IncrementedMessage::class.messageDefinition.type)
+            assertThat(sentEvents[1].type).isEqualTo(IncrementedMessage::class.messageDefinition.type)
+            assertThat(sentEvents[2].type).isEqualTo(DecrementedMessage::class.messageDefinition.type)
         }
     }
 
@@ -274,27 +274,27 @@ internal class IntegrationTests {
             }
         }
 
-        override fun mapFactToEvent(fact: Facts): List<DurableEvent> {
+        override fun mapFactToEvent(fact: Facts): List<DurableMessage> {
             val event = when (fact) {
-                is Facts.Incremented -> IncrementedEvent(DurableEventId(), fact.timestamp)
-                is Facts.Decremented -> DecrementedEvent(DurableEventId(), fact.timestamp)
+                is Facts.Incremented -> IncrementedMessage(DurableMessageId(), fact.timestamp)
+                is Facts.Decremented -> DecrementedMessage(DurableMessageId(), fact.timestamp)
             }
 
             return listOf(event)
         }
     }
 
-    @EventDefinition("IncrementedEventV1", "test-topic")
-    data class IncrementedEvent(
-        override val id: DurableEventId = DurableEventId(),
+    @MessageDefinition("IncrementedEventV1", "test-topic")
+    data class IncrementedMessage(
+        override val id: DurableMessageId = DurableMessageId(),
         override val timestamp: Instant
-    ) : DurableEvent()
+    ) : DurableMessage()
 
-    @EventDefinition("DecrementedEventV1", "test-topic")
-    data class DecrementedEvent(
-        override val id: DurableEventId = DurableEventId(),
+    @MessageDefinition("DecrementedEventV1", "test-topic")
+    data class DecrementedMessage(
+        override val id: DurableMessageId = DurableMessageId(),
         override val timestamp: Instant
-    ) : DurableEvent()
+    ) : DurableMessage()
 
     class TestAggregateRepository(
         component: AggregatesComponent
@@ -311,10 +311,10 @@ internal class IntegrationTests {
         }
     }
 
-    class TestOutgoingEventTransport : OutgoingEventTransport {
-        val sentEvents = mutableListOf<OutgoingEvent>()
+    class TestOutgoingMessageTransport : OutgoingMessageTransport {
+        val sentEvents = mutableListOf<OutgoingMessage>()
 
-        override suspend fun send(events: List<OutgoingEvent>, unitOfWork: UnitOfWork) {
+        override suspend fun send(events: List<OutgoingMessage>, unitOfWork: UnitOfWork) {
             sentEvents.addAll(events)
         }
     }

@@ -7,14 +7,14 @@ import io.tpersson.ufw.core.components.ComponentKey
 import io.tpersson.ufw.core.components.Component
 import io.tpersson.ufw.core.components.ComponentRegistry
 import io.tpersson.ufw.database.migrations.Migrator
-import io.tpersson.ufw.durableevents.publisher.DurableEventPublisher
+import io.tpersson.ufw.durablemessages.publisher.DurableMessagePublisher
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 
 @Singleton
 public class AggregatesComponent @Inject constructor(
     public val factRepository: AggregateFactRepository,
-    public val eventPublisher: DurableEventPublisher,
+    public val eventPublisher: DurableMessagePublisher,
     private val repositoryProvider: AggregateRepositoryProvider,
 ) : Component<AggregatesComponent> {
 

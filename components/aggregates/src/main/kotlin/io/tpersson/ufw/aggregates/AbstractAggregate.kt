@@ -1,7 +1,7 @@
 package io.tpersson.ufw.aggregates
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import io.tpersson.ufw.durableevents.common.DurableEvent
+import io.tpersson.ufw.durablemessages.common.DurableMessage
 
 public abstract class AbstractAggregate<TFactType>(
     id: AggregateId,
@@ -17,7 +17,7 @@ public abstract class AbstractAggregate<TFactType>(
     public val pendingFacts: MutableList<TFactType> = mutableListOf()
 
     @JsonIgnore
-    public val pendingEvents: MutableList<DurableEvent> = mutableListOf()
+    public val pendingEvents: MutableList<DurableMessage> = mutableListOf()
 
     protected fun record(fact: TFactType) {
         pendingFacts.add(fact)
@@ -27,10 +27,10 @@ public abstract class AbstractAggregate<TFactType>(
 
     protected abstract fun mutate(fact: TFactType)
 
-    protected open fun mapFactToEvent(fact: TFactType): List<DurableEvent> = emptyList()
+    protected open fun mapFactToEvent(fact: TFactType): List<DurableMessage> = emptyList()
 }
 
 public data class PendingEvent(
     val topic: String,
-    val event: DurableEvent,
+    val event: DurableMessage,
 )

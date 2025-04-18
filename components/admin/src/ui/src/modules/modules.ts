@@ -2,7 +2,7 @@ import { AdminRequestsModuleDefinition } from "./admin-requests/AdminRequestsMod
 import { AggregatesModuleDefinition } from "./aggregates/AggregatesModuleDefinition"
 import { ClusterModuleDefinition } from "./cluster/ClusterModuleDefinition"
 import { DurableCachesModuleDefinition } from "./durable-caches/DurableCachesModuleDefinition"
-import { DurableEventsModuleDefinition } from "./durable-events/DurableEventsModuleDefinition"
+import { DurableMessagesModuleDefinition } from "./durable-messages/DurableMessagesModuleDefinition"
 import { DurableJobsModuleDefinition } from "./durable-jobs/DurableJobsModuleDefinition"
 import { FeatureTogglesModuleDefinition } from "./feature-toggles/FeatureTogglesModuleDefinition"
 import { ModuleDefinition } from "./ModuleDefinition.tsx"
@@ -12,7 +12,7 @@ export const allModuleDefinitions: ModuleDefinition[] = [
   AdminRequestsModuleDefinition,
   AggregatesModuleDefinition,
   DurableJobsModuleDefinition,
-  DurableEventsModuleDefinition,
+  DurableMessagesModuleDefinition,
   DurableCachesModuleDefinition,
   FeatureTogglesModuleDefinition,
 ]

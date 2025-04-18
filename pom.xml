@@ -29,8 +29,8 @@
         <module>components/durable-jobs-guice</module>
         <module>components/aggregates</module>
         <module>components/aggregates-guice</module>
-        <module>components/durable-events</module>
-        <module>components/durable-events-guice</module>
+        <module>components/durable-messages</module>
+        <module>components/durable-messages-guice</module>
         <module>components/admin</module>
         <module>components/admin-guice</module>
         <module>components/feature-toggles</module>
@@ -184,7 +184,7 @@
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
-                <artifactId>ufw-durable-events</artifactId>
+                <artifactId>ufw-durable-messages</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

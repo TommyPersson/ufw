@@ -17,8 +17,8 @@ import io.tpersson.ufw.database.unitofwork.use
 import io.tpersson.ufw.databasequeue.component.installDatabaseQueue
 import io.tpersson.ufw.durablecaches.component.installDurableCaches
 import io.tpersson.ufw.durablecaches.component.durableCaches
-import io.tpersson.ufw.durableevents.component.installDurableEvents
-import io.tpersson.ufw.durableevents.component.durableEvents
+import io.tpersson.ufw.durablemessages.component.installDurableMessages
+import io.tpersson.ufw.durablemessages.component.durableMessages
 import io.tpersson.ufw.durablejobs.component.durableJobs
 import io.tpersson.ufw.durablejobs.component.installDurableJobs
 import io.tpersson.ufw.examples.common.Globals
@@ -28,8 +28,8 @@ import io.tpersson.ufw.examples.common.commands.PerformGreetingCommand
 import io.tpersson.ufw.examples.common.commands.PerformGreetingCommandHandler
 import io.tpersson.ufw.examples.common.commands.TestAdminCommand1Handler
 import io.tpersson.ufw.examples.common.commands.TestAdminCommand2Handler
-import io.tpersson.ufw.examples.common.events.ExampleDurableEventHandler
-import io.tpersson.ufw.examples.common.events.ExampleEventV1
+import io.tpersson.ufw.examples.common.messages.ExampleDurableMessageHandler
+import io.tpersson.ufw.examples.common.messages.ExampleEventV1
 import io.tpersson.ufw.examples.common.jobs.*
 import io.tpersson.ufw.examples.common.jobs.periodic.PeriodicPrintJob2Handler
 import io.tpersson.ufw.examples.common.jobs.periodic.PeriodicPrintJobHandler
@@ -77,15 +77,15 @@ public fun main(): Unit = runBlocking(MDCContext()) {
         installDurableCaches()
         installMediator()
         installDurableJobs()
-        installDurableEvents {
-            outgoingEventTransport = null // TODO DirectOutgoingEventTransport()
+        installDurableMessages {
+            outgoingMessageTransport = null // TODO DirectOutgoingEventTransport()
         }
         installAggregates()
         installFeatureToggles()
         installCluster()
     }
 
-    ufw.durableEvents.register(ExampleDurableEventHandler(ufw.keyValueStore.keyValueStore))
+    ufw.durableMessages.register(ExampleDurableMessageHandler(ufw.keyValueStore.keyValueStore))
 
     ufw.durableJobs.register(PrintJobHandler())
     ufw.durableJobs.register(PrintJob2Handler(ufw.mediator.mediator))
@@ -116,7 +116,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
     ufw.managed.register(
         PeriodicEventPublisher(
             unitOfWorkFactory = ufw.database.unitOfWorkFactory,
-            transactionalEventPublisher = ufw.durableEvents.eventPublisher,
+            transactionalEventPublisher = ufw.durableMessages.messagePublisher,
             featureToggles = ufw.featureToggles.featureToggles,
             clock = ufw.core.clock
         )
@@ -151,7 +151,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
 }
 
 private suspend fun testTransactionalEvents(ufw: ComponentRegistry) {
-    val transactionalEventPublisher = ufw.durableEvents.eventPublisher
+    val transactionalEventPublisher = ufw.durableMessages.messagePublisher
     val unitOfWorkFactory = ufw.database.unitOfWorkFactory
 
     val event = ExampleEventV1(myContent = "Hello, World!")

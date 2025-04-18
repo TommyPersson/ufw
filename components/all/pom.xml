@@ -58,7 +58,7 @@
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
-            <artifactId>ufw-durable-events</artifactId>
+            <artifactId>ufw-durable-messages</artifactId>
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>

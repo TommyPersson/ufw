@@ -13,14 +13,14 @@ import io.tpersson.ufw.core.components.*
 import io.tpersson.ufw.core.component.core
 import io.tpersson.ufw.database.component.installDatabase
 import io.tpersson.ufw.database.component.database
-import io.tpersson.ufw.durableevents.component.installDurableEvents
-import io.tpersson.ufw.durableevents.component.durableEvents
+import io.tpersson.ufw.durablemessages.component.installDurableMessages
+import io.tpersson.ufw.durablemessages.component.durableMessages
 
 @UfwDslMarker
 public fun UFWBuilder.Root.installAggregates(configure: AggregatesComponentBuilderContext.() -> Unit = {}) {
     installCore()
     installDatabase()
-    installDurableEvents()
+    installDurableMessages()
     installAdmin()
 
     val ctx = contexts.getOrPut(AggregatesComponent) { AggregatesComponentBuilderContext() }
@@ -41,7 +41,7 @@ public class AggregatesComponentBuilder(
             objectMapper = components.core.objectMapper
         )
 
-        val eventPublisher = components.durableEvents.eventPublisher
+        val eventPublisher = components.durableMessages.messagePublisher
 
         val repositoryProvider = SimpleAggregateRepositoryProvider()
 
