@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset ufw:durable-jobs-1 labels:ufw__durable_jobs
+--changeset ufw:durable-jobs-1 labels:ufw
 
 CREATE TABLE ufw__periodic_jobs
 (

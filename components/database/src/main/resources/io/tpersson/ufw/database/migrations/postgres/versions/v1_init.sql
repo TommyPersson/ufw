@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset ufw:database-1 labels:ufw__database
+--changeset ufw:database-1 labels:ufw
 
 CREATE TABLE ufw__database__locks
 (

@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset ufw:database-queue-1 labels:ufw__database_queue
+--changeset ufw:database-queue-1 labels:ufw
 
 CREATE TABLE ufw__db_queue__items
 (

@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset ufw:aggregates-1 labels:ufw__aggregates
+--changeset ufw:aggregates-1 labels:ufw
 
 CREATE TABLE ufw__aggregates__facts
 (

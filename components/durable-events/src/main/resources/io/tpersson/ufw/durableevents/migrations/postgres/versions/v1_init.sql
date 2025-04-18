@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset ufw:durable-events-1 labels:ufw__durable_events
+--changeset ufw:durable-events-1 labels:ufw
 
 CREATE TABLE ufw__durable_events__outbox
 (

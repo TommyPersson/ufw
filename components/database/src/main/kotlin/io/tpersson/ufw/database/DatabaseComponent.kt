@@ -56,7 +56,8 @@ public class DatabaseComponent @Inject constructor(
             )
 
             val migrator = Migrator(
-                connectionProvider = connectionProvider
+                connectionProvider = connectionProvider,
+                configProvider = coreComponent.configProvider,
             )
 
             val databaseLocks = DatabaseLocksImpl(
