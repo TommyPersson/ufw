@@ -77,9 +77,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
         installDurableCaches()
         installMediator()
         installDurableJobs()
-        installDurableMessages {
-            outgoingMessageTransport
-        }
+        installDurableMessages()
         installAggregates()
         installFeatureToggles()
         installCluster()

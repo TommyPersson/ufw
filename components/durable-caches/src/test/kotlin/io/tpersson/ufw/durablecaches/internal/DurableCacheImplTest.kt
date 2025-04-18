@@ -239,9 +239,9 @@ internal class DurableCacheImplTest {
             return inner.put(key, value, expectedVersion, ttl, unitOfWork)
         }
 
-        override suspend fun <TValue> remove(kvsKey: KeyValueStore.Key<TValue>, unitOfWork: UnitOfWork?) {
+        override suspend fun <TValue> remove(key: KeyValueStore.Key<TValue>, unitOfWork: UnitOfWork?) {
             numRemoves.incrementAndGet()
-            return inner.remove(kvsKey, unitOfWork)
+            return inner.remove(key, unitOfWork)
         }
 
         override suspend fun removeAll(keyPrefix: String, unitOfWork: UnitOfWork?) {

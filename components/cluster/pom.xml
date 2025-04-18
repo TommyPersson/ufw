@@ -26,6 +26,10 @@
         </dependency>
         <dependency>
             <groupId>io.tpersson.ufw</groupId>
+            <artifactId>ufw-managed</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.tpersson.ufw</groupId>
             <artifactId>ufw-key-value-store</artifactId>
         </dependency>
         <dependency>

@@ -58,8 +58,8 @@ public class KeyValueStoreImpl @Inject constructor(
         storageEngine.put(key.name, data, expectedVersion, unitOfWork)
     }
 
-    override suspend fun <TValue> remove(kvsKey: KeyValueStore.Key<TValue>, unitOfWork: UnitOfWork?) {
-        storageEngine.remove(kvsKey.name, unitOfWork)
+    override suspend fun <TValue> remove(key: KeyValueStore.Key<TValue>, unitOfWork: UnitOfWork?) {
+        storageEngine.remove(key.name, unitOfWork)
     }
 
     override suspend fun removeAll(keyPrefix: String, unitOfWork: UnitOfWork?) {

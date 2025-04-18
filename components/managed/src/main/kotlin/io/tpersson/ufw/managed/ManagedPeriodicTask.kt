@@ -11,7 +11,7 @@ public abstract class ManagedPeriodicTask(
     private val waitFirst: Boolean = true,
 ) : ManagedJob() {
 
-    protected abstract suspend fun runOnce()
+    public abstract suspend fun runOnce()
 
     override suspend fun launch() {
         if (waitFirst) {

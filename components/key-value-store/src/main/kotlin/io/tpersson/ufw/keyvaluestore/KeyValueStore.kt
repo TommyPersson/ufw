@@ -19,7 +19,7 @@ public interface KeyValueStore {
     )
 
     public suspend fun <TValue> remove(
-        kvsKey: Key<TValue>,
+        key: Key<TValue>,
         unitOfWork: UnitOfWork? = null,
     )
 

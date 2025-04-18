@@ -9,9 +9,7 @@ import jakarta.inject.Singleton
 
 @Singleton
 public class ClusterComponent @Inject constructor() : Component<ClusterComponent> {
-
-    public companion object : ComponentKey<ClusterComponent> {
-    }
+    public companion object : ComponentKey<ClusterComponent>
 }
 
 public val ComponentRegistry.cluster: ClusterComponent get() = get(ClusterComponent)
