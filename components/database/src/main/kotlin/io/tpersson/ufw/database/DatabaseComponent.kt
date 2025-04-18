@@ -1,8 +1,8 @@
 package io.tpersson.ufw.database
 
 import io.tpersson.ufw.core.CoreComponent
-import io.tpersson.ufw.core.builder.ComponentKey
-import io.tpersson.ufw.core.builder.Component
+import io.tpersson.ufw.core.builders.ComponentKey
+import io.tpersson.ufw.core.builders.Component
 import io.tpersson.ufw.database.jdbc.ConnectionProvider
 import io.tpersson.ufw.database.jdbc.ConnectionProviderImpl
 import io.tpersson.ufw.database.jdbc.Database

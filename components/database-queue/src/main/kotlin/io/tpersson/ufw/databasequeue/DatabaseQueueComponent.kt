@@ -1,8 +1,8 @@
 package io.tpersson.ufw.databasequeue
 
 import io.tpersson.ufw.core.CoreComponent
-import io.tpersson.ufw.core.builder.ComponentKey
-import io.tpersson.ufw.core.builder.Component
+import io.tpersson.ufw.core.builders.ComponentKey
+import io.tpersson.ufw.core.builders.Component
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.databasequeue.admin.DatabaseQueueAdminFacade

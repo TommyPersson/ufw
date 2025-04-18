@@ -2,8 +2,8 @@ package io.tpersson.ufw.durablecaches
 
 import io.tpersson.ufw.admin.AdminComponent
 import io.tpersson.ufw.core.CoreComponent
-import io.tpersson.ufw.core.builder.ComponentKey
-import io.tpersson.ufw.core.builder.Component
+import io.tpersson.ufw.core.builders.ComponentKey
+import io.tpersson.ufw.core.builders.Component
 import io.tpersson.ufw.durablecaches.admin.DurableCachesAdminFacadeImpl
 import io.tpersson.ufw.durablecaches.admin.DurableCachesAdminModule
 import io.tpersson.ufw.durablecaches.internal.DurableCachesImpl

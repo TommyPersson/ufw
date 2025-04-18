@@ -4,8 +4,8 @@ import io.tpersson.ufw.admin.AdminComponent
 import io.tpersson.ufw.cluster.admin.ClusterAdminFacadeImpl
 import io.tpersson.ufw.cluster.admin.ClusterAdminModule
 import io.tpersson.ufw.core.CoreComponent
-import io.tpersson.ufw.core.builder.ComponentKey
-import io.tpersson.ufw.core.builder.Component
+import io.tpersson.ufw.core.builders.ComponentKey
+import io.tpersson.ufw.core.builders.Component
 import io.tpersson.ufw.keyvaluestore.KeyValueStoreComponent
 import jakarta.inject.Inject
 import jakarta.inject.Singleton

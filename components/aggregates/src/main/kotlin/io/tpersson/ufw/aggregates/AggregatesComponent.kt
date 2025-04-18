@@ -7,8 +7,8 @@ import io.tpersson.ufw.aggregates.internal.AggregateFactRepositoryImpl
 import io.tpersson.ufw.aggregates.internal.AggregateRepositoryProvider
 import io.tpersson.ufw.aggregates.internal.SimpleAggregateRepositoryProvider
 import io.tpersson.ufw.core.CoreComponent
-import io.tpersson.ufw.core.builder.ComponentKey
-import io.tpersson.ufw.core.builder.Component
+import io.tpersson.ufw.core.builders.ComponentKey
+import io.tpersson.ufw.core.builders.Component
 import io.tpersson.ufw.database.DatabaseComponent
 import io.tpersson.ufw.database.migrations.Migrator
 import io.tpersson.ufw.durableevents.DurableEventsComponent

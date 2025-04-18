@@ -1,7 +1,7 @@
 package io.tpersson.ufw.managed
 
-import io.tpersson.ufw.core.builder.ComponentKey
-import io.tpersson.ufw.core.builder.Component
+import io.tpersson.ufw.core.builders.ComponentKey
+import io.tpersson.ufw.core.builders.Component
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 

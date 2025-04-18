@@ -2,18 +2,18 @@ package io.tpersson.ufw.durablejobs
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.tpersson.ufw.core.builder.UFW
+import io.tpersson.ufw.core.builders.UFW
 import io.tpersson.ufw.core.builder.installCore
-import io.tpersson.ufw.database.dsl.database
-import io.tpersson.ufw.database.dsl.installDatabase
+import io.tpersson.ufw.database.builder.database
+import io.tpersson.ufw.database.builder.installDatabase
 import io.tpersson.ufw.databasequeue.FailureAction
 import io.tpersson.ufw.databasequeue.WorkItemId
 import io.tpersson.ufw.databasequeue.WorkItemState
-import io.tpersson.ufw.databasequeue.dsl.databaseQueue
-import io.tpersson.ufw.durablejobs.dsl.durableJobs
-import io.tpersson.ufw.durablejobs.dsl.installDurableJobs
+import io.tpersson.ufw.databasequeue.builder.databaseQueue
+import io.tpersson.ufw.durablejobs.builder.durableJobs
+import io.tpersson.ufw.durablejobs.builder.installDurableJobs
 import io.tpersson.ufw.durablejobs.internal.toWorkItemQueueId
-import io.tpersson.ufw.managed.dsl.managed
+import io.tpersson.ufw.managed.builder.managed
 import io.tpersson.ufw.test.TestClock
 import io.tpersson.ufw.test.suspendingUntil
 import kotlinx.coroutines.runBlocking

@@ -2,13 +2,13 @@ package io.tpersson.ufw.keyvaluestore
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.tpersson.ufw.core.builder.UFW
+import io.tpersson.ufw.core.builders.UFW
 import io.tpersson.ufw.core.builder.core
 import io.tpersson.ufw.core.builder.installCore
-import io.tpersson.ufw.database.dsl.database
-import io.tpersson.ufw.database.dsl.installDatabase
-import io.tpersson.ufw.keyvaluestore.dsl.installKeyValueStore
-import io.tpersson.ufw.keyvaluestore.dsl.keyValueStore
+import io.tpersson.ufw.database.builder.database
+import io.tpersson.ufw.database.builder.installDatabase
+import io.tpersson.ufw.keyvaluestore.builder.installKeyValueStore
+import io.tpersson.ufw.keyvaluestore.builder.keyValueStore
 import io.tpersson.ufw.keyvaluestore.storageengine.PostgresStorageEngine
 import io.tpersson.ufw.test.TestClock
 import io.tpersson.ufw.test.isEqualToIgnoringNanos

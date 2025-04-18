@@ -2,8 +2,8 @@ package io.tpersson.ufw.featuretoggles
 
 import io.tpersson.ufw.admin.AdminComponent
 import io.tpersson.ufw.core.CoreComponent
-import io.tpersson.ufw.core.builder.ComponentKey
-import io.tpersson.ufw.core.builder.Component
+import io.tpersson.ufw.core.builders.ComponentKey
+import io.tpersson.ufw.core.builders.Component
 import io.tpersson.ufw.featuretoggles.admin.FeatureTogglesAdminFacadeImpl
 import io.tpersson.ufw.featuretoggles.admin.FeatureTogglesAdminModule
 import io.tpersson.ufw.featuretoggles.internal.FeatureTogglesImpl

@@ -7,8 +7,8 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.tpersson.ufw.core.configuration.ConfigProvider
-import io.tpersson.ufw.core.builder.ComponentKey
-import io.tpersson.ufw.core.builder.Component
+import io.tpersson.ufw.core.builders.ComponentKey
+import io.tpersson.ufw.core.builders.Component
 import jakarta.inject.Inject
 import jakarta.inject.Named
 import jakarta.inject.Singleton

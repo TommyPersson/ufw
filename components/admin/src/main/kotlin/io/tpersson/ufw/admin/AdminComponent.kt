@@ -5,8 +5,8 @@ import io.tpersson.ufw.admin.internal.CoreAdminModule
 import io.tpersson.ufw.admin.internal.ManagedAdminServer
 import io.tpersson.ufw.admin.internal.SimpleAdminModulesProvider
 import io.tpersson.ufw.core.CoreComponent
-import io.tpersson.ufw.core.builder.ComponentKey
-import io.tpersson.ufw.core.builder.Component
+import io.tpersson.ufw.core.builders.ComponentKey
+import io.tpersson.ufw.core.builders.Component
 import io.tpersson.ufw.managed.ManagedComponent
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
