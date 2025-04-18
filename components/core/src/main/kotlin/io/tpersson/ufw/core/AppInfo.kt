@@ -4,4 +4,5 @@ public data class AppInfo(
     val name: String,
     val version: String,
     val environment: String,
+    val instanceId: String,
 )

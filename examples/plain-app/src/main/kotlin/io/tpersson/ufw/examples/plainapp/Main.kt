@@ -78,7 +78,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
         installMediator()
         installDurableJobs()
         installDurableMessages {
-            outgoingMessageTransport = null // TODO DirectOutgoingEventTransport()
+            outgoingMessageTransport
         }
         installAggregates()
         installFeatureToggles()
@@ -140,7 +140,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
 
     testAggregates(ufw, counterRepository)
 
-    testTransactionalEvents(ufw)
+    testDurableMessages(ufw)
 
     println("Press Enter to exit")
 
@@ -150,14 +150,14 @@ public fun main(): Unit = runBlocking(MDCContext()) {
     println("Exiting")
 }
 
-private suspend fun testTransactionalEvents(ufw: ComponentRegistry) {
-    val transactionalEventPublisher = ufw.durableMessages.messagePublisher
+private suspend fun testDurableMessages(ufw: ComponentRegistry) {
+    val durableMessagePublisher = ufw.durableMessages.messagePublisher
     val unitOfWorkFactory = ufw.database.unitOfWorkFactory
 
     val event = ExampleEventV1(myContent = "Hello, World!")
 
     unitOfWorkFactory.use { uow ->
-        transactionalEventPublisher.publish(event, uow)
+        durableMessagePublisher.publish(event, uow)
     }
 }
 

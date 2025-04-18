@@ -13,6 +13,7 @@ import io.tpersson.ufw.core.builder.UFWBuilder
 import io.tpersson.ufw.core.builder.UfwDslMarker
 import io.tpersson.ufw.core.configuration.ConfigProvider
 import java.time.Clock
+import java.util.UUID
 
 
 @UfwDslMarker
@@ -27,7 +28,7 @@ public fun UFWBuilder.Root.installCore(builder: CoreComponentBuilderContext.() -
 public class CoreComponentBuilderContext : ComponentBuilderContext<CoreComponent> {
     public var clock: Clock = Clock.systemDefaultZone()
     public var meterRegistry: MeterRegistry = SimpleMeterRegistry()
-    public var appInfoProvider: AppInfoProvider = SimpleAppInfoProvider(AppInfo("unknown", "unknown", "unknown"))
+    public var appInfoProvider: AppInfoProvider = SimpleAppInfoProvider(AppInfo("unknown", "unknown", "unknown", UUID.randomUUID().toString()))
     public var objectMapper: ObjectMapper = CoreComponent.defaultObjectMapper
 
     // TODO naming ...

@@ -86,6 +86,7 @@ public class DurableJobsComponentImpl @Inject constructor(
                 databaseLocks = databaseComponent.locks,
                 periodicJobsDAO = periodicJobsDAO,
                 unitOfWorkFactory = databaseComponent.unitOfWorkFactory,
+                appInfoProvider = coreComponent.appInfoProvider,
                 clock = coreComponent.clock,
             )
 

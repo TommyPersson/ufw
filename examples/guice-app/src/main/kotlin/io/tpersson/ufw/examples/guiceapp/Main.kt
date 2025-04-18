@@ -17,7 +17,7 @@ import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.database.unitofwork.use
 import io.tpersson.ufw.databasequeue.guice.DatabaseQueueGuiceModule
 import io.tpersson.ufw.durablecaches.guice.DurableCachesGuiceModule
-import io.tpersson.ufw.durablemessages.guice.DurableEventsGuiceModule
+import io.tpersson.ufw.durablemessages.guice.DurableMessagesGuiceModule
 import io.tpersson.ufw.durablemessages.publisher.DurableMessagePublisher
 import io.tpersson.ufw.durablemessages.publisher.OutgoingMessageTransport
 import io.tpersson.ufw.durablemessages.publisher.transports.DirectOutgoingMessageTransport
@@ -80,7 +80,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
         MediatorGuiceModule(),
         DurableJobsGuiceModule(),
         AggregatesGuiceModule(),
-        DurableEventsGuiceModule(),
+        DurableMessagesGuiceModule(),
         FeatureTogglesGuiceModule(),
         DurableCachesGuiceModule(),
         ClusterGuiceModule(),

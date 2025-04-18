@@ -2,6 +2,7 @@ package io.tpersson.ufw.cluster.admin
 
 import io.tpersson.ufw.admin.contracts.PaginatedListDTO
 import io.tpersson.ufw.cluster.admin.contracts.ClusterInstanceDTO
+import io.tpersson.ufw.core.AppInfoProvider
 import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.keyvaluestore.KeyValueStore
 import jakarta.inject.Inject
@@ -15,8 +16,11 @@ import java.util.*
 @Singleton
 public class ClusterAdminFacadeImpl @Inject constructor(
     private val keyValueStore: KeyValueStore,
+    private val appInfoProvider: AppInfoProvider,
 ) : ClusterAdminFacade {
-    private val instanceId = UUID.randomUUID() // TODO applicationIdProvider
+
+    private val appInfo = appInfoProvider.get()
+    private val instanceId = appInfo.instanceId
 
     private val startedAt = Instant.now()
 
@@ -33,15 +37,13 @@ public class ClusterAdminFacadeImpl @Inject constructor(
     }
 
     override suspend fun getInstances(paginationOptions: PaginationOptions): PaginatedListDTO<ClusterInstanceDTO> {
-
-
         keyValueStore.put(
             key = kvsKey,
             value = ClusterInstanceDTO(
-                instanceId = instanceId.toString(),
-                appVersion = "2",
+                instanceId = instanceId,
+                appVersion = appInfo.version,
                 startedAt = startedAt,
-                heartbeatTimestamp = Instant.now()
+                heartbeatTimestamp = Instant.now() // TODO Set periodically
             ),
             ttl = Duration.ofMinutes(5)
         )

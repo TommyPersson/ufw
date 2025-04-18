@@ -41,7 +41,11 @@ public fun UFWBuilder.Root.installDurableMessages(configure: DurableMessagesComp
 }
 
 public class DurableMessagesComponentBuilderContext : ComponentBuilderContext<DurableMessagesComponent> {
-    // TODO need to be factory? since an implementation may want to use the Ingester, which is only available later
+    /**
+     * Determines how outgoing messages are handled.
+     *
+     * If unset, the [DirectOutgoingMessageTransport] will be used.
+     */
     public var outgoingMessageTransport: OutgoingMessageTransport? = null
 }
 
@@ -50,7 +54,9 @@ public class DurableMessagesComponentBuilder(
 ) : ComponentBuilder<DurableMessagesComponentImpl> {
 
     public override fun build(components: ComponentRegistryInternal): DurableMessagesComponentImpl {
-        val durableMessageHandlersProvider = SimpleDurableMessageHandlersRegistry(emptySet<DurableMessageHandler>().toMutableSet())
+
+        val durableMessageHandlersProvider =
+            SimpleDurableMessageHandlersRegistry(emptySet<DurableMessageHandler>().toMutableSet())
 
         val durableMessageQueueWorkersManager = DurableMessageQueueWorkersManager(
             workerFactory = components.databaseQueue.databaseQueueWorkerFactory,
@@ -76,16 +82,17 @@ public class DurableMessagesComponentBuilder(
             clock = components.core.clock,
         )
 
-        val directTransport = DirectOutgoingMessageTransport(
-            ingester = ingester
-        )
+        val outgoingMessageTransport = context.outgoingMessageTransport
+            ?: DirectOutgoingMessageTransport(ingester)
 
         val messageOutboxWorker = MessageOutboxWorker(
             outboxNotifier = outboxNotifier,
             outboxDAO = messageOutboxDAO,
             unitOfWorkFactory = components.database.unitOfWorkFactory,
-            outgoingMessageTransport = context.outgoingMessageTransport ?: directTransport,
-            databaseLocks = components.database.locks
+            outgoingMessageTransport = outgoingMessageTransport,
+            databaseLocks = components.database.locks,
+            appInfoProvider = components.core.appInfoProvider,
+            configProvider = components.core.configProvider,
         )
 
         components.admin.register(

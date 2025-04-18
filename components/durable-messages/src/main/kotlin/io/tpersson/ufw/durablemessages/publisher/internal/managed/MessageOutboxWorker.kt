@@ -1,15 +1,19 @@
 package io.tpersson.ufw.durablemessages.publisher.internal.managed
 
+import io.tpersson.ufw.core.AppInfoProvider
+import io.tpersson.ufw.core.configuration.ConfigProvider
+import io.tpersson.ufw.core.configuration.Configs
 import io.tpersson.ufw.core.utils.forever
 import io.tpersson.ufw.database.locks.DatabaseLocks
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.database.unitofwork.use
 import io.tpersson.ufw.durablemessages.common.DurableMessageId
-import io.tpersson.ufw.managed.ManagedJob
+import io.tpersson.ufw.durablemessages.configuration.DurableMessages
 import io.tpersson.ufw.durablemessages.publisher.OutgoingMessage
 import io.tpersson.ufw.durablemessages.publisher.OutgoingMessageTransport
 import io.tpersson.ufw.durablemessages.publisher.internal.dao.MessageEntityData
 import io.tpersson.ufw.durablemessages.publisher.internal.dao.MessageOutboxDAO
+import io.tpersson.ufw.managed.ManagedJob
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import java.time.Duration
@@ -21,11 +25,13 @@ public class MessageOutboxWorker @Inject constructor(
     private val outboxDAO: MessageOutboxDAO,
     private val outgoingMessageTransport: OutgoingMessageTransport,
     private val unitOfWorkFactory: UnitOfWorkFactory,
-    private val databaseLocks: DatabaseLocks
+    private val databaseLocks: DatabaseLocks,
+    private val configProvider: ConfigProvider,
+    private val appInfoProvider: AppInfoProvider,
 ) : ManagedJob() {
 
-    private val pollInterval = Duration.ofSeconds(10)
-    private val batchSize = 50
+    private val pollInterval = configProvider.get(Configs.DurableMessages.OutboxWorkerInterval)
+    private val batchSize = configProvider.get(Configs.DurableMessages.OutboxWorkerBatchSize)
 
     private val lock = databaseLocks.create("MessageOutboxWorker", UUID.randomUUID().toString())
 

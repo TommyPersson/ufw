@@ -6,6 +6,7 @@ import io.tpersson.ufw.cluster.admin.ClusterAdminFacadeImpl
 import io.tpersson.ufw.cluster.admin.ClusterAdminModule
 import io.tpersson.ufw.core.builder.UFWBuilder
 import io.tpersson.ufw.core.builder.UfwDslMarker
+import io.tpersson.ufw.core.component.core
 import io.tpersson.ufw.core.component.installCore
 import io.tpersson.ufw.core.components.*
 import io.tpersson.ufw.keyvaluestore.component.installKeyValueStore
@@ -32,7 +33,8 @@ public class ClusterComponentBuilder(
     override fun build(components: ComponentRegistryInternal): ClusterComponent {
         val durableCachesAdminModule = ClusterAdminModule(
             adminFacade = ClusterAdminFacadeImpl(
-                keyValueStore = components.keyValueStore.keyValueStore
+                keyValueStore = components.keyValueStore.keyValueStore,
+                appInfoProvider = components.core.appInfoProvider
             )
         )
 

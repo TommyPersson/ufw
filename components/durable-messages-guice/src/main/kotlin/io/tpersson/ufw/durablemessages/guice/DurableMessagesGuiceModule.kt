@@ -15,7 +15,7 @@ import io.tpersson.ufw.durablemessages.publisher.DurableMessagePublisher
 import io.tpersson.ufw.durablemessages.publisher.internal.DurableMessagePublisherImpl
 import io.tpersson.ufw.durablemessages.publisher.transports.DirectOutgoingMessageTransport
 
-public class DurableEventsGuiceModule : Module {
+public class DurableMessagesGuiceModule : Module {
     override fun configure(binder: Binder) {
 
         OptionalBinder.newOptionalBinder(binder, OutgoingMessageTransport::class.java)

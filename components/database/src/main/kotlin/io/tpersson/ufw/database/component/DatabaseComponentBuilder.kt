@@ -53,6 +53,7 @@ public class DatabaseComponentBuilder(
 
         val databaseLocks = DatabaseLocksImpl(
             databaseLocksDAO = DatabaseLocksDAO(database),
+            appInfoProvider = components.core.appInfoProvider,
             clock = components.core.clock
         )
 

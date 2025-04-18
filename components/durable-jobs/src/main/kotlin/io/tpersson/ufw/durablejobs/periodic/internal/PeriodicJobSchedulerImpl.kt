@@ -2,6 +2,7 @@ package io.tpersson.ufw.durablejobs.periodic.internal
 
 import com.cronutils.model.Cron
 import com.cronutils.model.time.ExecutionTime
+import io.tpersson.ufw.core.AppInfoProvider
 import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.database.locks.DatabaseLocks
@@ -33,17 +34,15 @@ public class PeriodicJobSchedulerImpl @Inject constructor(
     private val databaseLocks: DatabaseLocks,
     private val periodicJobsDAO: PeriodicJobsDAO,
     private val unitOfWorkFactory: UnitOfWorkFactory,
+    private val appInfoProvider: AppInfoProvider,
     private val clock: Clock,
 ) : PeriodicJobScheduler {
 
     private val logger = createLogger()
 
-    internal companion object {
-        private val lockInstanceId = UUID.randomUUID().toString() // TODO ApplicationInstanceIdProvider?
-    }
+    private val lockInstanceId = appInfoProvider.get().instanceId
 
-    private val databaseLock =
-        databaseLocks.create("PeriodicJobManagerLock", lockInstanceId)
+    private val databaseLock = databaseLocks.create("PeriodicJobManagerLock", lockInstanceId)
 
     override suspend fun scheduleAnyPendingJobs() {
         val now = clock.instant()
