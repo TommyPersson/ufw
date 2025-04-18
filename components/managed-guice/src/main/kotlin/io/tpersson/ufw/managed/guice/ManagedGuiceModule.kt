@@ -2,7 +2,7 @@ package io.tpersson.ufw.managed.guice
 
 import com.google.inject.Binder
 import com.google.inject.Module
-import io.tpersson.ufw.managed.ManagedComponent
+import io.tpersson.ufw.managed.component.ManagedComponent
 import io.tpersson.ufw.managed.ManagedRunner
 
 public class ManagedGuiceModule : Module {

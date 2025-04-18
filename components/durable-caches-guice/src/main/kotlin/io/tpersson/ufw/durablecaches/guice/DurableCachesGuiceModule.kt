@@ -3,7 +3,7 @@ package io.tpersson.ufw.durablecaches.guice
 import com.google.inject.Binder
 import com.google.inject.Module
 import io.tpersson.ufw.durablecaches.DurableCaches
-import io.tpersson.ufw.durablecaches.DurableCachesComponent
+import io.tpersson.ufw.durablecaches.component.DurableCachesComponent
 import io.tpersson.ufw.durablecaches.admin.DurableCachesAdminFacade
 import io.tpersson.ufw.durablecaches.admin.DurableCachesAdminFacadeImpl
 import io.tpersson.ufw.durablecaches.internal.DurableCachesImpl

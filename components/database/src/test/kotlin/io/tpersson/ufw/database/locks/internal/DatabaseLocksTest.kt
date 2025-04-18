@@ -2,10 +2,10 @@ package io.tpersson.ufw.database.locks.internal
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.tpersson.ufw.core.builders.UFW
-import io.tpersson.ufw.core.builder.installCore
-import io.tpersson.ufw.database.builder.database
-import io.tpersson.ufw.database.builder.installDatabase
+import io.tpersson.ufw.core.builder.UFW
+import io.tpersson.ufw.core.component.installCore
+import io.tpersson.ufw.database.component.installDatabase
+import io.tpersson.ufw.database.component.database
 import io.tpersson.ufw.test.TestClock
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat

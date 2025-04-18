@@ -2,21 +2,21 @@ package io.tpersson.ufw.durableevents.publisher.internal
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.tpersson.ufw.core.builders.UFW
-import io.tpersson.ufw.core.builder.installCore
-import io.tpersson.ufw.database.builder.database
-import io.tpersson.ufw.database.builder.installDatabase
+import io.tpersson.ufw.core.component.installCore
+import io.tpersson.ufw.core.builder.UFW
+import io.tpersson.ufw.database.component.installDatabase
+import io.tpersson.ufw.database.component.database
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.database.unitofwork.use
+import io.tpersson.ufw.durableevents.component.installDurableEvents
 import io.tpersson.ufw.durableevents.common.DurableEvent
 import io.tpersson.ufw.durableevents.common.DurableEventId
 import io.tpersson.ufw.durableevents.common.EventDefinition
-import io.tpersson.ufw.managed.builder.managed
-import io.tpersson.ufw.test.TestClock
-import io.tpersson.ufw.durableevents.builder.durableEvents
-import io.tpersson.ufw.durableevents.builder.installDurableEvents
+import io.tpersson.ufw.durableevents.component.durableEvents
 import io.tpersson.ufw.durableevents.publisher.OutgoingEvent
 import io.tpersson.ufw.durableevents.publisher.OutgoingEventTransport
+import io.tpersson.ufw.managed.component.managed
+import io.tpersson.ufw.test.TestClock
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -24,7 +24,6 @@ import org.awaitility.kotlin.await
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.lifecycle.Startables
 import org.testcontainers.utility.DockerImageName

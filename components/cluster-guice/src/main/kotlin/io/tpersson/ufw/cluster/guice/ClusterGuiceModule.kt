@@ -2,7 +2,7 @@ package io.tpersson.ufw.cluster.guice
 
 import com.google.inject.Binder
 import com.google.inject.Module
-import io.tpersson.ufw.cluster.ClusterComponent
+import io.tpersson.ufw.cluster.component.ClusterComponent
 import io.tpersson.ufw.cluster.admin.ClusterAdminFacade
 import io.tpersson.ufw.cluster.admin.ClusterAdminFacadeImpl
 import io.tpersson.ufw.cluster.admin.ClusterAdminModule

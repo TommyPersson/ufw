@@ -5,9 +5,9 @@ import com.google.inject.Module
 import io.tpersson.ufw.databasequeue.admin.DatabaseQueueAdminFacade
 import io.tpersson.ufw.databasequeue.admin.DatabaseQueueAdminFacadeImpl
 import io.tpersson.ufw.durablejobs.DurableJobQueue
-import io.tpersson.ufw.durablejobs.DurableJobsComponent
-import io.tpersson.ufw.durablejobs.DurableJobsComponentImpl
-import io.tpersson.ufw.durablejobs.DurableJobsComponentInternal
+import io.tpersson.ufw.durablejobs.component.DurableJobsComponent
+import io.tpersson.ufw.durablejobs.component.DurableJobsComponentImpl
+import io.tpersson.ufw.durablejobs.component.DurableJobsComponentInternal
 import io.tpersson.ufw.durablejobs.internal.DurableJobHandlersProvider
 import io.tpersson.ufw.durablejobs.internal.DurableJobQueueImpl
 import io.tpersson.ufw.durablejobs.periodic.internal.PeriodicJobScheduler

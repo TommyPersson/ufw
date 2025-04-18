@@ -1,6 +1,6 @@
 package io.tpersson.ufw.durablecaches.internal
 
-import io.tpersson.ufw.core.CoreComponent
+import io.tpersson.ufw.core.component.CoreComponent
 import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.durablecaches.CacheEntry

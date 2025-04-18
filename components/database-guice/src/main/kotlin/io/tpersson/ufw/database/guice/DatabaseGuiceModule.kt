@@ -2,7 +2,7 @@ package io.tpersson.ufw.database.guice
 
 import com.google.inject.Binder
 import com.google.inject.Module
-import io.tpersson.ufw.database.DatabaseComponent
+import io.tpersson.ufw.database.component.DatabaseComponent
 import io.tpersson.ufw.database.jdbc.ConnectionProvider
 import io.tpersson.ufw.database.jdbc.ConnectionProviderImpl
 import io.tpersson.ufw.database.jdbc.Database

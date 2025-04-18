@@ -2,10 +2,9 @@ package io.tpersson.ufw.aggregates.guice
 
 import com.google.inject.Binder
 import com.google.inject.Module
-import com.google.inject.Scopes
 import io.tpersson.ufw.aggregates.AggregateFactRepository
 import io.tpersson.ufw.aggregates.internal.AggregateFactRepositoryImpl
-import io.tpersson.ufw.aggregates.AggregatesComponent
+import io.tpersson.ufw.aggregates.component.AggregatesComponent
 import io.tpersson.ufw.aggregates.admin.AggregatesAdminFacade
 import io.tpersson.ufw.aggregates.admin.AggregatesAdminFacadeImpl
 import io.tpersson.ufw.aggregates.internal.AggregateRepositoryProvider

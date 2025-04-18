@@ -2,10 +2,12 @@ package io.tpersson.ufw.database.typedqueries
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.tpersson.ufw.core.CoreComponent
+import io.tpersson.ufw.core.component.installCore
+import io.tpersson.ufw.core.builder.UFW
 import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.core.utils.paginate
-import io.tpersson.ufw.database.DatabaseComponent
+import io.tpersson.ufw.database.component.installDatabase
+import io.tpersson.ufw.database.component.database
 import io.tpersson.ufw.database.exceptions.MinimumAffectedRowsException
 import io.tpersson.ufw.database.jdbc.useInTransaction
 import kotlinx.coroutines.flow.toList
@@ -38,9 +40,14 @@ internal class IntegrationTestsTypedQueries {
             it.isAutoCommit = false
         }
 
-        val coreComponent = CoreComponent.create()
-        val dataSource = HikariDataSource(config)
-        val databaseComponent = DatabaseComponent.create(coreComponent, dataSource)
+        val ufw = UFW.build {
+            installCore()
+            installDatabase {
+                dataSource = HikariDataSource(config)
+            }
+        }
+
+        val databaseComponent = ufw.database
         val connectionProvider = databaseComponent.connectionProvider
         val database = databaseComponent.database
 

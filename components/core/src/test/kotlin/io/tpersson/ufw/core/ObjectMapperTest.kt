@@ -1,6 +1,7 @@
 package io.tpersson.ufw.core
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.tpersson.ufw.core.component.CoreComponent
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.Instant

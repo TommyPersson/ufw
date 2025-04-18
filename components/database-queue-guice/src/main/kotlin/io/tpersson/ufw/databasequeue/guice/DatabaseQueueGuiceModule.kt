@@ -2,7 +2,7 @@ package io.tpersson.ufw.databasequeue.guice
 
 import com.google.inject.Binder
 import com.google.inject.Module
-import io.tpersson.ufw.databasequeue.DatabaseQueueComponent
+import io.tpersson.ufw.databasequeue.component.DatabaseQueueComponent
 import io.tpersson.ufw.databasequeue.WorkQueue
 import io.tpersson.ufw.databasequeue.internal.*
 import io.tpersson.ufw.databasequeue.worker.*

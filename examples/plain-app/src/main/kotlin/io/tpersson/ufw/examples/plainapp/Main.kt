@@ -1,26 +1,26 @@
 package io.tpersson.ufw.examples.plainapp
 
 import com.fasterxml.jackson.databind.SerializationFeature
-import io.tpersson.ufw.admin.builder.installAdmin
-import io.tpersson.ufw.aggregates.builder.aggregates
-import io.tpersson.ufw.aggregates.builder.installAggregates
-import io.tpersson.ufw.cluster.builder.installCluster
+import io.tpersson.ufw.admin.component.installAdmin
+import io.tpersson.ufw.aggregates.component.aggregates
+import io.tpersson.ufw.aggregates.component.installAggregates
+import io.tpersson.ufw.cluster.component.installCluster
 import io.tpersson.ufw.core.AppInfoProvider
 import io.tpersson.ufw.core.configuration.ConfigProvider
-import io.tpersson.ufw.core.builders.UFW
-import io.tpersson.ufw.core.builders.ComponentRegistry
-import io.tpersson.ufw.core.builder.core
-import io.tpersson.ufw.core.builder.installCore
-import io.tpersson.ufw.database.builder.database
-import io.tpersson.ufw.database.builder.installDatabase
+import io.tpersson.ufw.core.builder.UFW
+import io.tpersson.ufw.core.components.ComponentRegistry
+import io.tpersson.ufw.core.component.installCore
+import io.tpersson.ufw.core.component.core
+import io.tpersson.ufw.database.component.installDatabase
+import io.tpersson.ufw.database.component.database
 import io.tpersson.ufw.database.unitofwork.use
-import io.tpersson.ufw.databasequeue.builder.installDatabaseQueue
-import io.tpersson.ufw.durablecaches.builder.durableCaches
-import io.tpersson.ufw.durablecaches.builder.installDurableCaches
-import io.tpersson.ufw.durableevents.builder.durableEvents
-import io.tpersson.ufw.durableevents.builder.installDurableEvents
-import io.tpersson.ufw.durablejobs.builder.durableJobs
-import io.tpersson.ufw.durablejobs.builder.installDurableJobs
+import io.tpersson.ufw.databasequeue.component.installDatabaseQueue
+import io.tpersson.ufw.durablecaches.component.installDurableCaches
+import io.tpersson.ufw.durablecaches.component.durableCaches
+import io.tpersson.ufw.durableevents.component.installDurableEvents
+import io.tpersson.ufw.durableevents.component.durableEvents
+import io.tpersson.ufw.durablejobs.component.durableJobs
+import io.tpersson.ufw.durablejobs.component.installDurableJobs
 import io.tpersson.ufw.examples.common.Globals
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregate
 import io.tpersson.ufw.examples.common.aggregate.CounterAggregateRepository
@@ -38,14 +38,14 @@ import io.tpersson.ufw.examples.common.managed.PeriodicJobScheduler
 import io.tpersson.ufw.examples.common.managed.PeriodicLogger
 import io.tpersson.ufw.examples.common.managed.PrometheusServer
 import io.tpersson.ufw.examples.common.queries.TestAdminQuery1Handler
-import io.tpersson.ufw.featuretoggles.builder.featureToggles
-import io.tpersson.ufw.featuretoggles.builder.installFeatureToggles
-import io.tpersson.ufw.keyvaluestore.builder.keyValueStore
-import io.tpersson.ufw.keyvaluestore.builder.installKeyValueStore
-import io.tpersson.ufw.managed.builder.managed
-import io.tpersson.ufw.managed.builder.installManaged
-import io.tpersson.ufw.mediator.builder.mediator
-import io.tpersson.ufw.mediator.builder.installMediator
+import io.tpersson.ufw.featuretoggles.component.installFeatureToggles
+import io.tpersson.ufw.featuretoggles.component.featureToggles
+import io.tpersson.ufw.keyvaluestore.component.installKeyValueStore
+import io.tpersson.ufw.keyvaluestore.component.keyValueStore
+import io.tpersson.ufw.managed.component.installManaged
+import io.tpersson.ufw.managed.component.managed
+import io.tpersson.ufw.mediator.component.installMediator
+import io.tpersson.ufw.mediator.component.mediator
 import io.tpersson.ufw.mediator.middleware.transactional.TransactionalMiddleware
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.slf4j.MDCContext
@@ -106,11 +106,13 @@ public fun main(): Unit = runBlocking(MDCContext()) {
     ufw.mediator.register(TransactionalMiddleware(ufw.database.unitOfWorkFactory))
 
     ufw.managed.register(PrometheusServer(Globals.meterRegistry))
+
     ufw.managed.register(
         PeriodicLogger(
             featureToggles = ufw.featureToggles.featureToggles
         ),
     )
+
     ufw.managed.register(
         PeriodicEventPublisher(
             unitOfWorkFactory = ufw.database.unitOfWorkFactory,
@@ -119,6 +121,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
             clock = ufw.core.clock
         )
     )
+
     ufw.managed.register(
         PeriodicJobScheduler(
             jobQueue = ufw.durableJobs.jobQueue,

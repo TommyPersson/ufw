@@ -27,7 +27,7 @@ import java.text.SimpleDateFormat
 
 @Singleton
 public class ManagedAdminServer @Inject constructor(
-    private val adminModulesProvider: AdminModulesProvider,
+    private val adminModulesRegistry: AdminModulesRegistry,
     private val configProvider: ConfigProvider
 ) : Managed() {
 
@@ -83,7 +83,7 @@ public class ManagedAdminServer @Inject constructor(
                 }
             }
 
-            adminModulesProvider.get().forEach {
+            adminModulesRegistry.get().forEach {
                 logger.info("Configuring AdminModule: ${it::class.simpleName}")
                 it.configure(this)
             }

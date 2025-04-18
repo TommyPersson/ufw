@@ -1,6 +1,6 @@
 package io.tpersson.ufw.featuretoggles.internal
 
-import io.tpersson.ufw.core.CoreComponent
+import io.tpersson.ufw.core.component.CoreComponent
 import io.tpersson.ufw.featuretoggles.FeatureToggleDefinition
 import io.tpersson.ufw.keyvaluestore.KeyValueStore
 import io.tpersson.ufw.keyvaluestore.KeyValueStoreImpl

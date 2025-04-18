@@ -3,7 +3,7 @@ package io.tpersson.ufw.keyvaluestore.guice
 import com.google.inject.Binder
 import com.google.inject.Module
 import io.tpersson.ufw.keyvaluestore.KeyValueStore
-import io.tpersson.ufw.keyvaluestore.KeyValueStoreComponent
+import io.tpersson.ufw.keyvaluestore.component.KeyValueStoreComponent
 import io.tpersson.ufw.keyvaluestore.KeyValueStoreImpl
 import io.tpersson.ufw.keyvaluestore.storageengine.PostgresStorageEngine
 import io.tpersson.ufw.keyvaluestore.storageengine.StorageEngine

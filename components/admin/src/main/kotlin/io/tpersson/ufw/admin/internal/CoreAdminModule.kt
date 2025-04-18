@@ -9,7 +9,7 @@ import io.tpersson.ufw.admin.contracts.ApplicationMetadataDTO
 import io.tpersson.ufw.core.AppInfoProvider
 
 public class CoreAdminModule(
-    private val modulesProvider: AdminModulesProvider,
+    private val modulesProvider: AdminModulesRegistry,
     private val appInfoProvider: AppInfoProvider,
 ) : AdminModule {
 

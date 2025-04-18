@@ -2,14 +2,14 @@ package io.tpersson.ufw.databasequeue
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.tpersson.ufw.core.builders.UFW
-import io.tpersson.ufw.core.builder.core
-import io.tpersson.ufw.core.builder.installCore
+import io.tpersson.ufw.core.builder.UFW
+import io.tpersson.ufw.core.component.installCore
+import io.tpersson.ufw.core.component.core
 import io.tpersson.ufw.core.utils.PaginationOptions
-import io.tpersson.ufw.database.builder.database
-import io.tpersson.ufw.database.builder.installDatabase
+import io.tpersson.ufw.database.component.installDatabase
+import io.tpersson.ufw.database.component.database
 import io.tpersson.ufw.database.unitofwork.use
-import io.tpersson.ufw.databasequeue.builder.installDatabaseQueue
+import io.tpersson.ufw.databasequeue.component.installDatabaseQueue
 import io.tpersson.ufw.databasequeue.internal.WorkItemDbEntity
 import io.tpersson.ufw.databasequeue.internal.WorkItemFailureDbEntity
 import io.tpersson.ufw.databasequeue.internal.WorkItemFailuresDAOImpl

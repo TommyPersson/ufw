@@ -2,7 +2,7 @@ package io.tpersson.ufw.databasequeue.worker
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
-import io.tpersson.ufw.core.CoreComponent
+import io.tpersson.ufw.core.component.CoreComponent
 import io.tpersson.ufw.core.configuration.ConfigProvider
 import io.tpersson.ufw.core.configuration.Configs
 import io.tpersson.ufw.core.utils.LoggerCache

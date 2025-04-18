@@ -4,9 +4,9 @@ import com.google.inject.Binder
 import com.google.inject.Module
 import com.google.inject.multibindings.OptionalBinder
 import io.tpersson.ufw.durableevents.handler.internal.IncomingEventIngesterImpl
-import io.tpersson.ufw.durableevents.DurableEventsComponent
-import io.tpersson.ufw.durableevents.DurableEventsComponentImpl
-import io.tpersson.ufw.durableevents.DurableEventsComponentInternal
+import io.tpersson.ufw.durableevents.component.DurableEventsComponent
+import io.tpersson.ufw.durableevents.component.DurableEventsComponentImpl
+import io.tpersson.ufw.durableevents.component.DurableEventsComponentInternal
 import io.tpersson.ufw.durableevents.admin.DurableEventsAdminModule
 import io.tpersson.ufw.durableevents.common.IncomingEventIngester
 import io.tpersson.ufw.durableevents.handler.internal.DurableEventHandlersProvider

@@ -1,5 +1,6 @@
 package io.tpersson.ufw.aggregates
 
+import io.tpersson.ufw.aggregates.component.AggregatesComponent
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import kotlin.reflect.KClass
 import kotlin.reflect.full.allSupertypes

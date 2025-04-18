@@ -11,7 +11,7 @@ import io.tpersson.ufw.aggregates.guice.AggregatesGuiceModule
 import io.tpersson.ufw.cluster.guice.ClusterGuiceModule
 import io.tpersson.ufw.core.AppInfoProvider
 import io.tpersson.ufw.core.CoreGuiceModule
-import io.tpersson.ufw.database.DatabaseComponent
+import io.tpersson.ufw.database.component.DatabaseComponent
 import io.tpersson.ufw.database.guice.DatabaseGuiceModule
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.database.unitofwork.use
@@ -32,7 +32,7 @@ import io.tpersson.ufw.examples.common.jobs.PrintJob
 import io.tpersson.ufw.examples.common.jobs.PrintJob2
 import io.tpersson.ufw.featuretoggles.guice.FeatureTogglesGuiceModule
 import io.tpersson.ufw.keyvaluestore.guice.KeyValueStoreGuiceModule
-import io.tpersson.ufw.managed.ManagedComponent
+import io.tpersson.ufw.managed.component.ManagedComponent
 import io.tpersson.ufw.managed.guice.ManagedGuiceModule
 import io.tpersson.ufw.mediator.Mediator
 import io.tpersson.ufw.mediator.guice.MediatorGuiceModule
@@ -40,7 +40,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.slf4j.MDCContext
 import org.slf4j.bridge.SLF4JBridgeHandler
 import java.time.Clock
-import java.time.Duration
 import java.util.*
 import javax.sql.DataSource
 

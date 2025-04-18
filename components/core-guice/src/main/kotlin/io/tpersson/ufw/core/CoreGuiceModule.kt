@@ -9,6 +9,7 @@ import io.github.classgraph.ClassGraph
 import io.github.classgraph.ScanResult
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import io.tpersson.ufw.core.component.CoreComponent
 import io.tpersson.ufw.core.configuration.ConfigProvider
 
 public class CoreGuiceModule(
