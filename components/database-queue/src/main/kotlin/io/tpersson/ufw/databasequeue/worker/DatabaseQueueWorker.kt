@@ -1,14 +1,14 @@
 package io.tpersson.ufw.databasequeue.worker
 
 import io.tpersson.ufw.core.concurrency.ConsumerSignal
+import io.tpersson.ufw.core.configuration.ConfigProvider
+import io.tpersson.ufw.core.configuration.Configs
 import io.tpersson.ufw.core.logging.createLogger
 import io.tpersson.ufw.core.utils.forever
 import io.tpersson.ufw.databasequeue.*
+import io.tpersson.ufw.databasequeue.configuration.DatabaseQueue
 import io.tpersson.ufw.databasequeue.worker.SingleWorkItemProcessor.ProcessingResult
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.count
-import java.time.Duration
 import java.util.*
 
 public class DatabaseQueueWorker(
@@ -17,10 +17,11 @@ public class DatabaseQueueWorker(
     private val workQueue: WorkQueue,
     processorFactory: SingleWorkItemProcessorFactory,
     adapterSettings: DatabaseQueueAdapterSettings,
+    private val configProvider: ConfigProvider,
 ) {
     private val logger = createLogger()
 
-    private val fallbackPollInterval = Duration.ofSeconds(10) // TODO configurable
+    private val fallbackPollInterval = configProvider.get(Configs.DatabaseQueue.FallbackPollInterval)
 
     private val watchdogId = UUID.randomUUID().toString()
 

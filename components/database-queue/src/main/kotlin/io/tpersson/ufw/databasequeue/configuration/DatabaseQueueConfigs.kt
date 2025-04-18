@@ -23,6 +23,12 @@ public object DatabaseQueueConfigs {
         default = Duration.ofDays(14)
     )
 
+    public val CancelledItemExpirationDelay: ConfigElement<Duration> = ConfigElement.of(
+        "database-queue",
+        "cancelled-item-expiration-delay",
+        default = Duration.ofDays(1)
+    )
+
     public val ItemExpirationInterval: ConfigElement<Duration> = ConfigElement.of(
         "database-queue",
         "item-expiration-interval",
@@ -39,6 +45,12 @@ public object DatabaseQueueConfigs {
         "database-queue",
         "watchdog-timeout",
         default = Duration.ofMinutes(10)
+    )
+
+    public val FallbackPollInterval: ConfigElement<Duration> = ConfigElement.of(
+        "database-queue",
+        "fallback-poll-interval",
+        default = Duration.ofMillis(10)
     )
 }
 

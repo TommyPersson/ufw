@@ -1,14 +1,16 @@
 package io.tpersson.ufw.databasequeue.admin
 
+import io.tpersson.ufw.core.configuration.ConfigProvider
+import io.tpersson.ufw.core.configuration.Configs
 import io.tpersson.ufw.core.utils.PaginatedList
 import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
 import io.tpersson.ufw.databasequeue.*
+import io.tpersson.ufw.databasequeue.configuration.DatabaseQueue
 import io.tpersson.ufw.databasequeue.internal.*
 import jakarta.inject.Inject
-import java.time.Duration
-import java.time.Instant
 import java.time.Clock
+import java.time.Instant
 
 public class DatabaseQueueAdminFacadeImpl @Inject constructor(
     private val workItemsDAO: WorkItemsDAO,
@@ -16,8 +18,11 @@ public class DatabaseQueueAdminFacadeImpl @Inject constructor(
     private val workQueuesDAO: WorkQueuesDAO,
     private val workQueue: WorkQueueInternal,
     private val unitOfWorkFactory: UnitOfWorkFactory,
+    private val configProvider: ConfigProvider,
     private val clock: Clock,
 ) : DatabaseQueueAdminFacade {
+
+    private val cancelledItemExpirationDelay = configProvider.get(Configs.DatabaseQueue.CancelledItemExpirationDelay)
 
     override suspend fun getQueueStatistics(queueId: WorkItemQueueId): WorkItemQueueStatistics {
         return workItemsDAO.getQueueStatistics(queueId)
@@ -70,7 +75,7 @@ public class DatabaseQueueAdminFacadeImpl @Inject constructor(
     override suspend fun cancelWorkItem(queueId: WorkItemQueueId, itemId: WorkItemId) {
         val uow = unitOfWorkFactory.create()
         val now = clock.instant()
-        val expireAt = now.plus(Duration.ofDays(1)) // TODO config
+        val expireAt = now.plus(cancelledItemExpirationDelay)
 
         workItemsDAO.forceCancelItem(
             queueId = queueId,

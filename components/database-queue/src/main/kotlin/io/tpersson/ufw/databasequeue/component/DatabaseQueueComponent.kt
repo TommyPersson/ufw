@@ -20,7 +20,7 @@ public class DatabaseQueueComponent @Inject constructor(
     public val workItemFailuresDAO: WorkItemFailuresDAO, // TODO cleaner queue interface
     public val workQueuesDAO: WorkQueuesDAO,
     public val queueStateChecker: QueueStateChecker,
-    public val adminManager: DatabaseQueueAdminFacade,
+    public val adminFacade: DatabaseQueueAdminFacade,
 ) : Component<DatabaseQueueComponent> {
 
     init {

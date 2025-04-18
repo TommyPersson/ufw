@@ -79,8 +79,9 @@ public class DatabaseQueueComponentBuilder(
             workQueuesDAO = workQueuesDAO,
             workItemFailuresDAO = workItemFailuresDAO,
             workQueue = workQueue,
-            clock = components.core.clock,
             unitOfWorkFactory = components.database.unitOfWorkFactory,
+            configProvider = components.core.configProvider,
+            clock = components.core.clock,
         )
 
         return DatabaseQueueComponent(
@@ -91,7 +92,7 @@ public class DatabaseQueueComponentBuilder(
             workItemFailuresDAO = workItemFailuresDAO,
             workQueuesDAO = workQueuesDAO,
             queueStateChecker = queueStateChecker,
-            adminManager = databaseQueueAdminManager,
+            adminFacade = databaseQueueAdminManager,
         )
     }
 }

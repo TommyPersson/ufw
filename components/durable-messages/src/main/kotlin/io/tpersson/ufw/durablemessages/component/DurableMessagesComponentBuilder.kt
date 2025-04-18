@@ -9,7 +9,6 @@ import io.tpersson.ufw.core.components.*
 import io.tpersson.ufw.core.component.core
 import io.tpersson.ufw.database.component.installDatabase
 import io.tpersson.ufw.database.component.database
-import io.tpersson.ufw.databasequeue.admin.DatabaseQueueAdminFacadeImpl
 import io.tpersson.ufw.databasequeue.component.installDatabaseQueue
 import io.tpersson.ufw.databasequeue.component.databaseQueue
 import io.tpersson.ufw.durablemessages.admin.DurableMessagesAdminModule
@@ -98,14 +97,7 @@ public class DurableMessagesComponentBuilder(
         components.admin.register(
             DurableMessagesAdminModule(
                 durableMessageHandlersRegistry = durableMessageHandlersProvider,
-                databaseQueueAdminFacade = DatabaseQueueAdminFacadeImpl(
-                    workItemsDAO = components.databaseQueue.workItemsDAO,
-                    workItemFailuresDAO = components.databaseQueue.workItemFailuresDAO,
-                    workQueuesDAO = components.databaseQueue.workQueuesDAO,
-                    workQueue = components.databaseQueue.workQueueInternal,
-                    unitOfWorkFactory = components.database.unitOfWorkFactory,
-                    clock = components.core.clock
-                )
+                databaseQueueAdminFacade = components.databaseQueue.adminFacade
             )
         )
 

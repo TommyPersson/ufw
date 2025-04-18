@@ -121,7 +121,7 @@ public class DurableJobsComponentImpl @Inject constructor(
                 DurableJobsAdminModule(
                     durableJobHandlersProvider = durableJobHandlersProvider,
                     periodicJobManager = periodicJobManager,
-                    databaseQueueAdminFacade = databaseQueueComponent.adminManager,
+                    databaseQueueAdminFacade = databaseQueueComponent.adminFacade,
                 )
             )
 
