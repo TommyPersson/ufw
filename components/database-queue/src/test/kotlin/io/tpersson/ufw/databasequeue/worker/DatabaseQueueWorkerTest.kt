@@ -1,5 +1,6 @@
 package io.tpersson.ufw.databasequeue.worker
 
+import io.tpersson.ufw.core.configuration.ConfigProvider
 import io.tpersson.ufw.databasequeue.*
 import io.tpersson.ufw.databasequeue.internal.WorkItemsDAO
 import io.tpersson.ufw.databasequeue.toWorkItemQueueId
@@ -51,7 +52,8 @@ internal class DatabaseQueueWorkerTest {
             handlersByType = emptyMap(),
             workQueue = workQueue,
             processorFactory = processorFactoryMock,
-            adapterSettings = mock()
+            adapterSettings = mock(),
+            configProvider = ConfigProvider.empty(),
         )
     }
 
@@ -99,7 +101,8 @@ internal class DatabaseQueueWorkerTest {
             handlersByType = emptyMap(),
             workQueue = workQueue,
             processorFactory = processorFactoryMock,
-            adapterSettings = mock()
+            adapterSettings = mock(),
+            configProvider = ConfigProvider.empty(),
         )
 
         val coroutine = worker.start()

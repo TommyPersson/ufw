@@ -5,6 +5,7 @@ import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.core.builder.UFW
 import io.tpersson.ufw.core.component.installCore
 import io.tpersson.ufw.core.component.core
+import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.database.component.installDatabase
 import io.tpersson.ufw.database.component.database
 import io.tpersson.ufw.keyvaluestore.component.installKeyValueStore
@@ -146,7 +147,7 @@ internal class IntegrationTests {
 
         keyValueStore.removeAll("test")
 
-        val entries = keyValueStore.list("", limit = 100, offset = 0).map { it.key }.toSet()
+        val entries = keyValueStore.list("", PaginationOptions.DEFAULT).map { it.key }.items.toSet()
 
         assertThat(entries).isEqualTo(setOf("not-test-1", "not-test-2"))
     }
@@ -295,13 +296,13 @@ internal class IntegrationTests {
         keyValueStore.put("counter:6".asIntKey(), 6)
         keyValueStore.put("not-counter:7".asIntKey(), 7)
 
-        val entries1 = keyValueStore.list("counter:", limit = 3, offset = 0)
+        val entries1 = keyValueStore.list("counter:", PaginationOptions(limit = 3, offset = 0)).items
         assertThat(entries1).hasSize(3)
         assertThat(entries1[0].parseAs(Int::class).value).isEqualTo(1)
         assertThat(entries1[1].parseAs(Int::class).value).isEqualTo(2)
         assertThat(entries1[2].parseAs(Int::class).value).isEqualTo(3)
 
-        val entries2 = keyValueStore.list("counter:", limit = 100, offset = 4)
+        val entries2 = keyValueStore.list("counter:", PaginationOptions(limit = 100, offset = 4)).items
         assertThat(entries2).hasSize(2)
         assertThat(entries2[0].parseAs(Int::class).value).isEqualTo(5)
         assertThat(entries2[1].parseAs(Int::class).value).isEqualTo(6)

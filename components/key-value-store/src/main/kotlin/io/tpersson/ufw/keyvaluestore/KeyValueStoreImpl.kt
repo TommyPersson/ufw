@@ -2,6 +2,8 @@ package io.tpersson.ufw.keyvaluestore
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.tpersson.ufw.core.NamedBindings
+import io.tpersson.ufw.core.utils.PaginatedList
+import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.keyvaluestore.storageengine.EntryDataForWrite
 import io.tpersson.ufw.keyvaluestore.storageengine.EntryValue
@@ -66,9 +68,11 @@ public class KeyValueStoreImpl @Inject constructor(
         storageEngine.removeAll(keyPrefix, unitOfWork)
     }
 
-    override suspend fun list(prefix: String, limit: Int, offset: Int): List<KeyValueStore.UnparsedEntry> {
-        val data = storageEngine.list(prefix, limit, offset)
-        return data.map {
+    override suspend fun list(
+        prefix: String,
+        paginationOptions: PaginationOptions
+    ): PaginatedList<KeyValueStore.UnparsedEntry> {
+        return storageEngine.list(prefix, paginationOptions).map {
             UnparsedEntryImpl(
                 key = it.key,
                 value = it.value,
@@ -77,6 +81,21 @@ public class KeyValueStoreImpl @Inject constructor(
                 updatedAt = it.updatedAt,
                 createdAt = it.createdAt,
                 objectMapper = objectMapper
+            )
+        }
+    }
+
+    override suspend fun listMetadata(
+        prefix: String,
+        paginationOptions: PaginationOptions
+    ): PaginatedList<KeyValueStore.EntryMetadata> {
+        return storageEngine.listMetadata(prefix, paginationOptions).map {
+            KeyValueStore.EntryMetadata(
+                key = it.key,
+                version = it.version,
+                expiresAt = it.expiresAt,
+                updatedAt = it.updatedAt,
+                createdAt = it.createdAt,
             )
         }
     }

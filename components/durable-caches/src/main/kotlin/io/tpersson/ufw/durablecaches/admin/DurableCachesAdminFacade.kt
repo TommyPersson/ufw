@@ -3,6 +3,7 @@ package io.tpersson.ufw.durablecaches.admin
 import io.tpersson.ufw.core.utils.PaginatedList
 import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.durablecaches.CacheEntry
+import io.tpersson.ufw.durablecaches.CacheEntryMetadata
 import io.tpersson.ufw.durablecaches.DurableCacheDefinition
 
 public interface DurableCachesAdminFacade {
@@ -12,12 +13,11 @@ public interface DurableCachesAdminFacade {
 
     public suspend fun getNumEntries(cacheId: String): Long
 
-    // TODO dont read value unnecessarily
     public suspend fun listEntries(
         cacheId: String,
         keyPrefix: String,
         paginationOptions: PaginationOptions
-    ): PaginatedList<CacheEntry<*>>
+    ): PaginatedList<CacheEntryMetadata>
 
     public suspend fun getEntry(cacheId: String, cacheKey: String): CacheEntry<*>?
 

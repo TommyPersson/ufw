@@ -5,6 +5,7 @@ import io.tpersson.ufw.admin.raise
 import io.tpersson.ufw.core.utils.PaginatedList
 import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.durablecaches.CacheEntry
+import io.tpersson.ufw.durablecaches.CacheEntryMetadata
 import io.tpersson.ufw.durablecaches.DurableCacheDefinition
 import io.tpersson.ufw.durablecaches.internal.DurableCachesInternal
 import jakarta.inject.Inject
@@ -39,14 +40,13 @@ public class DurableCachesAdminFacadeImpl @Inject constructor(
         cacheId: String,
         keyPrefix: String,
         paginationOptions: PaginationOptions
-    ): PaginatedList<CacheEntry<*>> {
+    ): PaginatedList<CacheEntryMetadata> {
         val definition = durableCaches.knownCaches[cacheId]
             ?: return PaginatedList.empty(paginationOptions)
 
         val cache = durableCaches.get(definition)
 
-        // TODO dont read value unnecessarily
-        return cache.list(keyPrefix, paginationOptions)
+        return cache.listMetadata(keyPrefix, paginationOptions)
     }
 
     override suspend fun getEntry(cacheId: String, cacheKey: String): CacheEntry<*>? {

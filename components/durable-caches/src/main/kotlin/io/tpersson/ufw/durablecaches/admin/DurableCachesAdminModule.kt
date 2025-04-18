@@ -13,6 +13,7 @@ import io.tpersson.ufw.admin.utils.getPaginationOptions
 import io.tpersson.ufw.core.NamedBindings
 import io.tpersson.ufw.core.utils.findModuleMolecule
 import io.tpersson.ufw.durablecaches.CacheEntry
+import io.tpersson.ufw.durablecaches.CacheEntryMetadata
 import io.tpersson.ufw.durablecaches.DurableCacheDefinition
 import io.tpersson.ufw.durablecaches.admin.contracts.DurableCacheDetailsDTO
 import io.tpersson.ufw.durablecaches.admin.contracts.DurableCacheEntryItemDTO
@@ -64,7 +65,8 @@ public class DurableCachesAdminModule @Inject constructor(
                 val cacheId = call.parameters.cacheId!!
                 val keyPrefix = call.parameters["keyPrefix"]!!
 
-                val entries = adminFacade.listEntries(cacheId, keyPrefix, paginationOptions).toDTO { it.toItemDTO() }
+                val entries = adminFacade.listEntries(cacheId, keyPrefix, paginationOptions)
+                    .toDTO { it.toItemDTO() }
 
                 call.respond(entries)
             }
@@ -85,13 +87,15 @@ public class DurableCachesAdminModule @Inject constructor(
                 val entry = adminFacade.getEntry(cacheId, cacheKey)
                     ?: HttpStatusCode.NotFound.raise()
 
-                call.respond(DurableCacheEntryDetailsDTO(
-                    key = cacheKey,
-                    content = objectMapper.writeValueAsString(entry.value!!),
-                    contentType = entry.value::class.simpleName,
-                    cachedAt = entry.cachedAt,
-                    expiresAt = entry.expiresAt,
-                ))
+                call.respond(
+                    DurableCacheEntryDetailsDTO(
+                        key = cacheKey,
+                        content = objectMapper.writeValueAsString(entry.value!!),
+                        contentType = entry.value::class.simpleName,
+                        cachedAt = entry.cachedAt,
+                        expiresAt = entry.expiresAt,
+                    )
+                )
             }
         }
     }
@@ -126,7 +130,7 @@ private fun DurableCacheDefinition<*>.toDetailsDTO(numEntries: Long): DurableCac
     )
 }
 
-private fun CacheEntry<*>.toItemDTO(): DurableCacheEntryItemDTO {
+private fun CacheEntryMetadata.toItemDTO(): DurableCacheEntryItemDTO {
     return DurableCacheEntryItemDTO(
         key = key,
         cachedAt = cachedAt,

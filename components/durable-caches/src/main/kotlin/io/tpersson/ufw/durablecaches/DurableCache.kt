@@ -11,7 +11,18 @@ public interface DurableCache<TValue : Any> {
     /**
      * @note Will bypass the in-memory cache, if any.
      */
-    public suspend fun list(keyPrefix: String, paginationOptions: PaginationOptions): PaginatedList<CacheEntry<TValue>>
+    public suspend fun list(
+        keyPrefix: String,
+        paginationOptions: PaginationOptions
+    ): PaginatedList<CacheEntry<*>>
+
+    /**
+     * @note Will bypass the in-memory cache, if any.
+     */
+    public suspend fun listMetadata(
+        keyPrefix: String,
+        paginationOptions: PaginationOptions
+    ): PaginatedList<CacheEntryMetadata>
 
     /**
      * @note Will bypass the in-memory cache, if any.

@@ -1,5 +1,7 @@
 package io.tpersson.ufw.keyvaluestore.storageengine
 
+import io.tpersson.ufw.core.utils.PaginatedList
+import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
@@ -58,12 +60,30 @@ public class InMemoryStorageEngine : StorageEngine {
         return keysToRemove.size
     }
 
-    override suspend fun list(prefix: String, limit: Int, offset: Int): List<EntryDataFromRead> {
-        return storage.values
+    override suspend fun list(prefix: String, paginationOptions: PaginationOptions): PaginatedList<EntryDataFromRead> {
+        val items = storage.values
             .sortedBy { it.key }
             .filter { it.key.startsWith(prefix) }
-            .drop(offset)
-            .take(limit)
+            .drop(paginationOptions.offset)
+            .take(paginationOptions.limit + 1)
+
+        return PaginatedList(
+            items = items.take(paginationOptions.limit),
+            options = paginationOptions,
+            hasMoreItems = items.size > paginationOptions.limit
+        )
+    }
+
+    override suspend fun listMetadata(prefix: String, paginationOptions: PaginationOptions): PaginatedList<EntryMetadata> {
+        return list(prefix, paginationOptions).map {
+            EntryMetadata(
+                key = it.key,
+                expiresAt = it.expiresAt,
+                updatedAt = it.updatedAt,
+                createdAt = it.createdAt,
+                version = it.version,
+            )
+        }
     }
 
     override suspend fun getNumEntries(keyPrefix: String): Long {

@@ -1,5 +1,6 @@
 package io.tpersson.ufw.keyvaluestore.storageengine
 
+import io.tpersson.ufw.core.utils.PaginatedList
 import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.core.utils.paginate
 import io.tpersson.ufw.database.exceptions.MinimumAffectedRowsException
@@ -87,11 +88,20 @@ public class PostgresStorageEngine @Inject constructor(
         return database.update(Queries.Updates.DeleteAllExpired(now))
     }
 
-    override suspend fun list(prefix: String, limit: Int, offset: Int): List<EntryDataFromRead> {
-        val paginationOptions = PaginationOptions(limit = limit, offset = offset)
+    override suspend fun list(
+        prefix: String,
+        paginationOptions: PaginationOptions
+    ): PaginatedList<EntryDataFromRead> {
         return database.select(Queries.Selects.ListByPrefix(prefix, paginationOptions))
-            .items
             .map { it.asEntryDataFromRead() }
+    }
+
+    override suspend fun listMetadata(
+        prefix: String,
+        paginationOptions: PaginationOptions
+    ): PaginatedList<EntryMetadata> {
+        return database.select(Queries.Selects.ListMetadataByPrefix(prefix, paginationOptions))
+            .map { it.asEntryMetadata() }
     }
 
     override suspend fun getNumEntries(keyPrefix: String): Long {
@@ -131,6 +141,16 @@ public class PostgresStorageEngine @Inject constructor(
         )
     }
 
+    private fun EntryData.asEntryMetadata(): EntryMetadata {
+        return EntryMetadata(
+            key = key,
+            expiresAt = expiresAt,
+            updatedAt = updatedAt,
+            createdAt = createdAt,
+            version = version
+        )
+    }
+
     internal data class EntryData(
         val key: String,
         val type: Int,
@@ -158,6 +178,18 @@ public class PostgresStorageEngine @Inject constructor(
             ) : TypedSelectList<EntryData>(
                 """
                 SELECT * 
+                FROM $TableName 
+                WHERE key LIKE (:prefix || '%')
+                ORDER BY key
+                """.trimIndent()
+            )
+
+            class ListMetadataByPrefix(
+                val prefix: String,
+                override val paginationOptions: PaginationOptions
+            ) : TypedSelectList<EntryData>(
+                """
+                SELECT key, type, null as json, null as bytes, expires_at, updated_at, created_at, version
                 FROM $TableName 
                 WHERE key LIKE (:prefix || '%')
                 ORDER BY key

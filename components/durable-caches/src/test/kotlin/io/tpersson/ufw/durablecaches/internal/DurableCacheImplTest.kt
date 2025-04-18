@@ -1,6 +1,7 @@
 package io.tpersson.ufw.durablecaches.internal
 
 import io.tpersson.ufw.core.component.CoreComponent
+import io.tpersson.ufw.core.utils.PaginatedList
 import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.durablecaches.CacheEntry
@@ -249,9 +250,20 @@ internal class DurableCacheImplTest {
             return inner.removeAll(keyPrefix, unitOfWork)
         }
 
-        override suspend fun list(prefix: String, limit: Int, offset: Int): List<KeyValueStore.UnparsedEntry> {
+        override suspend fun list(
+            prefix: String,
+            paginationOptions: PaginationOptions
+        ): PaginatedList<KeyValueStore.UnparsedEntry> {
             numLists.incrementAndGet()
-            return inner.list(prefix, limit, offset)
+            return inner.list(prefix, paginationOptions)
+        }
+
+        override suspend fun listMetadata(
+            prefix: String,
+            paginationOptions: PaginationOptions
+        ): PaginatedList<KeyValueStore.EntryMetadata> {
+            numLists.incrementAndGet()
+            return inner.listMetadata(prefix,paginationOptions)
         }
 
         override suspend fun getNumEntries(keyPrefix: String): Long {

@@ -5,6 +5,7 @@ import io.tpersson.ufw.core.utils.ClockTicker
 import io.tpersson.ufw.core.utils.PaginatedList
 import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.durablecaches.CacheEntry
+import io.tpersson.ufw.durablecaches.CacheEntryMetadata
 import io.tpersson.ufw.durablecaches.DurableCache
 import io.tpersson.ufw.durablecaches.DurableCacheDefinition
 import io.tpersson.ufw.keyvaluestore.KeyValueStore
@@ -31,12 +32,10 @@ public class DurableCacheImpl<TValue : Any>(
 
         val entries = keyValueStore.list(
             prefix = finalPrefix,
-            limit = paginationOptions.limit + 1,
-            offset = paginationOptions.offset
+            paginationOptions = paginationOptions,
         )
 
-        val items = entries.take(paginationOptions.limit).map {
-            @Suppress("UNCHECKED_CAST")
+        return entries.map {
             CacheEntry(
                 key = it.key.substringAfter(this.keyPrefix),
                 value = it.parseAs(definition.valueType as KClass<TValue>).value,
@@ -44,12 +43,26 @@ public class DurableCacheImpl<TValue : Any>(
                 expiresAt = it.expiresAt
             )
         }
+    }
 
-        return PaginatedList(
-            options = paginationOptions,
-            items = items,
-            hasMoreItems = entries.size > paginationOptions.limit
+    override suspend fun listMetadata(
+        keyPrefix: String,
+        paginationOptions: PaginationOptions
+    ): PaginatedList<CacheEntryMetadata> {
+        val finalPrefix = this.keyPrefix + keyPrefix
+
+        val entries = keyValueStore.listMetadata(
+            prefix = finalPrefix,
+            paginationOptions = paginationOptions,
         )
+
+        return entries.map {
+            CacheEntryMetadata(
+                key = it.key.substringAfter(this.keyPrefix),
+                cachedAt = it.updatedAt,
+                expiresAt = it.expiresAt
+            )
+        }
     }
 
     // TODO add unit test

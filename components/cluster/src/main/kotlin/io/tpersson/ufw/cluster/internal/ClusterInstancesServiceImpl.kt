@@ -47,12 +47,7 @@ public class ClusterInstancesServiceImpl @Inject constructor(
     }
 
     public override suspend fun listInstances(paginationOptions: PaginationOptions): PaginatedList<ClusterInstanceDTO> {
-        val entries = keyValueStore.list("$kvsPrefix:", paginationOptions.limit + 1, paginationOptions.offset)
-
-        return PaginatedList(
-            items = entries.take(paginationOptions.limit).map { it.parseAs(ClusterInstanceDTO::class).value },
-            options = paginationOptions,
-            hasMoreItems = entries.size > paginationOptions.limit
-        )
+        return keyValueStore.list("$kvsPrefix:", paginationOptions)
+            .map { it.parseAs(ClusterInstanceDTO::class).value }
     }
 }

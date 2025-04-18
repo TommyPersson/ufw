@@ -18,31 +18,23 @@ public class FeatureTogglesAdminFacadeImpl @Inject constructor(
     private val keyValueStore: KeyValueStore,
 ) : FeatureTogglesAdminFacade {
     override suspend fun listAll(paginationOptions: PaginationOptions): PaginatedList<FeatureToggle> {
-        val toggles = keyValueStore.list(
-            Constants.KEY_PREFIX,
-            limit = paginationOptions.limit + 1,
-            offset = paginationOptions.offset,
-        )
+        val toggles = keyValueStore.list(Constants.KEY_PREFIX, paginationOptions)
 
-        return PaginatedList(
-            items = toggles.take(paginationOptions.limit).mapNotNull {
-                val data = it.parseAs(FeatureToggleData::class)
-                val definition = featureToggles.knownFeatureToggles[data.value.id]
-                    ?: return@mapNotNull null
+        return toggles.mapNotNull {
+            val data = it.parseAs(FeatureToggleData::class)
+            val definition = featureToggles.knownFeatureToggles[data.value.id]
+                ?: return@mapNotNull null
 
-                FeatureToggle(
-                    id = it.key.substringAfter(Constants.KEY_PREFIX),
-                    definition = definition,
-                    title = definition.title,
-                    description = definition.description,
-                    stateChangedAt = data.value.stateChangedAt,
-                    createdAt = data.createdAt,
-                    isEnabled = data.value.isEnabled,
-                )
-            },
-            options = paginationOptions,
-            hasMoreItems = toggles.size > paginationOptions.limit
-        )
+            FeatureToggle(
+                id = it.key.substringAfter(Constants.KEY_PREFIX),
+                definition = definition,
+                title = definition.title,
+                description = definition.description,
+                stateChangedAt = data.value.stateChangedAt,
+                createdAt = data.createdAt,
+                isEnabled = data.value.isEnabled,
+            )
+        }
     }
 
     override suspend fun disable(featureToggleId: String) {

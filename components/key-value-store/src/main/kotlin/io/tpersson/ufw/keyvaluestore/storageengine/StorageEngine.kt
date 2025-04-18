@@ -1,5 +1,7 @@
 package io.tpersson.ufw.keyvaluestore.storageengine
 
+import io.tpersson.ufw.core.utils.PaginatedList
+import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import java.time.Instant
 
@@ -30,7 +32,15 @@ public interface StorageEngine {
         now: Instant
     ): Int
 
-    public suspend fun list(prefix: String, limit: Int, offset: Int): List<EntryDataFromRead>
+    public suspend fun list(
+        prefix: String,
+        paginationOptions: PaginationOptions
+    ): PaginatedList<EntryDataFromRead>
+
+    public suspend fun listMetadata(
+        prefix: String,
+        paginationOptions: PaginationOptions
+    ): PaginatedList<EntryMetadata>
 
     public suspend fun getNumEntries(keyPrefix: String): Long
 }

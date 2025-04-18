@@ -30,6 +30,10 @@ public data class PaginatedList<out TItem>(
     public fun <R> map(block: (TItem) -> R): PaginatedList<R> {
         return PaginatedList(items.map(block), options, hasMoreItems)
     }
+
+    public fun <R> mapNotNull(block: (TItem) -> R?): PaginatedList<R> {
+        return PaginatedList(items.mapNotNull(block), options, hasMoreItems)
+    }
 }
 
 public fun <TItem> paginate(

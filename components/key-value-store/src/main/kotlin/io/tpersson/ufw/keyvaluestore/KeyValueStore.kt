@@ -1,5 +1,7 @@
 package io.tpersson.ufw.keyvaluestore
 
+import io.tpersson.ufw.core.utils.PaginatedList
+import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.keyvaluestore.storageengine.EntryValue
 import java.time.Duration
@@ -28,8 +30,9 @@ public interface KeyValueStore {
         unitOfWork: UnitOfWork? = null,
     )
 
-    // TODO paginated result
-    public suspend fun list(prefix: String, limit: Int, offset: Int = 0): List<UnparsedEntry>
+    public suspend fun list(prefix: String, paginationOptions: PaginationOptions): PaginatedList<UnparsedEntry>
+
+    public suspend fun listMetadata(prefix: String, paginationOptions: PaginationOptions): PaginatedList<EntryMetadata>
 
     public suspend fun getNumEntries(keyPrefix: String): Long
 
@@ -46,6 +49,14 @@ public interface KeyValueStore {
     public class Entry<T : Any?>(
         public val key: Key<T>,
         public val value: T,
+        public val version: Int,
+        public val expiresAt: Instant?,
+        public val updatedAt: Instant,
+        public val createdAt: Instant,
+    )
+
+    public class EntryMetadata(
+        public val key: String,
         public val version: Int,
         public val expiresAt: Instant?,
         public val updatedAt: Instant,

@@ -8,3 +8,9 @@ public data class CacheEntry<TValue>(
     val cachedAt: Instant,
     val expiresAt: Instant?,
 )
+
+public data class CacheEntryMetadata(
+    val key: String,
+    val cachedAt: Instant,
+    val expiresAt: Instant?,
+)

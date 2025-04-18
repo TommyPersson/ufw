@@ -72,6 +72,7 @@ public class DatabaseQueueComponentBuilder(
         val databaseQueueWorkerFactory = DatabaseQueueWorkerFactoryImpl(
             processorFactory = processorFactory,
             workQueue = workQueue,
+            configProvider = components.core.configProvider,
         )
 
         val databaseQueueAdminManager = DatabaseQueueAdminFacadeImpl(
