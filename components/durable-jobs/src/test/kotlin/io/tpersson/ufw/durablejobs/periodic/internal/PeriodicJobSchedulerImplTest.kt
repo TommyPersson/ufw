@@ -1,5 +1,6 @@
 package io.tpersson.ufw.durablejobs.periodic.internal
 
+import io.tpersson.ufw.core.AppInfoProvider
 import io.tpersson.ufw.core.utils.PaginatedList
 import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.database.locks.DatabaseLock
@@ -74,6 +75,7 @@ internal class PeriodicJobSchedulerImplTest {
                 databaseLocks = databaseLocksMock,
                 periodicJobsDAO = periodicJobsDAOFake,
                 unitOfWorkFactory = unitOfWorkFactoryMock,
+                appInfoProvider = AppInfoProvider.simple(),
                 clock = testClock
             )
 
