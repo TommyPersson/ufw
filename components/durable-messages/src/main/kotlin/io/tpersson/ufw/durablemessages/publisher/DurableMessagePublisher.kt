@@ -4,6 +4,6 @@ import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.durablemessages.common.DurableMessage
 
 public interface DurableMessagePublisher {
-    public fun publish(message: DurableMessage, unitOfWork: UnitOfWork)
-    public fun publishAll(messages: List<DurableMessage>, unitOfWork: UnitOfWork)
+    public suspend fun publish(message: DurableMessage, unitOfWork: UnitOfWork)
+    public suspend fun publishAll(messages: List<DurableMessage>, unitOfWork: UnitOfWork)
 }

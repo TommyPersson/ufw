@@ -42,6 +42,7 @@
         <module>components/cluster</module>
         <module>components/cluster-guice</module>
         <module>components/test</module>
+        <module>adapters/durable-messages-kafka</module>
         <module>examples/common</module>
         <module>examples/guice-app</module>
         <module>examples/plain-app</module>

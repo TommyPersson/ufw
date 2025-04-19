@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.tpersson.ufw</groupId>
+        <artifactId>ufw-base</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../../components/base/pom.xml</relativePath>
+    </parent>
+
+    <artifactId>ufw-durable-messages-kafka</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.tpersson.ufw</groupId>
+            <artifactId>ufw-durable-messages</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.github.resilience4j</groupId>
+            <artifactId>resilience4j-retry</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.github.resilience4j</groupId>
+            <artifactId>resilience4j-kotlin</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.tpersson.ufw</groupId>
+            <artifactId>ufw-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

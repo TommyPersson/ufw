@@ -70,5 +70,9 @@
             <groupId>io.tpersson.ufw</groupId>
             <artifactId>ufw-cluster</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.tpersson.ufw</groupId>
+            <artifactId>ufw-durable-messages-kafka</artifactId>
+        </dependency>
     </dependencies>
 </project>

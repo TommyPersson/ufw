@@ -113,7 +113,7 @@
             </dependency>
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
-                <artifactId>ufw-durable-events-guice</artifactId>
+                <artifactId>ufw-durable-messages-guice</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -159,6 +159,11 @@
             <dependency>
                 <groupId>io.tpersson.ufw</groupId>
                 <artifactId>ufw-test</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.tpersson.ufw</groupId>
+                <artifactId>ufw-durable-messages-kafka</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>

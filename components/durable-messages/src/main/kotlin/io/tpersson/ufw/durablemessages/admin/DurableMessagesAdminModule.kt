@@ -31,14 +31,14 @@ import kotlin.reflect.KClass
 
 @Singleton
 public class DurableMessagesAdminModule @Inject constructor(
-    private val durableMessageHandlersRegistry: DurableMessageHandlersRegistry,
+    private val durableMessageHandlerRegistry: DurableMessageHandlerRegistry,
     private val databaseQueueAdminFacade: DatabaseQueueAdminFacade,
 ) : AdminModule {
 
     public override val moduleId: String = "durable-messages"
 
     private val messageHandlersByQueueId: Map<DurableMessageQueueId, List<DurableMessageHandlerMethod<*>>>
-            by Memoized({ durableMessageHandlersRegistry.get() }) { handlers ->
+            by Memoized({ durableMessageHandlerRegistry.get() }) { handlers ->
                 handlers.associate { it.queueId to it.findHandlerMethods() }
             }
 

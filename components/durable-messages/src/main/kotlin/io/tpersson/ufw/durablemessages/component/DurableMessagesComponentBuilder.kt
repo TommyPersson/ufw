@@ -59,7 +59,7 @@ public class DurableMessagesComponentBuilder(
 
         val durableMessageQueueWorkersManager = DurableMessageQueueWorkersManager(
             workerFactory = components.databaseQueue.databaseQueueWorkerFactory,
-            durableMessageHandlersRegistry = durableMessageHandlersProvider,
+            durableMessageHandlerRegistry = durableMessageHandlersProvider,
             components.core.objectMapper
         )
 
@@ -96,7 +96,7 @@ public class DurableMessagesComponentBuilder(
 
         components.admin.register(
             DurableMessagesAdminModule(
-                durableMessageHandlersRegistry = durableMessageHandlersProvider,
+                durableMessageHandlerRegistry = durableMessageHandlersProvider,
                 databaseQueueAdminFacade = components.databaseQueue.adminFacade
             )
         )

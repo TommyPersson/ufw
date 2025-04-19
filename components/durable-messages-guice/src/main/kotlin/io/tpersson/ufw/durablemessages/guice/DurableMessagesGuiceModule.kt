@@ -9,7 +9,7 @@ import io.tpersson.ufw.durablemessages.component.DurableMessagesComponentImpl
 import io.tpersson.ufw.durablemessages.component.DurableMessagesComponentInternal
 import io.tpersson.ufw.durablemessages.admin.DurableMessagesAdminModule
 import io.tpersson.ufw.durablemessages.common.IncomingMessageIngester
-import io.tpersson.ufw.durablemessages.handler.internal.DurableMessageHandlersRegistry
+import io.tpersson.ufw.durablemessages.handler.internal.DurableMessageHandlerRegistry
 import io.tpersson.ufw.durablemessages.publisher.OutgoingMessageTransport
 import io.tpersson.ufw.durablemessages.publisher.DurableMessagePublisher
 import io.tpersson.ufw.durablemessages.publisher.internal.DurableMessagePublisherImpl
@@ -25,7 +25,7 @@ public class DurableMessagesGuiceModule : Module {
         binder.bind(DurableMessagesComponent::class.java).to(DurableMessagesComponentImpl::class.java).asEagerSingleton()
         binder.bind(DurableMessagesComponentInternal::class.java).to(DurableMessagesComponentImpl::class.java).asEagerSingleton()
 
-        binder.bind(DurableMessageHandlersRegistry::class.java).to(GuiceDurableMessageHandlersRegistry::class.java)
+        binder.bind(DurableMessageHandlerRegistry::class.java).to(GuiceDurableMessageHandlerRegistry::class.java)
         binder.bind(IncomingMessageIngester::class.java).to(IncomingMessageIngesterImpl::class.java)
 
         binder.bind(DurableMessagesAdminModule::class.java).asEagerSingleton()

@@ -11,7 +11,7 @@
         <relativePath>../base/pom.xml</relativePath>
     </parent>
 
-    <artifactId>ufw-durable-events-guice</artifactId>
+    <artifactId>ufw-durable-messages-guice</artifactId>
 
     <dependencies>
         <dependency>

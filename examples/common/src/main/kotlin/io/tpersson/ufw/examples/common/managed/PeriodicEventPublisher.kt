@@ -14,11 +14,11 @@ import java.time.Duration
 
 public class PeriodicEventPublisher @Inject constructor(
     private val unitOfWorkFactory: UnitOfWorkFactory,
-    private val transactionalEventPublisher: DurableMessagePublisher,
+    private val messagePublisher: DurableMessagePublisher,
     private val featureToggles: FeatureToggles,
     private val clock: Clock
 ) : ManagedPeriodicTask(
-    interval = Duration.ofSeconds(5)
+    interval = Duration.ofMillis(1000)
 ) {
 
     private val featureToggleHandle = featureToggles.get(AppFeatureToggles.PeriodicEventPublisher)
@@ -38,7 +38,7 @@ public class PeriodicEventPublisher @Inject constructor(
                 timestamp = clock.instant(),
                 myContent = "$i"
             )
-            transactionalEventPublisher.publish(event, uow)
+            messagePublisher.publish(event, uow)
         }
     }
 }

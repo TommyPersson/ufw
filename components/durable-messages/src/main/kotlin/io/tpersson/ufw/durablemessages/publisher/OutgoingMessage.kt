@@ -5,6 +5,7 @@ import java.time.Instant
 
 public data class OutgoingMessage(
     val id: DurableMessageId,
+    val key: String?,
     val type: String,
     val topic: String,
     val dataJson: String, // TODO metadata

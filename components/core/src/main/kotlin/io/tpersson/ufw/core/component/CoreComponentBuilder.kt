@@ -17,9 +17,13 @@ import java.util.UUID
 
 
 @UfwDslMarker
-public fun UFWBuilder.Root.installCore(builder: CoreComponentBuilderContext.() -> Unit = {}) {
-    val ctx = contexts.getOrPut(CoreComponent) { CoreComponentBuilderContext() }.also(builder)
-    builder(ctx)
+public fun UFWBuilder.Root.installCore(configure: CoreComponentBuilderContext.() -> Unit = {}) {
+    val ctx = contexts.getOrPut(CoreComponent) { CoreComponentBuilderContext() }
+        .also(configure)
+
+    if (ctx.configProvider == null) {
+        ctx.configProvider = ConfigProvider.default()
+    }
 
     builders.add(CoreComponentBuilder(ctx))
 }
@@ -30,9 +34,7 @@ public class CoreComponentBuilderContext : ComponentBuilderContext<CoreComponent
     public var meterRegistry: MeterRegistry = SimpleMeterRegistry()
     public var appInfoProvider: AppInfoProvider = SimpleAppInfoProvider(AppInfo("unknown", "unknown", "unknown", UUID.randomUUID().toString()))
     public var objectMapper: ObjectMapper = CoreComponent.defaultObjectMapper
-
-    // TODO naming ...
-    public var configProviderFactory: () -> ConfigProvider = { ConfigProvider.default() }
+    public var configProvider: ConfigProvider? = null
 }
 
 public class CoreComponentBuilder(
@@ -45,7 +47,7 @@ public class CoreComponentBuilder(
             context.objectMapper,
             context.meterRegistry,
             context.appInfoProvider,
-            context.configProviderFactory(),
+            context.configProvider ?: error("ConfigProvider not set!"),
         )
     }
 }

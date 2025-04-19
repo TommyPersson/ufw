@@ -19,11 +19,11 @@ public class DurableMessagePublisherImpl @Inject constructor(
     @Named(NamedBindings.ObjectMapper) private val objectMapper: ObjectMapper,
 ): DurableMessagePublisher {
 
-    override fun publish(message: DurableMessage, unitOfWork: UnitOfWork) {
+    override suspend fun publish(message: DurableMessage, unitOfWork: UnitOfWork) {
         publishAll(listOf(message), unitOfWork)
     }
 
-    override fun publishAll(messages: List<DurableMessage>, unitOfWork: UnitOfWork) {
+    override suspend fun publishAll(messages: List<DurableMessage>, unitOfWork: UnitOfWork) {
         val entities = messages.map { message ->
             val json = objectMapper.writeValueAsString(message)
 

@@ -68,6 +68,7 @@ public class MessageOutboxWorker @Inject constructor(
         val outgoingMessages = batch.map {
             OutgoingMessage(
                 id = DurableMessageId(it.id),
+                key = null, // TODO key
                 type = it.type,
                 topic = it.topic,
                 dataJson = it.dataJson,

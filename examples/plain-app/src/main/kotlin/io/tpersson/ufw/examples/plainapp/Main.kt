@@ -1,6 +1,7 @@
 package io.tpersson.ufw.examples.plainapp
 
 import com.fasterxml.jackson.databind.SerializationFeature
+import io.tpersson.ufw.adapters.durablemessages.kafka.component.installDurableMessagesKafka
 import io.tpersson.ufw.admin.component.installAdmin
 import io.tpersson.ufw.aggregates.component.aggregates
 import io.tpersson.ufw.aggregates.component.installAggregates
@@ -62,8 +63,8 @@ public fun main(): Unit = runBlocking(MDCContext()) {
         installCore { // "withCore", "withManaged"?
             clock = Clock.systemDefaultZone()
             meterRegistry = Globals.meterRegistry
-            appInfoProvider = AppInfoProvider.simple(name = "Example (plain)", version = "0.0.1", environment = "dev")
-            configProviderFactory = ConfigProvider.Companion::default
+            appInfoProvider = AppInfoProvider.simple(name = "example-plain", version = "0.0.1", environment = "dev")
+            configProvider = ConfigProvider.default()
 
             objectMapper.enable(SerializationFeature.INDENT_OUTPUT)
         }
@@ -78,6 +79,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
         installMediator()
         installDurableJobs()
         installDurableMessages()
+        installDurableMessagesKafka()
         installAggregates()
         installFeatureToggles()
         installCluster()
@@ -114,7 +116,7 @@ public fun main(): Unit = runBlocking(MDCContext()) {
     ufw.managed.register(
         PeriodicEventPublisher(
             unitOfWorkFactory = ufw.database.unitOfWorkFactory,
-            transactionalEventPublisher = ufw.durableMessages.messagePublisher,
+            messagePublisher = ufw.durableMessages.messagePublisher,
             featureToggles = ufw.featureToggles.featureToggles,
             clock = ufw.core.clock
         )

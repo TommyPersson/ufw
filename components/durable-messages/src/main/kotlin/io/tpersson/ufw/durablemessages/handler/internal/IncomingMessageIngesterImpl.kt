@@ -13,7 +13,7 @@ import java.time.Clock
 
 @Singleton
 public class IncomingMessageIngesterImpl @Inject constructor(
-    private val messageHandlersProvider: DurableMessageHandlersRegistry,
+    private val messageHandlersProvider: DurableMessageHandlerRegistry,
     private val workItemsDAO: WorkItemsDAO,
     private val clock: Clock,
 ) : IncomingMessageIngester {

@@ -1,5 +1,11 @@
 [ufw.durable-jobs]
 periodic-jobs-check-interval = "PT10S"
 
+[ufw.durable-messages.kafka.consumer]
+"bootstrap.servers" = "127.0.0.1:9092"
+
+[ufw.durable-messages.kafka.producer]
+"bootstrap.servers" = "127.0.0.1:9092"
+
 [ufw.admin]
 server-port = 8081

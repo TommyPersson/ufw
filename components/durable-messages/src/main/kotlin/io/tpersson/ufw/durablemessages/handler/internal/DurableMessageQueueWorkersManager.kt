@@ -25,14 +25,14 @@ import kotlin.reflect.full.memberFunctions
 @Singleton
 public class DurableMessageQueueWorkersManager @Inject constructor(
     private val workerFactory: DatabaseQueueWorkerFactory,
-    private val durableMessageHandlersRegistry: DurableMessageHandlersRegistry,
+    private val durableMessageHandlerRegistry: DurableMessageHandlerRegistry,
     @Named(NamedBindings.ObjectMapper) private val objectMapper: ObjectMapper,
 ) : AbstractWorkQueueManager(
     workerFactory = workerFactory,
     adapterSettings = DurableMessagesDatabaseQueueAdapterSettings
 ) {
     public val handlerMethodsByQueue: Map<DurableMessageQueueId, List<DurableMessageHandlerMethod<*>>>
-            by Memoized({ durableMessageHandlersRegistry.get() }) { handlers ->
+            by Memoized({ durableMessageHandlerRegistry.get() }) { handlers ->
                 handlers.associate { handler ->
                     val queueId = handler.queueId
                     val methods = handler.findHandlerMethods()
