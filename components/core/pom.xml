@@ -6,9 +6,9 @@
 
     <parent>
         <groupId>io.tpersson.ufw</groupId>
-        <artifactId>ufw-bom</artifactId>
+        <artifactId>ufw-base</artifactId>
         <version>1.0-SNAPSHOT</version>
-        <relativePath>../../pom.xml</relativePath>
+        <relativePath>../base/pom.xml</relativePath>
     </parent>
 
     <artifactId>ufw-core</artifactId>
