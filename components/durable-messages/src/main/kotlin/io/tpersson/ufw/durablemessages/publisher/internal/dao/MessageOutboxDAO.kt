@@ -41,14 +41,14 @@ public class MessageOutboxDAO @Inject constructor(
                     topic, 
                     type, 
                     data_json, 
-                    ce_data_json, 
+                    metadata_json, 
                     timestamp
                 ) VALUES (
                     :data.id,
                     :data.topic,
                     :data.type,
                     :data.dataJson::jsonb,
-                    :data.ceDataJson::jsonb,
+                    :data.metadataJson::jsonb,
                     :data.timestamp
                 ) ON CONFLICT (id) DO NOTHING              
                 """.trimIndent(),

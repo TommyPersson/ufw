@@ -43,5 +43,10 @@ internal class DefaultKafkaIncomingMessageConverterTest {
         assertThat(message.id).isEqualTo(DurableMessageId("test-id"))
         assertThat(message.dataJson).isEqualTo("value")
         assertThat(message.timestamp.toEpochMilli()).isEqualTo(-1) // Default for ConsumerRecord if not set
+
+        assertThat(message.metadata["kafkaKey"]).isEqualTo(record.key().toString())
+        assertThat(message.metadata["kafkaTopic"]).isEqualTo(record.topic())
+        assertThat(message.metadata["kafkaPartition"]).isEqualTo(record.partition().toString())
+        assertThat(message.metadata["kafkaOffset"]).isEqualTo(record.offset().toString())
     }
 }

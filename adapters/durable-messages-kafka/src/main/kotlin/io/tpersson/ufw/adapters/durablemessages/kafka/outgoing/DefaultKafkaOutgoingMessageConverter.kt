@@ -18,6 +18,10 @@ public class DefaultKafkaOutgoingMessageConverter(
         ).also {
             it.headers().add(idHeaderKey, message.id.value.toByteArray(Charsets.UTF_8))
             it.headers().add(typeHeaderKey, message.type.toByteArray(Charsets.UTF_8))
+
+            for ((key, value) in message.metadata) {
+                it.headers().add("meta.$key", value.toByteArray(Charsets.UTF_8))
+            }
         }
     }
 }

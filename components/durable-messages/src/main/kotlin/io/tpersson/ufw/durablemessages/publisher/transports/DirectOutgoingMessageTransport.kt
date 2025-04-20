@@ -24,5 +24,6 @@ private fun OutgoingMessage.asIncomingMessage() = IncomingMessage(
     type = type,
     topic = topic,
     dataJson = dataJson,
+    metadata = metadata,
     timestamp = timestamp,
 )

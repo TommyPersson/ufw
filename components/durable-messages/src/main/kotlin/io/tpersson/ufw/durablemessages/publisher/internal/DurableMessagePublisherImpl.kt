@@ -32,7 +32,7 @@ public class DurableMessagePublisherImpl @Inject constructor(
                 topic = message.topic,
                 type = message.type,
                 dataJson = json,
-                ceDataJson = "{}",
+                metadataJson = "{}", // TODO e.g. traceId
                 timestamp = message.timestamp
             )
         }

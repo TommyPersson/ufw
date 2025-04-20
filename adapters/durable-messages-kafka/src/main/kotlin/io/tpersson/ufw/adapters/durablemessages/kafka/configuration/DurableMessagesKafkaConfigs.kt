@@ -17,6 +17,13 @@ public object DurableMessagesKafkaConfigs {
         "consumer",
         default = emptyMap(),
     )
+
+    public val ConsumerEnabled: ConfigElement<Boolean> = ConfigElement.of(
+        "durable-messages",
+        "kafka",
+        "consumer-enabled",
+        default = false,
+    )
 }
 
 public val Configs.DurableMessagesKafka: DurableMessagesKafkaConfigs get() = DurableMessagesKafkaConfigs

@@ -77,7 +77,8 @@ public class DurableMessagesComponentBuilder(
 
         val ingester = IncomingMessageIngesterImpl(
             messageHandlersProvider = durableMessageHandlersProvider,
-            workItemsDAO = components.databaseQueue.workItemsDAO,
+            workQueue = components.databaseQueue.workQueue,
+            objectMapper = components.core.objectMapper,
             clock = components.core.clock,
         )
 
@@ -90,8 +91,8 @@ public class DurableMessagesComponentBuilder(
             unitOfWorkFactory = components.database.unitOfWorkFactory,
             outgoingMessageTransport = outgoingMessageTransport,
             databaseLocks = components.database.locks,
-            appInfoProvider = components.core.appInfoProvider,
             configProvider = components.core.configProvider,
+            objectMapper = components.core.objectMapper,
         )
 
         components.admin.register(

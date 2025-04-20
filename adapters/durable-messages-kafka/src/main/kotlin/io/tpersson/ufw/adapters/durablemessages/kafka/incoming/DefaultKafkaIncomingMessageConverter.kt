@@ -27,10 +27,22 @@ public class DefaultKafkaIncomingMessageConverter(
             return null
         }
 
+        val metadata = record.headers().filter {
+            it.key().startsWith("meta.")
+        }.associate {
+            it.key().substringAfter("meta.") to it.value().toString(Charsets.UTF_8)
+        } + mapOf(
+            "kafkaKey" to record.key()?.toString(),
+            "kafkaTopic" to record.topic(),
+            "kafkaPartition" to record.partition().toString(),
+            "kafkaOffset" to record.offset().toString(),
+        )
+
         return IncomingMessage(
             id = DurableMessageId(id),
             type = type,
             dataJson = record.value().toString(Charsets.UTF_8),
+            metadata = metadata,
             topic = record.topic(),
             timestamp = Instant.ofEpochMilli(record.timestamp())
         )

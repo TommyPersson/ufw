@@ -8,6 +8,7 @@ public data class OutgoingMessage(
     val key: String?,
     val type: String,
     val topic: String,
-    val dataJson: String, // TODO metadata
+    val dataJson: String,
+    val metadata: Map<String, String>,
     val timestamp: Instant,
 )

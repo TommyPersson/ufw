@@ -67,6 +67,7 @@ public class DurableMessagesKafkaComponentBuilder(
                 configProvider = components.core.configProvider,
                 appInfoProvider = components.core.appInfoProvider,
             ),
+            configProvider = components.core.configProvider,
         )
 
         components.managed.register(incomingMessageWorker)

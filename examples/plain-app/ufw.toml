@@ -1,6 +1,12 @@
 [ufw.durable-jobs]
 periodic-jobs-check-interval = "PT10S"
 
+[ufw.durable-messages]
+outbox-worker-enabled = true
+
+[ufw.durable-messages.kafka]
+consumer-enabled = true
+
 [ufw.durable-messages.kafka.consumer]
 "bootstrap.servers" = "127.0.0.1:9092"
 

@@ -5,6 +5,13 @@ import io.tpersson.ufw.core.configuration.Configs
 import java.time.Duration
 
 public object DurableMessagesConfigs {
+
+    public val OutboxWorkerEnabled: ConfigElement<Boolean> = ConfigElement.of(
+        "durable-messages",
+        "outbox-worker-enabled",
+        default = false
+    )
+
     public val OutboxWorkerInterval: ConfigElement<Duration> = ConfigElement.of(
         "durable-messages",
         "outbox-worker-interval",

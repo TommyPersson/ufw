@@ -7,5 +7,6 @@ public data class IncomingMessage(
     val type: String,
     val topic: String,
     val dataJson: String,
+    val metadata: Map<String, String?>,
     val timestamp: Instant,
 )

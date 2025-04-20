@@ -68,6 +68,7 @@ internal class KafkaOutgoingMessageTransportTest {
         type = "test-type",
         topic = topic,
         dataJson = "{}",
+        metadata = mapOf(),
         timestamp = Instant.ofEpochMilli(123),
     )
 }

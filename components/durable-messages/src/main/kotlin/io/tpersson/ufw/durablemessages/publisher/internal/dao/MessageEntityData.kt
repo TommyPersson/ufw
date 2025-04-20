@@ -8,6 +8,6 @@ public data class MessageEntityData(
     val topic: String,
     val type: String,
     val dataJson: String,
-    val ceDataJson: String,
+    val metadataJson: String,
     val timestamp: Instant,
 )
