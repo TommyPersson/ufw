@@ -10,8 +10,10 @@ import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.withContext
 import org.apache.kafka.clients.producer.Producer
+import java.util.concurrent.Executors
 
 @Singleton
 public class KafkaOutgoingMessageTransport @Inject constructor(
@@ -24,20 +26,22 @@ public class KafkaOutgoingMessageTransport @Inject constructor(
         kafkaProducerFactory.create(configProvider.get(Configs.DurableMessagesKafka.Producer))
     }
 
-    private val sendContext = Dispatchers.IO + NonCancellable
+    private val sendContext = Executors.newSingleThreadExecutor().asCoroutineDispatcher() + NonCancellable
 
     override suspend fun send(
         messages: List<OutgoingMessage>,
         unitOfWork: UnitOfWork
     ) {
-        val records = messages.map { messageConverter.convert(it) }
+        unitOfWork.addPreCommitHook {
+            val records = messages.map { messageConverter.convert(it) }
 
-        withContext(sendContext) {
-            for (record in records) {
-                kafkaProducer.send(record)
+            withContext(sendContext) {
+                for (record in records) {
+                    kafkaProducer.send(record)
+                }
+
+                kafkaProducer.flush()
             }
-
-            kafkaProducer.flush()
         }
     }
 }

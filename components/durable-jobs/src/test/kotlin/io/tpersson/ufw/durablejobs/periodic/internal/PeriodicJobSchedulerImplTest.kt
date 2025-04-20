@@ -6,6 +6,7 @@ import io.tpersson.ufw.core.utils.PaginationOptions
 import io.tpersson.ufw.database.locks.DatabaseLock
 import io.tpersson.ufw.database.locks.DatabaseLockHandle
 import io.tpersson.ufw.database.locks.DatabaseLocks
+import io.tpersson.ufw.database.testing.FakeUnitOfWork
 import io.tpersson.ufw.database.typedqueries.TypedUpdate
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
 import io.tpersson.ufw.database.unitofwork.UnitOfWorkFactory
@@ -66,7 +67,7 @@ internal class PeriodicJobSchedulerImplTest {
             whenever(databaseLocksMock.create(any(), any())).then { DatabaseLockFake() }
             periodicJobsDAOFake = PeriodicJobsDAOFake()
             unitOfWorkFactoryMock = mock<UnitOfWorkFactory>()
-            whenever(unitOfWorkFactoryMock.create()).then { UnitOfWorkFake() }
+            whenever(unitOfWorkFactoryMock.create()).then { FakeUnitOfWork() }
 
             periodicJobScheduler = PeriodicJobSchedulerImpl(
                 periodicJobSpecsProvider = periodicJobSpecsProvider,
@@ -290,7 +291,7 @@ internal class PeriodicJobSchedulerImplTest {
     private suspend fun setupState(vararg nextSchedulingAttemptsForJobClass: Pair<KClass<out DurableJob>, String?>) {
         val nextSchedulingAttemptsPerJobClass = nextSchedulingAttemptsForJobClass.toMap()
 
-        val uow = UnitOfWorkFake()
+        val uow = FakeUnitOfWork()
 
         for ((jobClass, nextAttemptString) in nextSchedulingAttemptsPerJobClass) {
             val jobDefinition = jobClass.jobDefinition2
@@ -402,24 +403,6 @@ internal class PeriodicJobSchedulerImplTest {
 
         override suspend fun debugTruncate() {
             database.clear()
-        }
-    }
-
-    class UnitOfWorkFake : UnitOfWork {
-        private val hooks = HashSet<suspend () -> Unit>()
-
-        override fun add(minimumAffectedRows: Int, block: (Connection) -> PreparedStatement) {
-        }
-
-        override fun add(update: TypedUpdate, exceptionMapper: (Exception) -> Exception) {
-        }
-
-        override fun addPostCommitHook(block: suspend () -> Unit) {
-            hooks += block
-        }
-
-        override suspend fun commit() {
-            hooks.forEach { it() }
         }
     }
 

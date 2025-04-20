@@ -30,7 +30,7 @@ public class KafkaIncomingBatchProcessor(
                     }
                 }
 
-                batch.commit()
+                //batch.commit()
             }
         }
     }

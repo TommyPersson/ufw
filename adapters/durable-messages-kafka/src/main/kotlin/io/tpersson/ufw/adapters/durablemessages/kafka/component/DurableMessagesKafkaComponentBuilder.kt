@@ -62,11 +62,10 @@ public class DurableMessagesKafkaComponentBuilder(
                 messageIngester = components.durableMessages.messageIngester,
                 unitOfWorkFactory = components.database.unitOfWorkFactory,
             ),
-            consumerFlow = KafkaConsumerFlow(
-                consumerFactory = KafkaConsumerFactoryImpl(
-                    appInfoProvider = components.core.appInfoProvider,
-                ),
+            subscriber = KafkaConsumerSubscriber(
+                consumerFactory = KafkaConsumerFactoryImpl(),
                 configProvider = components.core.configProvider,
+                appInfoProvider = components.core.appInfoProvider,
             ),
         )
 

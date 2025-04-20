@@ -16,7 +16,6 @@ import org.mockito.kotlin.*
 
 internal class KafkaIncomingBatchProcessorTest {
 
-    private lateinit var consumer: Consumer<ByteArray, ByteArray>
     private lateinit var messageIngester: IncomingMessageIngester
     private lateinit var incomingMessageConverter: KafkaIncomingMessageConverter
     private lateinit var unitOfWorkFactory: UnitOfWorkFactory
@@ -26,7 +25,6 @@ internal class KafkaIncomingBatchProcessorTest {
 
     @BeforeEach
     fun setUp() {
-        consumer = mock()
         messageIngester = mock()
         incomingMessageConverter = DefaultKafkaIncomingMessageConverter()
 
@@ -42,19 +40,18 @@ internal class KafkaIncomingBatchProcessorTest {
     }
 
     @Test
-    fun `process - Shall forward converted messages to ingester, and commit`(): Unit = runBlocking {
+    fun `process - Shall forward converted messages to ingester`(): Unit = runBlocking {
         val batch = RecordBatch(
             records = listOf(
                 consumerRecordOf("topic-2", partition = 2, offset = 6),
                 consumerRecordOf("topic-2", partition = 2, offset = 3),
                 consumerRecordOf("topic-1", partition = 1, offset = 2),
-            ),
-            consumer = consumer
+            )
         )
 
         batchProcessor.process(batch)
 
-        inOrder(messageIngester, unitOfWork, consumer) {
+        inOrder(messageIngester, unitOfWork) {
             verify(messageIngester).ingest(
                 eq(
                     listOf(
@@ -67,24 +64,20 @@ internal class KafkaIncomingBatchProcessorTest {
             )
 
             verify(unitOfWork).commit()
-
-            verify(consumer).commitSync(any<Map<TopicPartition, OffsetAndMetadata>>())
         }
     }
 
     @Test
     fun `process - Shall not ingest if no records are convertible`(): Unit = runBlocking {
         val batch = RecordBatch(
-            records = emptyList(),
-            consumer = consumer
+            records = emptyList()
         )
 
         batchProcessor.process(batch)
 
-        inOrder(messageIngester, unitOfWork, consumer) {
+        inOrder(messageIngester, unitOfWork) {
             verify(messageIngester, times(0)).ingest(any(), any())
             verify(unitOfWork, times(0)).commit()
-            verify(consumer).commitSync(any<Map<TopicPartition, OffsetAndMetadata>>())
         }
     }
 
@@ -93,8 +86,7 @@ internal class KafkaIncomingBatchProcessorTest {
         val batch = RecordBatch(
             records = listOf(
                 consumerRecordOf("topic-2", partition = 2, offset = 6),
-            ),
-            consumer = consumer
+            )
         )
 
         whenever(messageIngester.ingest(any(), any())).thenThrow(RuntimeException("oh no"))

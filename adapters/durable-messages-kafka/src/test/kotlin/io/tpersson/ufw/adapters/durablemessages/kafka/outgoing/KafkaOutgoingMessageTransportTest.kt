@@ -2,6 +2,7 @@ package io.tpersson.ufw.adapters.durablemessages.kafka.outgoing
 
 import io.tpersson.ufw.adapters.durablemessages.kafka.utils.getHeaderValue
 import io.tpersson.ufw.core.configuration.ConfigProvider
+import io.tpersson.ufw.database.testing.FakeUnitOfWork
 import io.tpersson.ufw.durablemessages.common.DurableMessageId
 import io.tpersson.ufw.durablemessages.publisher.OutgoingMessage
 import kotlinx.coroutines.runBlocking
@@ -10,7 +11,6 @@ import org.apache.kafka.common.serialization.ByteArraySerializer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.mock
 import java.time.Instant
 
 internal class KafkaOutgoingMessageTransportTest {
@@ -32,6 +32,8 @@ internal class KafkaOutgoingMessageTransportTest {
 
     @Test
     fun `send - Forwards to Kafka Producer `(): Unit = runBlocking {
+        val unitOfWork = FakeUnitOfWork()
+
         transport.send(
             listOf(
                 createMessage("1", topic = "topic-1"),
@@ -39,8 +41,10 @@ internal class KafkaOutgoingMessageTransportTest {
                 createMessage("3", topic = "topic-1"),
                 createMessage("4", topic = "topic-4"),
             ),
-            mock()
+            unitOfWork
         )
+
+        unitOfWork.commit()
 
         assertThat(mockProducer.history()).hasSize(4)
 

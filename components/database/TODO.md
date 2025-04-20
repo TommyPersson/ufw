@@ -1,0 +1,1 @@
+* [ ] Make it possible to make a lock instance exclusive within the same application instance

@@ -15,6 +15,7 @@ public class UnitOfWorkImpl(
 ) : UnitOfWork {
     private val operations = mutableListOf<Operation>()
 
+    private val preCommitHooks = mutableListOf<suspend () -> Unit>()
     private val postCommitHooks = mutableListOf<suspend () -> Unit>()
 
     override fun add(minimumAffectedRows: Int, block: Connection.() -> PreparedStatement) {
@@ -25,11 +26,19 @@ public class UnitOfWorkImpl(
         operations += Operation.TypedUpdate(update, exceptionMapper)
     }
 
+    override fun addPreCommitHook(block: suspend () -> Unit) {
+        preCommitHooks += block
+    }
+
     override fun addPostCommitHook(block: suspend () -> Unit) {
         postCommitHooks += block
     }
 
     override suspend fun commit() {
+        for (hook in preCommitHooks) {
+            hook.invoke()
+        }
+
         withContext(Dispatchers.IO) {
             connectionProvider.get().useInTransaction {
                 for (operation in operations) {

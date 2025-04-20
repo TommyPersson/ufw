@@ -1,28 +1,28 @@
 package io.tpersson.ufw.adapters.durablemessages.kafka.incoming
 
 import consumerRecordOf
+import io.tpersson.ufw.core.AppInfoProvider
 import io.tpersson.ufw.core.configuration.ConfigProvider
-import kotlinx.coroutines.*
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.runBlocking
 import org.apache.kafka.clients.consumer.Consumer
+import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.MockConsumer
+import org.apache.kafka.clients.consumer.OffsetAndMetadata
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
-import org.apache.kafka.common.PartitionInfo
 import org.apache.kafka.common.TopicPartition
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
-import org.awaitility.kotlin.until
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.*
 
-import org.junit.jupiter.api.Assertions.*
-import org.mockito.kotlin.verify
-
-internal class KafkaConsumerFlowTest {
+internal class KafkaConsumerSubscriberTest {
 
     private lateinit var mockConsumer: MockConsumer<ByteArray, ByteArray>
     private lateinit var consumerFactory: KafkaConsumerFactory
 
-    private lateinit var consumerFlow: KafkaConsumerFlow
+    private lateinit var subscriber: KafkaConsumerSubscriber
 
     @BeforeEach
     fun setUp() {
@@ -34,14 +34,15 @@ internal class KafkaConsumerFlowTest {
             }
         }
 
-        consumerFlow = KafkaConsumerFlow(
+        subscriber = KafkaConsumerSubscriber(
             consumerFactory = consumerFactory,
-            configProvider = ConfigProvider.empty()
+            configProvider = ConfigProvider.empty(),
+            appInfoProvider = AppInfoProvider.simple(name = "my-app"),
         )
     }
 
     @Test
-    fun `subscribe - Returns flow emitting published records`(): Unit = runBlocking {
+    fun `start - Processes records until cancelled`(): Unit = runBlocking {
         val received = mutableListOf<RecordBatch>()
 
         mockConsumer.updateBeginningOffsets(
@@ -51,10 +52,8 @@ internal class KafkaConsumerFlowTest {
             )
         )
 
-        val collectorJob = launch(Dispatchers.Default) {
-            consumerFlow.subscribe(setOf("topic-1", "topic-2")).collect {
-                received.add(it)
-            }
+        val subscriberJob = subscriber.start(setOf("topic-1", "topic-2"), "the-suffix", this) {
+            received.add(it)
         }
 
         await.until {
@@ -93,10 +92,42 @@ internal class KafkaConsumerFlowTest {
         }
         assertThat(topic2Offsets).containsSequence(1, 2)
 
-        collectorJob.cancel()
+        assertThat(
+            mockConsumer.committed(
+                setOf(
+                    TopicPartition("topic-1", 0),
+                    TopicPartition("topic-2", 0)
+                )
+            )
+        ).isEqualTo(
+            mapOf(
+                TopicPartition("topic-1", 0) to OffsetAndMetadata(4),
+                TopicPartition("topic-2", 0) to OffsetAndMetadata(3),
+            )
+        )
+
+        subscriberJob.cancel()
 
         await.until {
             mockConsumer.closed()
         }
+    }
+
+    @Test
+    fun `start - Sets up the group ID correctly`(): Unit = runBlocking {
+        val factoryMock = mock<KafkaConsumerFactory>()
+        whenever(factoryMock.create(any())).thenReturn(mock())
+
+        val subscriber = KafkaConsumerSubscriber(
+            consumerFactory = factoryMock,
+            configProvider = ConfigProvider.empty(),
+            appInfoProvider = AppInfoProvider.simple(name = "my-app"),
+        )
+
+        subscriber.start(setOf("topic-1", "topic-2"), "the-suffix", this) {
+            // no-op
+        }.cancelAndJoin()
+
+        verify(factoryMock).create(argWhere { it[ConsumerConfig.GROUP_ID_CONFIG] == "my-app--the-suffix" })
     }
 }

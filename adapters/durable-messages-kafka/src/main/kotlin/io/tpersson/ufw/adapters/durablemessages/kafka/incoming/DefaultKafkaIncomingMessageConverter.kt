@@ -7,18 +7,21 @@ import io.tpersson.ufw.durablemessages.common.IncomingMessage
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import java.time.Instant
 
-public class DefaultKafkaIncomingMessageConverter : KafkaIncomingMessageConverter {
+public class DefaultKafkaIncomingMessageConverter(
+    private val idHeaderKey: String = "id",
+    private val typeHeaderKey: String = "type",
+) : KafkaIncomingMessageConverter {
 
     private val logger = createLogger()
 
     override fun convert(record: ConsumerRecord<ByteArray, ByteArray>): IncomingMessage? {
-        val id = record.getHeaderValue("id")
+        val id = record.getHeaderValue(idHeaderKey)
         if (id == null) {
             logger.error("Cannot determine ID of message record, discarding it!")
             return null
         }
 
-        val type = record.getHeaderValue("type")
+        val type = record.getHeaderValue(typeHeaderKey)
         if (type == null) {
             logger.error("Cannot determine type of message record, discarding it!")
             return null
