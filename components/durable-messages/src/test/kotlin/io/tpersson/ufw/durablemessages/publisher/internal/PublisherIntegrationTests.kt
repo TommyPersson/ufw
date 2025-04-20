@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.core.component.installCore
 import io.tpersson.ufw.core.builder.UFW
+import io.tpersson.ufw.core.configuration.ConfigProvider
 import io.tpersson.ufw.database.component.installDatabase
 import io.tpersson.ufw.database.component.database
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
@@ -51,6 +52,10 @@ internal class PublisherIntegrationTests {
         val ufw = UFW.build {
             installCore {
                 clock = testClock
+                configProvider = ConfigProvider.fromText("""
+                    [ufw.durable-messages]
+                    outbox-worker-enabled = true
+                """, format = ConfigProvider.TextFormat.TOML)
             }
             installDatabase {
                 dataSource = HikariDataSource(config)

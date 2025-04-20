@@ -9,6 +9,7 @@ import io.tpersson.ufw.aggregates.component.installAggregates
 import io.tpersson.ufw.aggregates.exceptions.AggregateVersionConflictException
 import io.tpersson.ufw.core.builder.UFW
 import io.tpersson.ufw.core.component.installCore
+import io.tpersson.ufw.core.configuration.ConfigProvider
 import io.tpersson.ufw.database.component.installDatabase
 import io.tpersson.ufw.database.component.database
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
@@ -58,6 +59,10 @@ internal class IntegrationTests {
         val ufw = UFW.build {
             installCore {
                 clock = testClock
+                configProvider = ConfigProvider.fromText("""
+                    [ufw.durable-messages]
+                    outbox-worker-enabled = true
+                """.trimIndent(), ConfigProvider.TextFormat.TOML)
             }
             installDatabase {
                 dataSource = HikariDataSource(config)
