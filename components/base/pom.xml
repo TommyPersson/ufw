@@ -55,7 +55,7 @@
         <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
         <jmolecules.version>1.10.0</jmolecules.version>
         <cron-utils.version>9.2.1</cron-utils.version>
-        <kafka.version>3.8.0</kafka.version>
+        <kafka.version>4.0.0</kafka.version>
     </properties>
 
     <dependencyManagement>
