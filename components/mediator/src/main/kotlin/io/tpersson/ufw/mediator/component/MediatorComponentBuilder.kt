@@ -4,9 +4,11 @@ import io.tpersson.ufw.admin.component.admin
 import io.tpersson.ufw.admin.component.installAdmin
 import io.tpersson.ufw.core.builder.UFWBuilder
 import io.tpersson.ufw.core.builder.UfwDslMarker
-import io.tpersson.ufw.core.component.installCore
-import io.tpersson.ufw.core.components.*
 import io.tpersson.ufw.core.component.core
+import io.tpersson.ufw.core.component.installCore
+import io.tpersson.ufw.core.components.ComponentBuilder
+import io.tpersson.ufw.core.components.ComponentBuilderContext
+import io.tpersson.ufw.core.components.ComponentRegistryInternal
 import io.tpersson.ufw.mediator.admin.AdminRequestsAdminFacadeImpl
 import io.tpersson.ufw.mediator.admin.AdminRequestsAdminModule
 import io.tpersson.ufw.mediator.internal.MediatorImpl
@@ -56,7 +58,8 @@ public class MediatorComponentBuilder(
         components.admin.register(
             AdminRequestsAdminModule(
                 adminFacade = AdminRequestsAdminFacadeImpl(
-                    mediator = mediator
+                    mediator = mediator,
+                    objectMapper = components.core.objectMapper,
                 )
             )
         )

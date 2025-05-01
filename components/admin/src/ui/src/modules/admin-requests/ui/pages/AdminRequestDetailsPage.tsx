@@ -1,16 +1,20 @@
 import { Button, CardContent, Divider, TextField, Typography } from "@mui/material"
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
+import { useCallback } from "react"
 import { useForm, UseFormReturn, useWatch } from "react-hook-form"
 import Markdown from "react-markdown"
 import { useParams } from "react-router"
 import {
-  ApplicationModuleHeader, JsonBlock,
+  ApplicationModuleHeader,
+  ErrorAlert,
+  JsonBlock,
   Page,
   PageBreadcrumb,
   PageSectionCard,
   PropertyGroup,
   PropertyText
 } from "../../../../common/components"
+import { ExecuteRequestMutation } from "../../commands"
 import { AdminRequest, AdminRequestParameter, AdminRequestType } from "../../models"
 import { AdminRequestsQuery } from "../../queries"
 import { ClassNameText } from "../components"
@@ -53,19 +57,37 @@ const PageContent = (props: { request: AdminRequest }) => {
   const form = useForm()
   const formValues = useWatch(form)
 
+  const executeMutation = useMutation(ExecuteRequestMutation)
+
+  const handleExecuteClicked = useCallback(async () => {
+    await executeMutation.mutateAsync({
+      fqcn: request.fullClassName,
+      requestType: request.type,
+      body: formValues
+    })
+  }, [executeMutation.mutateAsync, formValues, request])
+
+  const handleClearClicked = executeMutation.reset
+
   return (
     <>
       <RequestDetailsSection request={request} />
       <RequestParametersSection request={request} form={form} />
       <RequestPreviewSection formValues={formValues} />
 
-      <Button variant={"contained"} style={{ alignSelf: "flex-start" }}>Execute</Button>
+      <Button
+        variant={"contained"}
+        style={{ alignSelf: "flex-start" }}
+        onClick={handleExecuteClicked}
+        loading={executeMutation.isPending}
+        children={"Execute"}
+      />
 
-      <PageSectionCard heading={"Result"}>
-        <CardContent>asd</CardContent>
-      </PageSectionCard>
-
-      <Button variant={"contained"} style={{ alignSelf: "flex-start" }}>Clear</Button>
+      <ResponseSection
+        response={executeMutation.data}
+        error={executeMutation.error}
+        onClear={handleClearClicked}
+      />
     </>
   )
 }
@@ -146,6 +168,33 @@ const RequestPreviewSection = (props: { formValues: any }) => {
     <PageSectionCard heading={"Preview"}>
       <CardContent><JsonBlock json={JSON.stringify(props.formValues)} /></CardContent>
     </PageSectionCard>
+  )
+}
+
+const ResponseSection = (props: { response: any | null, error: any | null, onClear: () => void }) => {
+  const { response, error, onClear } = props
+
+  return (
+    <>
+      <ErrorAlert error={error} />
+
+      {response && (
+        <>
+          <PageSectionCard heading={"Result"}>
+            <CardContent>
+              <JsonBlock json={JSON.stringify(response.body, null, 2)} />
+            </CardContent>
+          </PageSectionCard>
+
+          <Button
+            variant={"contained"}
+            style={{ alignSelf: "flex-start" }}
+            onClick={onClear}
+            children={"Clear"}
+          />
+        </>
+      )}
+    </>
   )
 }
 
