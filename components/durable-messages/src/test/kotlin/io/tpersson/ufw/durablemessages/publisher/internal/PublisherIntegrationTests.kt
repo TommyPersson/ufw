@@ -154,8 +154,8 @@ internal class PublisherIntegrationTests {
     class TestOutgoingMessageTransport : OutgoingMessageTransport {
         var sentBatches: MutableList<List<OutgoingMessage>> = mutableListOf()
 
-        override suspend fun send(events: List<OutgoingMessage>, unitOfWork: UnitOfWork) {
-            sentBatches.add(events)
+        override suspend fun send(messages: List<OutgoingMessage>, unitOfWork: UnitOfWork) {
+            sentBatches.add(messages)
         }
     }
 }

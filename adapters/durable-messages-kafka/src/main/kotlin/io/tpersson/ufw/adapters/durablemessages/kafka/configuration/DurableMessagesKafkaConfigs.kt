@@ -2,6 +2,7 @@ package io.tpersson.ufw.adapters.durablemessages.kafka.configuration
 
 import io.tpersson.ufw.core.configuration.ConfigElement
 import io.tpersson.ufw.core.configuration.Configs
+import java.time.Duration
 
 public object DurableMessagesKafkaConfigs {
     public val Producer: ConfigElement<Map<String, Any>> = ConfigElement.of(
@@ -23,6 +24,13 @@ public object DurableMessagesKafkaConfigs {
         "kafka",
         "consumer-enabled",
         default = false,
+    )
+
+    public val ConsumerPollWaitTime: ConfigElement<Duration> = ConfigElement.of(
+        "durable-messages",
+        "kafka",
+        "consumer-poll-wait-time",
+        default = Duration.ofSeconds(5),
     )
 }
 

@@ -93,7 +93,7 @@ internal class IntegrationTests {
         unitOfWorkFactory.use { uow ->
             factRepository.debugTruncate(uow)
         }
-        testOutgoingEventTransport.sentEvents.clear()
+        testOutgoingEventTransport.sentMessages.clear()
     }
 
     @Test
@@ -231,7 +231,7 @@ internal class IntegrationTests {
         }
 
         await.untilAsserted {
-            val sentEvents = testOutgoingEventTransport.sentEvents
+            val sentEvents = testOutgoingEventTransport.sentMessages
             assertThat(sentEvents).hasSize(3)
             assertThat(sentEvents[0].type).isEqualTo(IncrementedMessage::class.messageDefinition.type)
             assertThat(sentEvents[1].type).isEqualTo(IncrementedMessage::class.messageDefinition.type)
@@ -317,10 +317,10 @@ internal class IntegrationTests {
     }
 
     class TestOutgoingMessageTransport : OutgoingMessageTransport {
-        val sentEvents = mutableListOf<OutgoingMessage>()
+        val sentMessages = mutableListOf<OutgoingMessage>()
 
-        override suspend fun send(events: List<OutgoingMessage>, unitOfWork: UnitOfWork) {
-            sentEvents.addAll(events)
+        override suspend fun send(messages: List<OutgoingMessage>, unitOfWork: UnitOfWork) {
+            sentMessages.addAll(messages)
         }
     }
 }

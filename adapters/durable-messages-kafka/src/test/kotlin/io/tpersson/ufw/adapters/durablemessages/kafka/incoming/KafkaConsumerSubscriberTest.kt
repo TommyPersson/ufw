@@ -4,12 +4,13 @@ import consumerRecordOf
 import io.tpersson.ufw.core.AppInfoProvider
 import io.tpersson.ufw.core.configuration.ConfigProvider
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.MockConsumer
 import org.apache.kafka.clients.consumer.OffsetAndMetadata
-import org.apache.kafka.clients.consumer.OffsetResetStrategy
+import org.apache.kafka.clients.consumer.internals.AutoOffsetResetStrategy
 import org.apache.kafka.common.TopicPartition
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
@@ -26,7 +27,7 @@ internal class KafkaConsumerSubscriberTest {
 
     @BeforeEach
     fun setUp() {
-        mockConsumer = MockConsumer<ByteArray, ByteArray>(OffsetResetStrategy.EARLIEST)
+        mockConsumer = MockConsumer<ByteArray, ByteArray>(AutoOffsetResetStrategy.EARLIEST.name())
 
         consumerFactory = object : KafkaConsumerFactory {
             override fun create(config: Map<String, Any>): Consumer<ByteArray, ByteArray> {
@@ -118,15 +119,19 @@ internal class KafkaConsumerSubscriberTest {
         val factoryMock = mock<KafkaConsumerFactory>()
         whenever(factoryMock.create(any())).thenReturn(mock())
 
-        val subscriber = KafkaConsumerSubscriber(
+        val subscriber2 = KafkaConsumerSubscriber(
             consumerFactory = factoryMock,
             configProvider = ConfigProvider.empty(),
             appInfoProvider = AppInfoProvider.simple(name = "my-app"),
         )
 
-        subscriber.start(setOf("topic-1", "topic-2"), "the-suffix", this) {
+        val job = subscriber2.start(setOf("topic-3", "topic-4"), "the-suffix", this) {
             // no-op
-        }.cancelAndJoin()
+        }
+
+        delay(10)
+
+        job.cancelAndJoin()
 
         verify(factoryMock).create(argWhere { it[ConsumerConfig.GROUP_ID_CONFIG] == "my-app--the-suffix" })
     }

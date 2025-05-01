@@ -9,7 +9,6 @@ import kotlinx.coroutines.*
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener
 import org.apache.kafka.common.TopicPartition
-import java.time.Duration
 import java.util.concurrent.Executors
 
 public class KafkaConsumerSubscriber(
@@ -18,6 +17,8 @@ public class KafkaConsumerSubscriber(
     private val appInfoProvider: AppInfoProvider,
 ) {
     private val logger = createLogger()
+
+    private val pollWaitTime = configProvider.get(Configs.DurableMessagesKafka.ConsumerPollWaitTime)
 
     private val consumerContext = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
 
@@ -28,7 +29,8 @@ public class KafkaConsumerSubscriber(
         handler: suspend (batch: RecordBatch) -> Unit
     ): Job {
         return scope.launch(consumerContext) {
-            val consumer = consumerFactory.create(createConfiguration(groupIdSuffix))
+            val consumerConfig = createConfiguration(groupIdSuffix)
+            val consumer = consumerFactory.create(consumerConfig)
 
             logger.info("Subscribing to topics: $topics")
             consumer.subscribe(topics, object : ConsumerRebalanceListener {
@@ -43,7 +45,7 @@ public class KafkaConsumerSubscriber(
             try {
                 while (isActive) {
                     withContext(NonCancellable) {
-                        val records = consumer.poll(Duration.ofSeconds(5))?.toList() ?: emptyList()
+                        val records = consumer.poll(pollWaitTime)?.toList() ?: emptyList()
                         if (records.isNotEmpty()) {
                             handler(RecordBatch(records))
                             consumer.commitSync()
