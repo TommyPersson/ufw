@@ -7,6 +7,7 @@ import io.tpersson.ufw.durablemessages.common.DurableMessageId
 import io.tpersson.ufw.durablemessages.publisher.OutgoingMessage
 import kotlinx.coroutines.runBlocking
 import org.apache.kafka.clients.producer.MockProducer
+import org.apache.kafka.clients.producer.RoundRobinPartitioner
 import org.apache.kafka.common.serialization.ByteArraySerializer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -21,7 +22,12 @@ internal class KafkaOutgoingMessageTransportTest {
 
     @BeforeEach
     fun setUp() {
-        mockProducer = MockProducer(true, ByteArraySerializer(), ByteArraySerializer())
+        mockProducer = MockProducer(
+            true,
+            RoundRobinPartitioner(),
+            ByteArraySerializer(),
+            ByteArraySerializer()
+        )
 
         transport = KafkaOutgoingMessageTransport(
             messageConverter = DefaultKafkaOutgoingMessageConverter(),
