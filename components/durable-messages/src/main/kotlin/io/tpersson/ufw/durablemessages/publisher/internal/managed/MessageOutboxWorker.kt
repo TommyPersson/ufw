@@ -37,6 +37,7 @@ public class MessageOutboxWorker @Inject constructor(
     private val isEnabled = configProvider.get(Configs.DurableMessages.OutboxWorkerEnabled)
     private val pollInterval = configProvider.get(Configs.DurableMessages.OutboxWorkerInterval)
     private val batchSize = configProvider.get(Configs.DurableMessages.OutboxWorkerBatchSize)
+    private val lockStalenessAge = configProvider.get(Configs.DurableMessages.OutboxWorkerLockStalenessAge)
 
     private val lock = databaseLocks.create("MessageOutboxWorker", UUID.randomUUID().toString())
 
@@ -53,8 +54,7 @@ public class MessageOutboxWorker @Inject constructor(
     }
 
     private suspend fun runOnce() {
-        // TODO handle stale locks
-        val lockHandle = lock.tryAcquire() ?: return
+        val lockHandle = lock.tryAcquire(stealIfOlderThan = lockStalenessAge) ?: return
 
         try {
             while (true) {

@@ -8,13 +8,11 @@ import io.tpersson.ufw.core.component.core
 import io.tpersson.ufw.database.component.installDatabase
 import io.tpersson.ufw.database.component.database
 import io.tpersson.ufw.databasequeue.admin.DatabaseQueueAdminFacadeImpl
-import io.tpersson.ufw.databasequeue.internal.WorkItemFailuresDAOImpl
-import io.tpersson.ufw.databasequeue.internal.WorkItemsDAOImpl
-import io.tpersson.ufw.databasequeue.internal.WorkQueueImpl
-import io.tpersson.ufw.databasequeue.internal.WorkQueuesDAOImpl
+import io.tpersson.ufw.databasequeue.internal.*
 import io.tpersson.ufw.databasequeue.worker.CachingQueueStateCheckerImpl
 import io.tpersson.ufw.databasequeue.worker.DatabaseQueueWorkerFactoryImpl
 import io.tpersson.ufw.databasequeue.worker.SingleWorkItemProcessorFactoryImpl
+import io.tpersson.ufw.managed.component.managed
 
 @UfwDslMarker
 public fun UFWBuilder.Root.installDatabaseQueue(configure: DatabaseQueueComponentBuilderContext.() -> Unit = {}) {
@@ -84,6 +82,21 @@ public class DatabaseQueueComponentBuilder(
             configProvider = components.core.configProvider,
             clock = components.core.clock,
         )
+
+        val hangedItemRescheduler = DatabaseQueueHangedItemRescheduler(
+            workItemsDAO = workItemsDAO,
+            clock = components.core.clock,
+            configProvider = components.core.configProvider,
+        )
+
+        val expiredItemReaper = DatabaseQueueExpiredItemReaper(
+            workItemsDAO = workItemsDAO,
+            clock = components.core.clock,
+            configProvider = components.core.configProvider,
+        )
+
+        components.managed.register(hangedItemRescheduler)
+        components.managed.register(expiredItemReaper)
 
         return DatabaseQueueComponent(
             databaseQueueWorkerFactory = databaseQueueWorkerFactory,

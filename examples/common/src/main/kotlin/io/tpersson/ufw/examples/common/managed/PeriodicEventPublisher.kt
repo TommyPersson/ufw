@@ -18,7 +18,7 @@ public class PeriodicEventPublisher @Inject constructor(
     private val featureToggles: FeatureToggles,
     private val clock: Clock
 ) : ManagedPeriodicTask(
-    interval = Duration.ofMillis(10)
+    interval = Duration.ofMillis(1000)
 ) {
 
     private val featureToggleHandle = featureToggles.get(AppFeatureToggles.PeriodicEventPublisher)

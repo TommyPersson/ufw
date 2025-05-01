@@ -23,6 +23,12 @@ public object DurableMessagesConfigs {
         "outbox-worker-batch-size",
         default = 50
     )
+
+    public val OutboxWorkerLockStalenessAge: ConfigElement<Duration> = ConfigElement.of(
+        "durable-messages",
+        "outbox-worker-lock-staleness-age",
+        default = Duration.ofMinutes(5)
+    )
 }
 
 public val Configs.DurableMessages: DurableMessagesConfigs get() = DurableMessagesConfigs
