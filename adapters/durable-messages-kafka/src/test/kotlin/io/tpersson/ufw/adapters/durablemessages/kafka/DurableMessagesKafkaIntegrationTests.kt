@@ -5,9 +5,12 @@ package io.tpersson.ufw.adapters.durablemessages.kafka
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.tpersson.ufw.adapters.durablemessages.kafka.component.installDurableMessagesKafka
+import io.tpersson.ufw.adapters.durablemessages.kafka.configuration.DurableMessagesKafka
 import io.tpersson.ufw.core.builder.UFW
 import io.tpersson.ufw.core.component.installCore
 import io.tpersson.ufw.core.configuration.ConfigProvider
+import io.tpersson.ufw.core.configuration.Configs
+import io.tpersson.ufw.core.configuration.entry
 import io.tpersson.ufw.database.component.database
 import io.tpersson.ufw.database.component.installDatabase
 import io.tpersson.ufw.database.unitofwork.use
@@ -15,6 +18,7 @@ import io.tpersson.ufw.durablemessages.common.DurableMessage
 import io.tpersson.ufw.durablemessages.common.DurableMessageId
 import io.tpersson.ufw.durablemessages.common.MessageDefinition
 import io.tpersson.ufw.durablemessages.component.durableMessages
+import io.tpersson.ufw.durablemessages.configuration.DurableMessages
 import io.tpersson.ufw.durablemessages.handler.DurableMessageContext
 import io.tpersson.ufw.durablemessages.handler.DurableMessageHandler
 import io.tpersson.ufw.durablemessages.handler.annotations.MessageHandler
@@ -30,6 +34,7 @@ import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.KafkaContainer
 import org.testcontainers.lifecycle.Startables
 import org.testcontainers.utility.DockerImageName
+import java.time.Duration
 import java.time.Instant
 
 internal class DurableMessagesKafkaIntegrationTests {
@@ -58,20 +63,23 @@ internal class DurableMessagesKafkaIntegrationTests {
         val ufw = UFW.build {
             installCore {
                 clock = testClock
-                configProvider = ConfigProvider.fromText("""
-                    [ufw.durable-messages]
-                    outbox-worker-enabled = true
-                    outbox-worker-interval = "PT0.005S"
-                    [ufw.durable-messages.kafka]
-                    consumer-enabled = true
-                    consumer-poll-wait-time = "PT0.005S"
-                    [ufw.durable-messages.kafka.producer]
-                    "bootstrap.servers" = "${kafka.bootstrapServers}"
-                    [ufw.durable-messages.kafka.consumer]
-                    "bootstrap.servers" = "${kafka.bootstrapServers}"
-                    "auto.offset.reset" = "earliest" # The consumer could start after publishes
-                    
-                """.trimIndent(), ConfigProvider.TextFormat.TOML)
+                configProvider = ConfigProvider.fromEntries(
+                    Configs.DurableMessages.OutboxWorkerEnabled.entry(true),
+                    Configs.DurableMessages.OutboxWorkerInterval.entry(Duration.ofMillis(5)),
+                    Configs.DurableMessagesKafka.ConsumerEnabled.entry(true),
+                    Configs.DurableMessagesKafka.ConsumerPollWaitTime.entry(Duration.ofMillis(5)),
+                    Configs.DurableMessagesKafka.Consumer.entry(
+                        mapOf(
+                            "bootstrap.servers" to kafka.bootstrapServers,
+                            "auto.offset.reset" to "earliest", // The consumer could start after publishes
+                        )
+                    ),
+                    Configs.DurableMessagesKafka.Producer.entry(
+                        mapOf(
+                            "bootstrap.servers" to kafka.bootstrapServers,
+                        )
+                    )
+                )
             }
             installDatabase {
                 dataSource = HikariDataSource(config)

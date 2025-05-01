@@ -71,6 +71,14 @@ public interface ConfigProvider {
             return fromText(text, format, basePath, env)
         }
 
+        public fun fromEntries(vararg entries: ConfigEntry<*>): ConfigProvider {
+            return FixedConfigProvider(entries.toSet())
+        }
+
+        public fun fromEntries(entries: Set<ConfigEntry<*>>): ConfigProvider {
+            return FixedConfigProvider(entries)
+        }
+
         public fun default(): ConfigProvider {
             return fromFile("ufw.json", format = TextFormat.JSON)
                 ?: fromFile("ufw.yaml", format = TextFormat.YAML)
@@ -84,7 +92,7 @@ public interface ConfigProvider {
         }
 
         public fun empty(): ConfigProvider {
-            return EmptyConfigProvider()
+            return FixedConfigProvider(emptySet())
         }
 
         private val jsonMapper = ObjectMapper().findAndRegisterModules()

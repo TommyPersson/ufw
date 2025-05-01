@@ -10,6 +10,8 @@ import io.tpersson.ufw.aggregates.exceptions.AggregateVersionConflictException
 import io.tpersson.ufw.core.builder.UFW
 import io.tpersson.ufw.core.component.installCore
 import io.tpersson.ufw.core.configuration.ConfigProvider
+import io.tpersson.ufw.core.configuration.Configs
+import io.tpersson.ufw.core.configuration.entry
 import io.tpersson.ufw.database.component.installDatabase
 import io.tpersson.ufw.database.component.database
 import io.tpersson.ufw.database.unitofwork.UnitOfWork
@@ -20,6 +22,7 @@ import io.tpersson.ufw.durablemessages.common.MessageDefinition
 import io.tpersson.ufw.durablemessages.common.messageDefinition
 import io.tpersson.ufw.test.TestClock
 import io.tpersson.ufw.durablemessages.component.installDurableMessages
+import io.tpersson.ufw.durablemessages.configuration.DurableMessages
 import io.tpersson.ufw.durablemessages.publisher.OutgoingMessage
 import io.tpersson.ufw.durablemessages.publisher.OutgoingMessageTransport
 import io.tpersson.ufw.managed.component.managed
@@ -59,10 +62,9 @@ internal class IntegrationTests {
         val ufw = UFW.build {
             installCore {
                 clock = testClock
-                configProvider = ConfigProvider.fromText("""
-                    [ufw.durable-messages]
-                    outbox-worker-enabled = true
-                """.trimIndent(), ConfigProvider.TextFormat.TOML)
+                configProvider = ConfigProvider.fromEntries(
+                    Configs.DurableMessages.OutboxWorkerEnabled.entry(true),
+                )
             }
             installDatabase {
                 dataSource = HikariDataSource(config)

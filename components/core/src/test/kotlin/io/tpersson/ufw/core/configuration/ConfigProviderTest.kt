@@ -125,6 +125,17 @@ internal class ConfigProviderTest {
         assertThat(configProvider.get(TestConfig.DurationFromEnv)).isEqualTo(Duration.ofSeconds(5))
     }
 
+    @Test
+    fun `Can load from pre-defined entries`() {
+        val configProvider = ConfigProvider.fromEntries(
+            TestConfig.Duration.entry(Duration.ofSeconds(123)),
+        )
+
+        assertThat(configProvider.get(TestConfig.Missing)).isEqualTo(null)
+        assertThat(configProvider.get(TestConfig.NullableWithDefault)).isEqualTo("default")
+        assertThat(configProvider.get(TestConfig.Duration)).isEqualTo(Duration.ofSeconds(123))
+    }
+
     companion object {
         private val env = mapOf("DURATION_FROM_ENV" to "PT20S")
 
