@@ -12,12 +12,14 @@ import io.tpersson.ufw.databasequeue.internal.*
 import io.tpersson.ufw.databasequeue.worker.CachingQueueStateCheckerImpl
 import io.tpersson.ufw.databasequeue.worker.DatabaseQueueWorkerFactoryImpl
 import io.tpersson.ufw.databasequeue.worker.SingleWorkItemProcessorFactoryImpl
+import io.tpersson.ufw.managed.component.installManaged
 import io.tpersson.ufw.managed.component.managed
 
 @UfwDslMarker
 public fun UFWBuilder.Root.installDatabaseQueue(configure: DatabaseQueueComponentBuilderContext.() -> Unit = {}) {
     installCore()
     installDatabase()
+    installManaged()
 
     val ctx = contexts.getOrPut(DatabaseQueueComponent) { DatabaseQueueComponentBuilderContext() }
         .also(configure)
