@@ -1,12 +1,27 @@
-import { Button, CardContent, Divider, TextField, Typography } from "@mui/material"
+import ClearOutlinedIcon from "@mui/icons-material/ClearOutlined"
+import PlayArrowOutlinedIcon from "@mui/icons-material/PlayArrowOutlined"
+import {
+  Alert,
+  Button,
+  CardContent,
+  Divider,
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
+  TextFieldProps,
+  Typography
+} from "@mui/material"
 import { useMutation, useQuery } from "@tanstack/react-query"
-import { useCallback } from "react"
-import { useForm, UseFormReturn, useWatch } from "react-hook-form"
+import { delay } from "es-toolkit"
+import { useCallback, useMemo } from "react"
+import { FieldValues, useForm, UseFormReturn, useWatch } from "react-hook-form"
 import Markdown from "react-markdown"
 import { useParams } from "react-router"
 import {
   ApplicationModuleHeader,
   ErrorAlert,
+  FormTextField,
   JsonBlock,
   Page,
   PageBreadcrumb,
@@ -35,9 +50,9 @@ export const AdminRequestDetailsPage = (props: { requestType: AdminRequestType }
     { text: "Details", current: true }
   ]
 
-  const pageContent = adminRequest ? (
+  const pageContent = adminRequest && (
     <PageContent request={adminRequest} />
-  ) : "not found"
+  )
 
   return (
     <Page
@@ -54,34 +69,61 @@ export const AdminRequestDetailsPage = (props: { requestType: AdminRequestType }
 const PageContent = (props: { request: AdminRequest }) => {
   const { request } = props
 
-  const form = useForm()
+  const form = useForm({
+    mode: "all",
+    defaultValues: getDefaultValues(request),
+  })
+
   const formValues = useWatch(form)
+
+  const requestPreviewBody = useMemo(() => {
+    return formatRequestObject(formValues, request)
+  }, [formValues, request])
 
   const executeMutation = useMutation(ExecuteRequestMutation)
 
-  const handleExecuteClicked = useCallback(async () => {
+  const handleSubmit = useCallback(async (formFields: any) => {
+    const body = formatRequestObject(formFields, request)
     await executeMutation.mutateAsync({
       fqcn: request.fullClassName,
       requestType: request.type,
-      body: formValues
+      body: body
     })
-  }, [executeMutation.mutateAsync, formValues, request])
+    await delay(10)
+    document.getElementById("response-bottom")?.scrollIntoView({ behavior: "smooth" })
+  }, [executeMutation.mutateAsync, request])
+
+  const handleExecuteClicked = useCallback(async () => {
+    executeMutation.reset()
+    await form.handleSubmit(handleSubmit)()
+  }, [executeMutation.mutateAsync, handleSubmit])
 
   const handleClearClicked = executeMutation.reset
+
+  const errors = Object.entries(form.formState.errors)
 
   return (
     <>
       <RequestDetailsSection request={request} />
       <RequestParametersSection request={request} form={form} />
-      <RequestPreviewSection formValues={formValues} />
+      <RequestPreviewSection requestObject={requestPreviewBody} />
+
+      {errors.length > 0 && (
+        <Alert severity={"error"}>
+          One or more fields have validation errors.
+        </Alert>
+      )}
 
       <Button
         variant={"contained"}
         style={{ alignSelf: "flex-start" }}
         onClick={handleExecuteClicked}
         loading={executeMutation.isPending}
+        disabled={errors.length > 0}
+        startIcon={<PlayArrowOutlinedIcon />}
         children={"Execute"}
       />
+
 
       <ResponseSection
         response={executeMutation.data}
@@ -129,11 +171,23 @@ const RequestParametersSection = (props: {
 
   return (
     <PageSectionCard heading={"Parameters"}>
-      <CardContent>
-        {request.parameters.map(it => (
-          <RequestParameterFormControl key={it.name} parameter={it} form={form} />
-        ))}
-      </CardContent>
+      <Table size={"small"}>
+        <TableBody>
+          {request.parameters.map(it => (
+            <TableRow key={it.field}>
+              <TableCell style={{ width: 0, whiteSpace: "nowrap", textAlign: "right" }}>
+                <Typography variant={"body2"}>{it.displayName} {it.required ? "*" : ""}</Typography>
+              </TableCell>
+              <TableCell style={{ width: 0 }}>
+                <RequestParameterFormControl key={it.field} parameter={it} form={form} />
+              </TableCell>
+              <TableCell>
+                <Typography variant={"body2"}>{it.helperText}</Typography>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </PageSectionCard>
   )
 }
@@ -144,29 +198,33 @@ const RequestParameterFormControl = (props: {
 }) => {
   const { parameter, form } = props
 
-  switch (parameter.type) {
-    case "STRING":
-      return (
-        <TextField
-          id={`field-${parameter.name}`}
-          label={parameter.name}
-          helperText={parameter.description}
-          required={parameter.required}
-          size={"small"}
-          slotProps={{
-            input: form.register(parameter.name, {
-              required: parameter.required
-            })
-          }}
-        />
-      )
-  }
+  const baseProps: Partial<TextFieldProps> = useMemo(() => ({
+    id: `field-${parameter.field}`,
+    required: parameter.required,
+    size: "small",
+    slotProps: {
+      inputLabel: {
+        shrink: true,
+      }
+    },
+    ...getTextFieldProps(parameter)
+  }), [parameter])
+
+  return (
+    <FormTextField
+      {...baseProps}
+      field={parameter.field}
+      control={form.control}
+    />
+  )
 }
 
-const RequestPreviewSection = (props: { formValues: any }) => {
+const RequestPreviewSection = (props: { requestObject: any }) => {
   return (
-    <PageSectionCard heading={"Preview"}>
-      <CardContent><JsonBlock json={JSON.stringify(props.formValues)} /></CardContent>
+    <PageSectionCard heading={"Request Body Preview"}>
+      <CardContent>
+        <JsonBlock json={JSON.stringify(props.requestObject)} />
+      </CardContent>
     </PageSectionCard>
   )
 }
@@ -180,20 +238,23 @@ const ResponseSection = (props: { response: any | null, error: any | null, onCle
 
       {response && (
         <>
-          <PageSectionCard heading={"Result"}>
+          <PageSectionCard heading={"Response"}>
             <CardContent>
               <JsonBlock json={JSON.stringify(response.body, null, 2)} />
             </CardContent>
           </PageSectionCard>
 
           <Button
+            id={"clear-button"}
             variant={"contained"}
             style={{ alignSelf: "flex-start" }}
             onClick={onClear}
+            startIcon={<ClearOutlinedIcon />}
             children={"Clear"}
           />
         </>
       )}
+      <div id={"response-bottom"} />
     </>
   )
 }
@@ -204,5 +265,57 @@ function formatPageHeading(requestType: AdminRequestType): string {
       return "Admin Command"
     case "QUERY":
       return "Admin Query"
+  }
+}
+
+function formatRequestObject(formValues: FieldValues, request: AdminRequest): any {
+  return request.parameters.reduce((acc, curr) => ({
+    ...acc,
+    [curr.field]: formatParameterValue(formValues[curr.field], curr)
+  }), {})
+}
+
+function formatParameterValue(value: string | undefined, parameter: AdminRequestParameter): any {
+  if (value?.length === 0 && !parameter.required) {
+    return null
+  }
+
+  if (!value) {
+    return null
+  }
+
+  switch (parameter.type) {
+    case "INTEGER":
+      return parseInt(value)
+    case "DECIMAL":
+      return parseFloat(value)
+    default:
+      return value
+  }
+}
+
+function getDefaultValues(request: AdminRequest): any {
+  return request.parameters.reduce((acc, curr) => ({
+    ...acc,
+    [curr.field]: curr.defaultValue ?? undefined,
+  }), {})
+}
+
+function getTextFieldProps(parameter: AdminRequestParameter): Partial<TextFieldProps> {
+  switch (parameter.type) {
+    case "STRING":
+      return { style: { minWidth: "400px" } }
+    case "INTEGER":
+      return { type: "number" }
+    case "DECIMAL":
+      return { type: "number" }
+    case "LOCAL_DATE":
+      return { type: "date" }
+    case "LOCAL_TIME":
+      return { type: "time" }
+    case "LOCAL_DATE_TIME":
+      return { type: "datetime-local" }
+    default:
+      return {}
   }
 }

@@ -84,12 +84,6 @@ public interface WorkItemsDAO {
         unitOfWork: UnitOfWork,
     )
 
-    public suspend fun pauseQueue(
-        queueId: WorkItemQueueId,
-        now: Instant,
-        unitOfWork: UnitOfWork,
-    )
-
     public suspend fun refreshWatchdog(
         queueId: WorkItemQueueId,
         itemId: WorkItemId,

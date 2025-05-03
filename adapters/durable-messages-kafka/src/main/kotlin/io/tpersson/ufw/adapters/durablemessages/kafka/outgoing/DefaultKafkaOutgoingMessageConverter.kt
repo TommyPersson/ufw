@@ -8,7 +8,6 @@ public class DefaultKafkaOutgoingMessageConverter(
     private val typeHeaderKey: String = "type",
 ) : KafkaOutgoingMessageConverter {
     override fun convert(message: OutgoingMessage): ProducerRecord<ByteArray, ByteArray> {
-        // TODO headers from metadata
         return ProducerRecord<ByteArray, ByteArray>(
             /* topic = */ message.topic,
             /* partition = */ null,

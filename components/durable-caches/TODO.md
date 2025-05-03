@@ -1,4 +1,0 @@
-
-* [ ] Metrics
-  * [ ] Size
-  * [ ] Hit-rate

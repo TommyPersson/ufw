@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.tpersson.ufw.admin.contracts.toApplicationModuleDTO
 import io.tpersson.ufw.core.NamedBindings
 import io.tpersson.ufw.core.utils.findModuleMolecule
+import io.tpersson.ufw.core.utils.nullIfBlank
 import io.tpersson.ufw.mediator.Command
 import io.tpersson.ufw.mediator.Query
 import io.tpersson.ufw.mediator.Request
@@ -13,9 +14,14 @@ import io.tpersson.ufw.mediator.admin.contracts.AdminRequestExecutionResponseDTO
 import io.tpersson.ufw.mediator.admin.contracts.AdminRequestParameterDTO
 import io.tpersson.ufw.mediator.admin.contracts.AdminRequestParameterType
 import io.tpersson.ufw.mediator.annotations.AdminRequest
+import io.tpersson.ufw.mediator.annotations.AdminRequestParameter
 import io.tpersson.ufw.mediator.internal.MediatorInternal
 import jakarta.inject.Inject
 import jakarta.inject.Named
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.OffsetDateTime
 import kotlin.reflect.KType
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.primaryConstructor
@@ -40,11 +46,14 @@ public class AdminRequestsAdminFacadeImpl @Inject constructor(
                 ?: return@mapNotNull null // TODO cache
 
             val parameters = requestClass.primaryConstructor!!.parameters.map {
+                val parameterAnnotation = it.findAnnotation<AdminRequestParameter>()
                 AdminRequestParameterDTO(
-                    name = it.name!!,
+                    field = it.name!!,
+                    displayName = parameterAnnotation?.name?.nullIfBlank() ?: it.name!!,
                     type = getParameterType(it.type),
-                    description = "TODO",
-                    required = !it.isOptional,
+                    helperText = parameterAnnotation?.helperText,
+                    required = !it.type.isMarkedNullable,
+                    defaultValue = parameterAnnotation?.defaultValue?.nullIfBlank(),
                 )
             }
 
@@ -84,7 +93,12 @@ public class AdminRequestsAdminFacadeImpl @Inject constructor(
         return when (type) {
             typeOf<Int>(), typeOf<Long>() -> AdminRequestParameterType.INTEGER
             typeOf<String>() -> AdminRequestParameterType.STRING
-            else -> TODO("not implemented: ${type}")
+            typeOf<Double>() -> AdminRequestParameterType.DECIMAL
+            typeOf<Float>() -> AdminRequestParameterType.STRING
+            typeOf<LocalDate>() -> AdminRequestParameterType.LOCAL_DATE
+            typeOf<LocalTime>() -> AdminRequestParameterType.LOCAL_TIME
+            typeOf<LocalDateTime>() -> AdminRequestParameterType.LOCAL_DATE_TIME
+            else -> AdminRequestParameterType.STRING
         }
     }
 

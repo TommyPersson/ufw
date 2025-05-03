@@ -191,10 +191,6 @@ public class WorkItemsDAOImpl @Inject constructor(
         TODO("Not yet implemented")
     }
 
-    override suspend fun pauseQueue(queueId: WorkItemQueueId, now: Instant, unitOfWork: UnitOfWork) {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun refreshWatchdog(
         queueId: WorkItemQueueId,
         itemId: WorkItemId,

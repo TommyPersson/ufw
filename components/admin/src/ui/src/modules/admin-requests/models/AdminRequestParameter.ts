@@ -2,10 +2,12 @@ import { z } from "zod"
 import { adminRequestParameterTypeSchema } from "./AdminRequestParameterType"
 
 export const adminRequestParameterSchema = z.object({
-  name: z.string(),
+  field: z.string(),
+  displayName: z.string(),
   type: adminRequestParameterTypeSchema,
-  description: z.string(),
+  helperText: z.string().nullable(),
   required: z.boolean(),
+  defaultValue: z.string().nullable(),
 })
 
 export type AdminRequestParameter = z.infer<typeof adminRequestParameterSchema>

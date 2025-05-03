@@ -107,8 +107,4 @@ public class MyJobHandler : DurableJobHandler<MyJob> {
     override suspend fun handle(job: MyJob, context: DurableJobContext) {
         println("${job.greeting}, World!")
     }
-
-    override suspend fun onFailure(job: MyJob, error: Exception, context: DurableJobFailureContext): FailureAction {
-        TODO("Not yet implemented")
-    }
 }

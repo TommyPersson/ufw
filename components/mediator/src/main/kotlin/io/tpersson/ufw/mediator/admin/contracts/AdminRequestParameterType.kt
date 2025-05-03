@@ -5,4 +5,7 @@ public enum class AdminRequestParameterType {
     DECIMAL,
     STRING,
     BOOLEAN,
+    LOCAL_DATE,
+    LOCAL_TIME,
+    LOCAL_DATE_TIME,
 }
